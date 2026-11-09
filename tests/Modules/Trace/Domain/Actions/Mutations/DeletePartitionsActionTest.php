@@ -18,17 +18,39 @@ class DeletePartitionsActionTest extends TestCase
         $to = Carbon::parse('2026-09-29 12:00:00', 'UTC');
 
         $repository = $this->createMock(TraceRepository::class);
-        $repository->expects($this->once())->method('findEndedPartitions')->with($to)->willReturn([
-            new TracePartitionDto(id: '1790676000', rowsCount: 10),
-            new TracePartitionDto(id: '1790679600', rowsCount: 5),
-        ]);
-        $repository->expects($this->exactly(2))->method('dropPartition');
+        $repository
+            ->expects(
+                $this->once()
+            )
+            ->method('findEndedPartitions')
+            ->with($to)
+            ->willReturn([
+                new TracePartitionDto(
+                    id: '1790676000',
+                    rowsCount: 10
+                ),
+                new TracePartitionDto(
+                    id: '1790679600',
+                    rowsCount: 5
+                ),
+            ]);
+        $repository->expects(
+            $this->exactly(2)
+        )->method('dropPartition');
 
         $deleted = new DeletePartitionsAction($repository)->handle($to);
 
-        $this->assertSame(2, $deleted->partitionsCount);
-        $this->assertSame(15, $deleted->tracesCount);
-        $this->assertNull($deleted->exception);
+        $this->assertSame(
+            2,
+            $deleted->partitionsCount
+        );
+        $this->assertSame(
+            15,
+            $deleted->tracesCount
+        );
+        $this->assertNull(
+            $deleted->exception
+        );
     }
 
     public function testFailureKeepsTheHoursDroppedBeforeIt(): void
@@ -36,23 +58,47 @@ class DeletePartitionsActionTest extends TestCase
         $failure = new ClickhouseQueryException('Code: 159. Timeout exceeded');
 
         $repository = $this->createMock(TraceRepository::class);
-        $repository->method('findEndedPartitions')->willReturn([
-            new TracePartitionDto(id: '1790676000', rowsCount: 10),
-            new TracePartitionDto(id: '1790679600', rowsCount: 5),
-            new TracePartitionDto(id: '1790683200', rowsCount: 7),
-        ]);
-        $repository->method('dropPartition')->willReturnCallback(
-            static function (string $partitionId) use ($failure): void {
-                if ($partitionId === '1790679600') {
-                    throw $failure;
+        $repository
+            ->method('findEndedPartitions')
+            ->willReturn([
+                new TracePartitionDto(
+                    id: '1790676000',
+                    rowsCount: 10
+                ),
+                new TracePartitionDto(
+                    id: '1790679600',
+                    rowsCount: 5
+                ),
+                new TracePartitionDto(
+                    id: '1790683200',
+                    rowsCount: 7
+                ),
+            ]);
+        $repository
+            ->method('dropPartition')
+            ->willReturnCallback(
+                static function (string $partitionId) use ($failure): void {
+                    if ($partitionId === '1790679600') {
+                        throw $failure;
+                    }
                 }
-            }
+            );
+
+        $deleted = new DeletePartitionsAction($repository)->handle(
+            Carbon::parse('2026-09-29 12:00:00', 'UTC')
         );
 
-        $deleted = new DeletePartitionsAction($repository)->handle(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
-
-        $this->assertSame(1, $deleted->partitionsCount);
-        $this->assertSame(10, $deleted->tracesCount);
-        $this->assertSame($failure, $deleted->exception);
+        $this->assertSame(
+            1,
+            $deleted->partitionsCount
+        );
+        $this->assertSame(
+            10,
+            $deleted->tracesCount
+        );
+        $this->assertSame(
+            $failure,
+            $deleted->exception
+        );
     }
 }

@@ -140,9 +140,10 @@ readonly class TraceTimestampsRepository
         $rows = $this->client->select(
             sql: sprintf(
                 'SELECT %s AS bucket%s FROM traces FINAL WHERE %s AND %s >= {bucketFrom:DateTime64(6, \'UTC\')} '
-                . 'GROUP BY bucket ORDER BY bucket',
+                    . 'GROUP BY bucket ORDER BY bucket',
                 $bucket,
-                $expressions === [] ? '' : ', ' . implode(', ', $expressions),
+                $expressions === [] ? '' : ', '
+                    . implode(', ', $expressions),
                 $condition->sql,
                 $bucket
             ),
@@ -190,7 +191,9 @@ readonly class TraceTimestampsRepository
             $emptyIndicators[] = new TraceTimestampFieldDto(
                 field: $fieldName,
                 indicators: array_map(
-                    static fn(TraceMetricFieldAggregatorEnum $aggregation) => new TraceTimestampFieldIndicatorDto(
+                    static fn(
+                        TraceMetricFieldAggregatorEnum $aggregation
+                    ) => new TraceTimestampFieldIndicatorDto(
                         name: $aggregation->value,
                         value: 0,
                     ),

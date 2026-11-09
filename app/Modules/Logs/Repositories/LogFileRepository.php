@@ -53,7 +53,9 @@ readonly class LogFileRepository
 
     public function stat(string $path): LogFileStatObject
     {
-        $stat = Files::stat(path: $path);
+        $stat = Files::stat(
+            path: $path
+        );
 
         return new LogFileStatObject(
             exists: $stat->exists && $stat->isFile,
@@ -78,7 +80,10 @@ readonly class LogFileRepository
 
     public function delete(string $path): bool
     {
-        return Files::delete(path: $path, missingOk: true);
+        return Files::delete(
+            path: $path,
+            missingOk: true
+        );
     }
 
     /**
@@ -86,6 +91,9 @@ readonly class LogFileRepository
      */
     public function readChunks(string $path): iterable
     {
-        yield from Files::readChunks(path: $path, bufferSizeBytes: 256 * 1024);
+        yield from Files::readChunks(
+            path: $path,
+            bufferSizeBytes: 256 * 1024
+        );
     }
 }

@@ -12,13 +12,17 @@ use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 
 readonly class UpdateChannelByAdminUseCase
 {
-    public function __construct(private FindTypedChannelAction $findTypedChannelAction, private UpdateChannelAction $updateChannelAction)
-    {
+    public function __construct(
+        private FindTypedChannelAction $findTypedChannelAction,
+        private UpdateChannelAction $updateChannelAction
+    ) {
     }
 
     /** @throws NotificationChannelNotFoundException */
-    public function handle(UpdateChannelParameters $parameters, NotificationChannelTypeEnum $type): void
-    {
+    public function handle(
+        UpdateChannelParameters $parameters,
+        NotificationChannelTypeEnum $type
+    ): void {
         $this->findTypedChannelAction->handle(
             id: $parameters->id,
             type: $type,

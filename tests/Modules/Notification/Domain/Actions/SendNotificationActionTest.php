@@ -36,9 +36,16 @@ class SendNotificationActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())->method('markSent')->with('68be1f000000000000000001', Carbon::now());
+        $repository
+            ->expects(
+                $this->once()
+            )
+            ->method('markSent')
+            ->with('68be1f000000000000000001', Carbon::now());
 
-        $repository->expects($this->never())->method('markFailed');
+        $repository->expects(
+            $this->never()
+        )->method('markFailed');
 
         $result = $this
             ->action(
@@ -54,7 +61,9 @@ class SendNotificationActionTest extends TestCase
                 )
             );
 
-        $this->assertTrue($result->delivered);
+        $this->assertTrue(
+            $result->delivered
+        );
     }
 
     public function testTheTextGoesOutAsItWasComposed(): void
@@ -62,7 +71,9 @@ class SendNotificationActionTest extends TestCase
         $sender = $this->createMock(TelegramSender::class);
 
         $sender
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('send')
             ->with($this->channel(), 'a watcher went off')
             ->willReturn(
@@ -88,7 +99,12 @@ class SendNotificationActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())->method('markFailed')->with('68be1f000000000000000001', 'boom');
+        $repository
+            ->expects(
+                $this->once()
+            )
+            ->method('markFailed')
+            ->with('68be1f000000000000000001', 'boom');
 
         $result = $this
             ->action(
@@ -105,16 +121,25 @@ class SendNotificationActionTest extends TestCase
                 )
             );
 
-        $this->assertFalse($result->delivered);
+        $this->assertFalse(
+            $result->delivered
+        );
 
-        $this->assertFalse($result->permanent);
+        $this->assertFalse(
+            $result->permanent
+        );
     }
 
     public function testARefusalIsHandedBackAsPermanent(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())->method('markFailed')->with('68be1f000000000000000001', 'Unauthorized');
+        $repository
+            ->expects(
+                $this->once()
+            )
+            ->method('markFailed')
+            ->with('68be1f000000000000000001', 'Unauthorized');
 
         $result = $this
             ->action(
@@ -132,7 +157,9 @@ class SendNotificationActionTest extends TestCase
                 )
             );
 
-        $this->assertTrue($result->permanent);
+        $this->assertTrue(
+            $result->permanent
+        );
     }
 
     public function testARowWhoseChannelIsGoneIsRefusedWithoutASend(): void
@@ -140,13 +167,17 @@ class SendNotificationActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
 
         $repository
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('markFailed')
             ->with('68be1f000000000000000001', 'Channel [42] is gone');
 
         $sender = $this->createMock(TelegramSender::class);
 
-        $sender->expects($this->never())->method('send');
+        $sender->expects(
+            $this->never()
+        )->method('send');
 
         $result = (new SendNotificationAction(
             types: $this->channelTypes(
@@ -162,7 +193,9 @@ class SendNotificationActionTest extends TestCase
             )
         );
 
-        $this->assertTrue($result->permanent);
+        $this->assertTrue(
+            $result->permanent
+        );
     }
 
     public function testARowWhoseChannelIsDisabledIsRefusedWithoutASend(): void
@@ -170,7 +203,9 @@ class SendNotificationActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
 
         $repository
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('markFailed')
             ->with(
                 '68be1f000000000000000001',
@@ -179,7 +214,9 @@ class SendNotificationActionTest extends TestCase
 
         $sender = $this->createMock(TelegramSender::class);
 
-        $sender->expects($this->never())->method('send');
+        $sender->expects(
+            $this->never()
+        )->method('send');
 
         $result = (new SendNotificationAction(
             types: $this->channelTypes(
@@ -195,11 +232,15 @@ class SendNotificationActionTest extends TestCase
             )
         );
 
-        $this->assertTrue($result->permanent);
+        $this->assertTrue(
+            $result->permanent
+        );
     }
 
-    private function action(NotificationRepository $repository, SendResultObject $result): SendNotificationAction
-    {
+    private function action(
+        NotificationRepository $repository,
+        SendResultObject $result
+    ): SendNotificationAction {
         $sender = $this->createMock(TelegramSender::class);
 
         $sender->method('send')->willReturn($result);

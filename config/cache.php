@@ -3,7 +3,6 @@
 use Illuminate\Support\Str;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Cache Store
@@ -15,10 +14,8 @@ return [
     |
     */
 
-    'default' => env('CACHE_DRIVER', 'file'),
-
+    'default'     => env('CACHE_DRIVER', 'file'),
     'mutex_store' => env('MUTEX_CACHE_STORE', 'sconcur_redis'),
-
     /*
     |--------------------------------------------------------------------------
     | Cache Stores
@@ -34,33 +31,28 @@ return [
     */
 
     'stores' => [
-
         'apc' => [
             'driver' => 'apc',
         ],
-
         'array' => [
-            'driver' => 'array',
+            'driver'    => 'array',
             'serialize' => false,
         ],
-
         'database' => [
-            'driver' => 'database',
-            'table' => 'cache',
-            'connection' => null,
+            'driver'          => 'database',
+            'table'           => 'cache',
+            'connection'      => null,
             'lock_connection' => null,
         ],
-
         'file' => [
-            'driver' => 'file',
-            'path' => storage_path('framework/cache/data'),
+            'driver'    => 'file',
+            'path'      => storage_path('framework/cache/data'),
             'lock_path' => storage_path('framework/cache/data'),
         ],
-
         'memcached' => [
-            'driver' => 'memcached',
+            'driver'        => 'memcached',
             'persistent_id' => env('MEMCACHED_PERSISTENT_ID'),
-            'sasl' => [
+            'sasl'          => [
                 env('MEMCACHED_USERNAME'),
                 env('MEMCACHED_PASSWORD'),
             ],
@@ -69,30 +61,26 @@ return [
             ],
             'servers' => [
                 [
-                    'host' => env('MEMCACHED_HOST', '127.0.0.1'),
-                    'port' => env('MEMCACHED_PORT', 11211),
+                    'host'   => env('MEMCACHED_HOST', '127.0.0.1'),
+                    'port'   => env('MEMCACHED_PORT', 11211),
                     'weight' => 100,
                 ],
             ],
         ],
-
         'sconcur_redis' => [
-            'driver' => 'sconcur_redis',
-            'connection' => 'cache',
+            'driver'          => 'sconcur_redis',
+            'connection'      => 'cache',
             'lock_connection' => 'default',
         ],
-
         'dynamodb' => [
-            'driver' => 'dynamodb',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-            'table' => env('DYNAMODB_CACHE_TABLE', 'cache'),
+            'driver'   => 'dynamodb',
+            'key'      => env('AWS_ACCESS_KEY_ID'),
+            'secret'   => env('AWS_SECRET_ACCESS_KEY'),
+            'region'   => env('AWS_DEFAULT_REGION', 'us-east-1'),
+            'table'    => env('DYNAMODB_CACHE_TABLE', 'cache'),
             'endpoint' => env('DYNAMODB_ENDPOINT'),
         ],
-
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Cache Key Prefix
@@ -104,6 +92,9 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
-
+    'prefix' => env(
+        'CACHE_PREFIX',
+        Str::slug(env('APP_NAME', 'laravel'), '_')
+            . '_cache_'
+    ),
 ];

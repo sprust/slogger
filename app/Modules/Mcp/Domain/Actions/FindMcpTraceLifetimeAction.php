@@ -9,8 +9,9 @@ use App\Modules\Setting\Enums\SettingKeyEnum;
 
 readonly class FindMcpTraceLifetimeAction
 {
-    public function __construct(private FindSettingValueAction $findSettingValueAction)
-    {
+    public function __construct(
+        private FindSettingValueAction $findSettingValueAction
+    ) {
     }
 
     public function handle(): int

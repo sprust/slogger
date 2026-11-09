@@ -34,11 +34,11 @@ readonly class QueueRoutePolicy
             key: 'sconcur.queue.rabbitmq.queues',
             default: [],
         );
-        $allowed = $connectionName !== '' && $queueName !== '' && ($driver === 'sync' || $driver === 'sconcur_rabbitmq' && $connectionName === $rabbitmqConnection && is_array($rabbitmqQueues) && in_array(
-            $queueName,
-            $rabbitmqQueues,
-            true,
-        ));
+        $allowed = $connectionName !== '' && $queueName !== ''
+            && ($driver === 'sync'
+                || $driver === 'sconcur_rabbitmq' && $connectionName === $rabbitmqConnection
+                    && is_array($rabbitmqQueues)
+                    && in_array($queueName, $rabbitmqQueues, true));
 
         return new QueueRouteObject(
             connection: $connectionName,

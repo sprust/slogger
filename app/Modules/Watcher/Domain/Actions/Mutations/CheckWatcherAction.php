@@ -20,8 +20,13 @@ use Throwable;
  */
 readonly class CheckWatcherAction
 {
-    public function __construct(private WatcherTypeRegistry $types, private RegisterTriggerAction $registerTriggerAction, private TrimWatcherTimelineAction $trimTimelineAction, private WatcherRepository $watcherRepository, private LoggerInterface $logger)
-    {
+    public function __construct(
+        private WatcherTypeRegistry $types,
+        private RegisterTriggerAction $registerTriggerAction,
+        private TrimWatcherTimelineAction $trimTimelineAction,
+        private WatcherRepository $watcherRepository,
+        private LoggerInterface $logger
+    ) {
     }
 
     public function handle(CheckWatcherParameters $parameters): void

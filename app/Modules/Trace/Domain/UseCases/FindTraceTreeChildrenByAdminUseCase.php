@@ -9,12 +9,17 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
 
 readonly class FindTraceTreeChildrenByAdminUseCase
 {
-    public function __construct(private FindTraceTreeChildrenAction $findTraceTreeChildrenAction)
-    {
+    public function __construct(
+        private FindTraceTreeChildrenAction $findTraceTreeChildrenAction
+    ) {
     }
 
-    public function handle(string $rootTraceId, ?string $parentTraceId, ?string $cursor, int $limit): TraceTreeChildrenObject
-    {
+    public function handle(
+        string $rootTraceId,
+        ?string $parentTraceId,
+        ?string $cursor,
+        int $limit
+    ): TraceTreeChildrenObject {
         return $this->findTraceTreeChildrenAction->handle(
             rootTraceId: $rootTraceId,
             parentTraceId: $parentTraceId,

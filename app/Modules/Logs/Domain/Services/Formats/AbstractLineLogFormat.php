@@ -36,7 +36,11 @@ abstract readonly class AbstractLineLogFormat implements LogFormatInterface
                 $timeText = $matches[1][$index];
 
                 if ($timeText === '') {
-                    $starts[] = new LogEntryStartObject(offset: $offset, loggedAt: null, level: 0);
+                    $starts[] = new LogEntryStartObject(
+                        offset: $offset,
+                        loggedAt: null,
+                        level: 0
+                    );
                 } else {
                     if ($timeText !== $lastText) {
                         $lastText = $timeText;

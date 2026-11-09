@@ -41,7 +41,11 @@ class WsKeysGenerateCommand extends Command
 
         $env = (string) file_get_contents($envPath);
 
-        if (!$this->option('force') && $this->isFilled($env, 'SCONCUR_WS_APP_KEY') && $this->isFilled($env, 'SCONCUR_WS_APP_SECRET')) {
+        if (
+            !$this->option('force')
+            && $this->isFilled($env, 'SCONCUR_WS_APP_KEY')
+            && $this->isFilled($env, 'SCONCUR_WS_APP_SECRET')
+        ) {
             $this->components->info('The ws credentials are already set; use --force to replace them.');
 
             return self::SUCCESS;
@@ -111,10 +115,13 @@ class WsKeysGenerateCommand extends Command
      */
     private function set(string $env, string $name, string $value): string
     {
-        $pattern = '/^' . preg_quote($name, '/') . '=.*$/m';
+        $pattern = '/^'
+            . preg_quote($name, '/')
+            . '=.*$/m';
 
         if (preg_match($pattern, $env) !== 1) {
-            return rtrim($env, "\n") . "\n$name=$value\n";
+            return rtrim($env, "\n")
+                . "\n$name=$value\n";
         }
 
         return (string) preg_replace($pattern, "$name=$value", $env, 1);

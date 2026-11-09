@@ -8,7 +8,9 @@ use App\Modules\Mcp\Enums\TraceDataFilterCompNumericTypeEnum;
 
 readonly class TraceDataFilterNumericParameters
 {
-    public function __construct(public int|float $value, public TraceDataFilterCompNumericTypeEnum $comp)
-    {
+    public function __construct(
+        public int|float $value,
+        public TraceDataFilterCompNumericTypeEnum $comp
+    ) {
     }
 }

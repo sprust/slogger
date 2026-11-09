@@ -28,8 +28,12 @@ readonly class FindTracesAction
     // MCP search_traces asks for 50
     private const int MAX_PER_PAGE = 50;
 
-    public function __construct(private TraceRepository $traceRepository, private FindTraceSearchScopeAction $findTraceSearchScopeAction, private TraceTreeCacheRepository $traceTreeCacheRepository, private FindTraceServicesAction $findTraceServicesAction)
-    {
+    public function __construct(
+        private TraceRepository $traceRepository,
+        private FindTraceSearchScopeAction $findTraceSearchScopeAction,
+        private TraceTreeCacheRepository $traceTreeCacheRepository,
+        private FindTraceServicesAction $findTraceServicesAction
+    ) {
     }
 
     /**
@@ -64,15 +68,10 @@ readonly class FindTracesAction
                 ),
                 perPage: $perPage,
             );
-        } elseif (
-            !is_null($traceIds) && count($traceIds) > self::TRACE_IDS_PER_QUERY
-        ) {
+        } elseif (!is_null($traceIds) && count($traceIds) > self::TRACE_IDS_PER_QUERY) {
             $tracesDto = $this->searchInBatches(
                 parameters: $parameters,
-                traceIdsBatches: array_chunk(
-                    array_values($traceIds),
-                    self::TRACE_IDS_PER_QUERY,
-                ),
+                traceIdsBatches: array_chunk(array_values($traceIds), self::TRACE_IDS_PER_QUERY),
                 perPage: $perPage,
             );
         } else {
@@ -93,7 +92,9 @@ readonly class FindTracesAction
         $resultItems = [];
 
         foreach ($tracesDto as $traceDto) {
-            $service       = $traceDto->serviceId ? $traceServices->getById($traceDto->serviceId) : null;
+            $service       = $traceDto->serviceId
+                ? $traceServices->getById($traceDto->serviceId)
+                : null;
             $resultItems[] = new TraceItemObject(
                 trace: new TraceItemTraceObject(
                     service: $service ? new TraceServiceObject(
@@ -137,8 +138,12 @@ readonly class FindTracesAction
      *
      * @throws ClickhouseQueryException
      */
-    private function search(TraceFindParameters $parameters, ?array $traceIds, int $page, int $perPage): array
-    {
+    private function search(
+        TraceFindParameters $parameters,
+        ?array $traceIds,
+        int $page,
+        int $perPage
+    ): array {
         return $this->traceRepository->find(
             page: $page,
             perPage: $perPage,
@@ -169,8 +174,11 @@ readonly class FindTracesAction
      *
      * @throws ClickhouseQueryException
      */
-    private function searchInBatches(TraceFindParameters $parameters, iterable $traceIdsBatches, int $perPage): array
-    {
+    private function searchInBatches(
+        TraceFindParameters $parameters,
+        iterable $traceIdsBatches,
+        int $perPage
+    ): array {
         $needed = $parameters->page * $perPage;
         $found  = [];
 
@@ -187,11 +195,7 @@ readonly class FindTracesAction
             );
         }
 
-        return array_slice(
-            $found,
-            ($parameters->page - 1) * $perPage,
-            $perPage,
-        );
+        return array_slice($found, ($parameters->page - 1) * $perPage, $perPage);
     }
 
     /**
@@ -208,9 +212,7 @@ readonly class FindTracesAction
         $leftCount  = count($left);
         $rightCount = count($right);
 
-        while (
-            count($merged) < $limit && ($leftIndex < $leftCount || $rightIndex < $rightCount)
-        ) {
+        while (count($merged) < $limit && ($leftIndex < $leftCount || $rightIndex < $rightCount)) {
             if ($leftIndex >= $leftCount) {
                 $merged[] = $right[$rightIndex++];
 
@@ -241,10 +243,7 @@ readonly class FindTracesAction
             return $leftLoggedAt > $rightLoggedAt;
         }
 
-        return strcmp(
-            $left->id,
-            $right->id,
-        ) <= 0;
+        return strcmp($left->id, $right->id) <= 0;
     }
 
     /**
@@ -252,8 +251,10 @@ readonly class FindTracesAction
      *
      * @return TraceDataAdditionalFieldObject[]
      */
-    private function makeTraceAdditionalFields(TraceDataObject $data, array $additionalFields): array
-    {
+    private function makeTraceAdditionalFields(
+        TraceDataObject $data,
+        array $additionalFields
+    ): array {
         $additionalFieldValues = [];
 
         foreach ($additionalFields as $additionalField) {
@@ -261,12 +262,7 @@ readonly class FindTracesAction
             $currentChildren = $data->children ?: [];
             $currentKey      = '';
 
-            foreach (
-                explode(
-                    '.',
-                    $additionalField,
-                ) as $key
-            ) {
+            foreach (explode('.', $additionalField) as $key) {
                 $currentKey .= ($currentKey ? '.' : '') . $key;
 
                 $currentData = Arr::first(
@@ -291,9 +287,7 @@ readonly class FindTracesAction
 
             $additionalFieldValues[] = new TraceDataAdditionalFieldObject(
                 key: $additionalField,
-                values: [
-                    $currentData->value,
-                ],
+                values: [$currentData->value],
             );
         }
 

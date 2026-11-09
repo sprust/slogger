@@ -13,9 +13,7 @@ class OaServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->commands([
-            OaGenerateCommand::class,
-        ]);
+        $this->commands([OaGenerateCommand::class]);
     }
 
     public function boot(): void
@@ -24,8 +22,11 @@ class OaServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->publishes([
-            __DIR__ . '/../config/oa-generator.php' => config_path('oa-generator.php'),
-        ], ['ifksco-openapi-generator']);
+        $this->publishes(
+            [
+                __DIR__ . '/../config/oa-generator.php' => config_path('oa-generator.php'),
+            ],
+            ['ifksco-openapi-generator']
+        );
     }
 }

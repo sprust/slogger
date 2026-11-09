@@ -10,8 +10,9 @@ use App\Modules\Dashboard\Infrastructure\Http\Resources\DatabaseStatListResource
 
 readonly class DatabaseStatController
 {
-    public function __construct(private FindDatabaseStatCacheByAdminUseCase $findDatabaseStatCacheByAdminUseCase)
-    {
+    public function __construct(
+        private FindDatabaseStatCacheByAdminUseCase $findDatabaseStatCacheByAdminUseCase
+    ) {
     }
 
     /**
@@ -19,6 +20,8 @@ readonly class DatabaseStatController
      */
     public function index(): DatabaseStatListResource
     {
-        return new DatabaseStatListResource($this->findDatabaseStatCacheByAdminUseCase->handle());
+        return new DatabaseStatListResource(
+            $this->findDatabaseStatCacheByAdminUseCase->handle()
+        );
     }
 }

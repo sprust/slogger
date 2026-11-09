@@ -43,26 +43,29 @@ readonly class InvestigateErrorsPrompt implements McpPromptInterface
 
     public function text(array $arguments): string
     {
-        return implode("\n", [
-            sprintf(
-                'Find out why traces of service "%s" fail over %s.',
-                $arguments['service'] ?? '',
-                $arguments['period'] ?? ''
-            ),
-            '',
-            'Steps:',
-            '1. get_services to resolve the service id.',
-            '2. aggregate_traces with statuses ["failed"] and by ["hour"] (or ["minute10"] for a few hours) '
-            . 'to see when failures happen and how many.',
-            '3. get_incidents: a watcher may already know when the problem started.',
-            '4. In the window with the most failures: aggregate_traces with statuses ["failed"] and by '
-            . '["service", "type"] for what fails, compare_trace_groups with group_a_statuses ["failed"] by '
-            . 'type, tag or a data key for what the failed traces have in common, then search_traces with '
-            . 'statuses ["failed"] for the traces themselves.',
-            '5. For a few failed traces: get_trace, get_trace_tree and search_trace_tree with statuses ["failed"] '
-            . 'to find the call that failed; get_trace_data only for the traces that explain it.',
-            '',
-            'Answer with the cause, the time window, the trace ids behind every claim and what was not checked.',
-        ]);
+        return implode(
+            "\n",
+            [
+                sprintf(
+                    'Find out why traces of service "%s" fail over %s.',
+                    $arguments['service'] ?? '',
+                    $arguments['period'] ?? ''
+                ),
+                '',
+                'Steps:',
+                '1. get_services to resolve the service id.',
+                '2. aggregate_traces with statuses ["failed"] and by ["hour"] (or ["minute10"] for a few hours) '
+                    . 'to see when failures happen and how many.',
+                '3. get_incidents: a watcher may already know when the problem started.',
+                '4. In the window with the most failures: aggregate_traces with statuses ["failed"] and by '
+                    . '["service", "type"] for what fails, compare_trace_groups with group_a_statuses ["failed"] by '
+                    . 'type, tag or a data key for what the failed traces have in common, then search_traces with '
+                    . 'statuses ["failed"] for the traces themselves.',
+                '5. For a few failed traces: get_trace, get_trace_tree and search_trace_tree with statuses ["failed"] '
+                    . 'to find the call that failed; get_trace_data only for the traces that explain it.',
+                '',
+                'Answer with the cause, the time window, the trace ids behind every claim and what was not checked.',
+            ]
+        );
     }
 }

@@ -9,8 +9,10 @@ use Illuminate\Support\Carbon;
 
 readonly class UserTokenFactory
 {
-    public function __construct(private UserTokenRepository $userTokenRepository, private UserFactory $userFactory)
-    {
+    public function __construct(
+        private UserTokenRepository $userTokenRepository,
+        private UserFactory $userFactory
+    ) {
     }
 
     public function create(

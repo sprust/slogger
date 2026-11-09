@@ -33,17 +33,20 @@ readonly class SconcurStatClient
         }
 
         try {
-            $response = $this->client->get($url, [
-                'headers'         => [
-                    'Authorization' => 'Bearer ' . $token,
-                    // The panel content-negotiates: without this it answers in the
-                    // Prometheus text format, not JSON.
-                    'Accept'        => 'application/json',
-                ],
-                'timeout'         => 2,
-                'connect_timeout' => 1,
-                'http_errors'     => false,
-            ]);
+            $response = $this->client->get(
+                $url,
+                [
+                    'headers'         => [
+                        'Authorization' => 'Bearer ' . $token,
+                        // The panel content-negotiates: without this it answers in the
+                        // Prometheus text format, not JSON.
+                        'Accept'        => 'application/json',
+                    ],
+                    'timeout'         => 2,
+                    'connect_timeout' => 1,
+                    'http_errors'     => false,
+                ]
+            );
 
             if ($response->getStatusCode() !== 200) {
                 return $this->unavailable();
@@ -71,7 +74,10 @@ readonly class SconcurStatClient
 
         $groups = $this->orderByConfig(
             $this->withSilentGroups(
-                array_map($this->mapGroup(...), array_values((array) ($data['groups'] ?? []))),
+                array_map(
+                    $this->mapGroup(...),
+                    array_values((array) ($data['groups'] ?? []))
+                ),
             ),
         );
 
@@ -93,7 +99,10 @@ readonly class SconcurStatClient
             masterMemoryPssBytes: (int) ($master['memory']['pssBytes'] ?? 0),
             groups: $groups,
             workers: $this->orderWorkers(
-                array_map($this->mapWorker(...), array_values((array) ($data['workers'] ?? []))),
+                array_map(
+                    $this->mapWorker(...),
+                    array_values((array) ($data['workers'] ?? []))
+                ),
                 $groups,
             ),
         );
@@ -157,7 +166,10 @@ readonly class SconcurStatClient
 
         usort(
             $groups,
-            static fn(SconcurGroupObject $a, SconcurGroupObject $b): int => ($order[$a->name] ?? PHP_INT_MAX)
+            static fn(
+                SconcurGroupObject $a,
+                SconcurGroupObject $b
+            ): int => ($order[$a->name] ?? PHP_INT_MAX)
                 <=> ($order[$b->name] ?? PHP_INT_MAX),
         );
 

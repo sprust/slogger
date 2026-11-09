@@ -16,31 +16,48 @@ class CreateUserTokenActionTest extends TestCase
 
         $stored = null;
 
-        $tokens->expects($this->once())
+        $tokens
+            ->expects(
+                $this->once()
+            )
             ->method('create')
-            ->willReturnCallback(function (int $userId, string $token) use (&$stored): void {
-                $stored = $token;
-            });
+            ->willReturnCallback(
+                function (int $userId, string $token) use (&$stored): void {
+                    $stored = $token;
+                }
+            );
 
         $returned = new CreateUserTokenAction($tokens, new UserTokenLifetimeService())->handle(7);
 
         // The one thing that cannot be allowed to drift: the caller signs in with what
         // this returns, and only what reached the repository will ever be recognised.
-        $this->assertSame($stored, $returned);
-        $this->assertNotSame('', $returned);
+        $this->assertSame(
+            $stored,
+            $returned
+        );
+        $this->assertNotSame(
+            '',
+            $returned
+        );
     }
 
     public function testTheSessionIsOpenedWithTheIdleWindowAhead(): void
     {
         $tokens = $this->createMock(UserTokenRepository::class);
 
-        $tokens->expects($this->once())
+        $tokens
+            ->expects(
+                $this->once()
+            )
             ->method('create')
             ->willReturnCallback(
                 function (int $userId, string $token, Carbon $now, Carbon $expiresAt): void {
                     // The window is measured from the moment the row is stamped with, not
                     // from a second reading of the clock taken somewhere else.
-                    $this->assertSame(7, $userId);
+                    $this->assertSame(
+                        7,
+                        $userId
+                    );
                     $this->assertSame(
                         UserTokenLifetimeService::IDLE_DAYS,
                         (int) $now->diffInDays($expiresAt)

@@ -8,7 +8,6 @@ use PhpCsFixer\Preg;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\Analyzer\WhitespacesAnalyzer;
-
 use const T_WHITESPACE;
 
 /**
@@ -60,16 +59,21 @@ trait MultilineBlockTrait
         for ($index = $openIndex + 1; $index < $closeIndex; ++$index) {
             $token = $tokens[$index];
 
-            if ($token->isWhitespace() && str_contains($token->getContent(), "\n")) {
+            if (
+                $token->isWhitespace()
+                && str_contains($token->getContent(), "\n")
+            ) {
                 // Only a line that starts an item of the block lines up with the block itself.
                 // Everything else — the rest of an item, whatever is nested in it — carries its
                 // own structure, which stays as it is and merely follows the item it belongs to.
-                $startsItem = !$itemsSeparatedByComma || $this->startsItem($tokens, $index, $openIndex);
+                $startsItem = !$itemsSeparatedByComma
+                    || $this->startsItem($tokens, $index, $openIndex);
 
                 if (0 === $depth && $startsItem) {
                     $tokens[$index] = new Token(
                         [
-                            T_WHITESPACE, Preg::replace(
+                            T_WHITESPACE,
+                            Preg::replace(
                                 '/\n[ \t]*$/',
                                 "\n" . $contentIndent,
                                 $token->getContent()
@@ -78,7 +82,8 @@ trait MultilineBlockTrait
                     );
                     $movesDeeper = false;
                 } elseif ($movesDeeper) {
-                    $tokens[$index] = new Token([T_WHITESPACE, str_replace("\n", "\n" . $indentUnit, $token->getContent())]);
+                    $content        = str_replace("\n", "\n" . $indentUnit, $token->getContent());
+                    $tokens[$index] = new Token([T_WHITESPACE, $content]);
                 }
 
                 continue;
@@ -92,7 +97,9 @@ trait MultilineBlockTrait
         }
 
         if ($closeOnItsOwnLine) {
-            $beforeCloseIndex = $tokens[$closeIndex - 1]->isWhitespace() ? $closeIndex - 1 : $closeIndex;
+            $beforeCloseIndex = $tokens[$closeIndex - 1]->isWhitespace()
+                ? $closeIndex - 1
+                : $closeIndex;
             $tokens->ensureWhitespaceAtIndex($beforeCloseIndex, 0, $lineEnding . $indent);
         }
 

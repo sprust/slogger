@@ -62,9 +62,7 @@ readonly class LogTextReader
     private function readRanges(string $path, array $ranges): array
     {
         if (count($ranges) === 1) {
-            return [
-                $this->logFileRepository->read($path, $ranges[0]->offset, $ranges[0]->length),
-            ];
+            return [$this->logFileRepository->read($path, $ranges[0]->offset, $ranges[0]->length)];
         }
 
         $waitGroup = WaitGroup::create(self::CONCURRENCY);
@@ -97,7 +95,10 @@ readonly class LogTextReader
     {
         usort(
             $records,
-            static fn(LogIndexRecordObject $left, LogIndexRecordObject $right): int => $left->offset <=> $right->offset
+            static fn(
+                LogIndexRecordObject $left,
+                LogIndexRecordObject $right
+            ): int => $left->offset <=> $right->offset
         );
 
         $ranges = [];

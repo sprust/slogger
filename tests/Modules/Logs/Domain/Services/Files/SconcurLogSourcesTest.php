@@ -65,7 +65,12 @@ class SconcurLogSourcesTest extends TestCase
     {
         $this->writeLogFile('sconcur-http-server-access-2026-10-28.log', '');
 
-        $keepDays = array_map(static fn(LogFileObject $file): ?int => $file->keepDays, app(LogFileFinder::class)->findAll());
+        $keepDays = array_map(
+            static fn(
+                LogFileObject $file
+            ): ?int => $file->keepDays,
+            app(LogFileFinder::class)->findAll()
+        );
 
         $this->assertSame(
             [(int) config('sconcur.master.rotateDays')],

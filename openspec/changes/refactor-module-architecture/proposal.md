@@ -12,7 +12,8 @@ SLogger уже разделён на модули, но Deptrac проверяе
 - Устранить обращения к чужим Infrastructure и Repositories, сохранить явно разрешённые направления вызовов между Domain модулей.
 - Перенести `DispatcherInterface` с методами `event`, `dispatch`, `report`, `registerJobs`; адаптировать реализацию к Laravel/SConcur и существующим очередям. Зарегистрировать jobs и listeners в провайдерах модулей.
 - Перенести устройство `ModulesConfig` и BaseServiceProvider из PMS: общий список модулей, `onRegister`/`onBoot`, собственные регистраторы команд/jobs/listeners/exception manager и `setSchedule` каждого модуля.
-- Централизовать отображение доменных исключений в HTTP-ошибки, сохранив отдельную обработку JSON-RPC и ошибок MCP tools.
+- Перенести ExceptionManagers, BaseExceptionManager и JsonHttpExceptionResponseObject из PMS: раздельные reportability и JSON rendering, unwrap streamed exceptions. Сохранить HTTP-контракты SLogger и отдельную обработку JSON-RPC/MCP tools.
+- Проверить весь собственный PHP-код на длину строк до 120 (ориентир 100) и вертикальное оформление; закрыть пробелы автоматической проверки и повторно сверить весь перенос с первоисточником.
 - Сохранить примитивы хранения и общий построитель фильтров; разделять чтение и запись только там, где этого требует выделение сценариев. Не переводить ClickHouse и MongoDB на Eloquent-шаблон.
 - Обновить архитектурные инструкции проекта после реализации, включая правила событий, DTO, UseCases и проверки границ.
 

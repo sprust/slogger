@@ -43,9 +43,12 @@ readonly class SlackSender implements NotificationSenderInterface
         }
 
         try {
-            $body = json_encode([
-                'text' => $this->cut($text),
-            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $body = json_encode(
+                [
+                    'text' => $this->cut($text),
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
         } catch (JsonException $exception) {
             return new SendResultObject(
                 delivered: false,
@@ -79,7 +82,11 @@ readonly class SlackSender implements NotificationSenderInterface
      */
     public function escape(string $value): string
     {
-        return str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $value);
+        return str_replace(
+            ['&', '<', '>'],
+            ['&amp;', '&lt;', '&gt;'],
+            $value
+        );
     }
 
     public function bold(string $value): string

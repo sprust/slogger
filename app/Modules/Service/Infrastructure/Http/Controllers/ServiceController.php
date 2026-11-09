@@ -23,14 +23,21 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class ServiceController
 {
-    public function __construct(private FindServicesByAdminUseCase $findServicesByAdminUseCase, private FindServiceByAdminUseCase $findServiceByAdminUseCase, private CreateServiceByAdminUseCase $createServiceByAdminUseCase, private UpdateServiceByAdminUseCase $updateServiceByAdminUseCase, private SortServicesByAdminUseCase $sortServicesByAdminUseCase)
-    {
+    public function __construct(
+        private FindServicesByAdminUseCase $findServicesByAdminUseCase,
+        private FindServiceByAdminUseCase $findServiceByAdminUseCase,
+        private CreateServiceByAdminUseCase $createServiceByAdminUseCase,
+        private UpdateServiceByAdminUseCase $updateServiceByAdminUseCase,
+        private SortServicesByAdminUseCase $sortServicesByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(ServiceResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return ServiceResource::collection($this->findServicesByAdminUseCase->handle());
+        return ServiceResource::collection(
+            $this->findServicesByAdminUseCase->handle()
+        );
     }
 
     public function show(int $id): ServiceDetailResource

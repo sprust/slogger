@@ -41,9 +41,7 @@ class TraceItemTraceResource extends AbstractApiResource
         $this->memory          = $trace->memory;
         $this->cpu             = $trace->cpu;
 
-        $this->additional_fields = TraceDataAdditionalFieldResource::mapIntoMe(
-            $trace->additionalFields
-        );
+        $this->additional_fields = TraceDataAdditionalFieldResource::mapIntoMe($trace->additionalFields);
 
         $this->logged_at  = $trace->loggedAt->toDateTimeString('microsecond');
         $this->created_at = $trace->createdAt->toDateTimeString('microsecond');

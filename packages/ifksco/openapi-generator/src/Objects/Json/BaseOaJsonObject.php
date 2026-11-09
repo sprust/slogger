@@ -42,6 +42,7 @@ abstract class BaseOaJsonObject
 
     private function isPropertyClass(mixed $property): bool
     {
-        return is_object($property) && is_subclass_of($property, self::class);
+        return is_object($property)
+            && is_subclass_of($property, self::class);
     }
 }

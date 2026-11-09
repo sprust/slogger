@@ -29,11 +29,18 @@ readonly class LogIndexRepository
     {
         $path = $this->makeMetaPath($fileId);
 
-        if (!Files::exists(path: $path)) {
+        if (!Files::exists(
+            path: $path
+        )) {
             return null;
         }
 
-        $data = json_decode(Files::read(path: $path), true);
+        $data = json_decode(
+            Files::read(
+                path: $path
+            ),
+            true
+        );
 
         if (!is_array($data)) {
             return null;
@@ -48,7 +55,10 @@ readonly class LogIndexRepository
         $levelCounts = [];
 
         foreach ((array) ($data['levelCounts'] ?? []) as $level => $count) {
-            $levelCounts[] = new LogLevelCountObject(level: (int) $level, count: (int) $count);
+            $levelCounts[] = new LogLevelCountObject(
+                level: (int) $level,
+                count: (int) $count
+            );
         }
 
         return new LogIndexMetaObject(
@@ -136,7 +146,9 @@ readonly class LogIndexRepository
 
     public function countRecords(string $fileId, ?int $level): int
     {
-        $stat = Files::stat(path: $this->makeRecordsPath($fileId, $level));
+        $stat = Files::stat(
+            path: $this->makeRecordsPath($fileId, $level)
+        );
 
         if (!$stat->exists) {
             return 0;
@@ -186,7 +198,9 @@ readonly class LogIndexRepository
      */
     public function findLevels(string $fileId): array
     {
-        if (!Files::exists(path: $this->makeDirectoryPath($fileId))) {
+        if (!Files::exists(
+            path: $this->makeDirectoryPath($fileId)
+        )) {
             return [];
         }
 
@@ -207,11 +221,16 @@ readonly class LogIndexRepository
     {
         $path = $this->makeRecordsPath($fileId, $level);
 
-        if (!Files::exists(path: $path)) {
+        if (!Files::exists(
+            path: $path
+        )) {
             return;
         }
 
-        Files::truncate(path: $path, sizeBytes: $count * self::RECORD_BYTES);
+        Files::truncate(
+            path: $path,
+            sizeBytes: $count * self::RECORD_BYTES
+        );
     }
 
     /**
@@ -219,7 +238,9 @@ readonly class LogIndexRepository
      */
     public function findFileIds(): array
     {
-        if (!Files::exists(path: $this->indexPath)) {
+        if (!Files::exists(
+            path: $this->indexPath
+        )) {
             return [];
         }
 
@@ -245,7 +266,10 @@ readonly class LogIndexRepository
 
     private function makeDirectory(string $fileId): void
     {
-        Files::makeDirectory(path: $this->makeDirectoryPath($fileId), recursive: true);
+        Files::makeDirectory(
+            path: $this->makeDirectoryPath($fileId),
+            recursive: true
+        );
     }
 
     private function makeDirectoryPath(string $fileId): string

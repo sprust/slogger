@@ -110,37 +110,41 @@ class PhpStanRulesTest extends TestCase
             $messages = $result['files'][$root . '/fixture.php']['messages'];
             $inputs   = array_filter(
                 $messages,
-                static fn(array $message): bool => $message['identifier'] === 'architecture.foreignParameters',
+                static fn(
+                    array $message
+                ): bool => $message['identifier'] === 'architecture.foreignParameters',
             );
 
-            self::assertCount(6, $inputs, $process->getOutput());
+            self::assertCount(
+                6,
+                $inputs,
+                $process->getOutput()
+            );
 
             $dependencies = array_filter(
                 $messages,
-                static fn(array $message): bool => $message['identifier'] === 'architecture.domainDependency',
+                static fn(
+                    array $message
+                ): bool => $message['identifier'] === 'architecture.domainDependency',
             );
 
-            self::assertNotEmpty($dependencies);
-
-            $text = implode(
-                "\n",
-                array_column(
-                    $dependencies,
-                    'message',
-                ),
+            self::assertNotEmpty(
+                $dependencies
             );
 
-            foreach (
-                [
-                    'SecondRepository',
-                    'RepositoryUseCase',
-                    'NestedUseCase',
-                ] as $invalid
-            ) {
-                self::assertStringContainsString($invalid, $text);
+            $text = implode("\n", array_column($dependencies, 'message'));
+
+            foreach (['SecondRepository', 'RepositoryUseCase', 'NestedUseCase'] as $invalid) {
+                self::assertStringContainsString(
+                    $invalid,
+                    $text
+                );
             }
 
-            self::assertStringNotContainsString('Allowed', $process->getOutput());
+            self::assertStringNotContainsString(
+                'Allowed',
+                $process->getOutput()
+            );
 
             self::assertCount(
                 count($inputs) + count($dependencies),

@@ -26,8 +26,9 @@ readonly class TraceParametersTransport
         return array_map($this->toTraceDataFilter(...), $filters);
     }
 
-    public function toTraceTreeFilterParameters(TraceTreeFilterParameters $traceTreeFilterParameters): SourceTraceTreeFilterParameters
-    {
+    public function toTraceTreeFilterParameters(
+        TraceTreeFilterParameters $traceTreeFilterParameters
+    ): SourceTraceTreeFilterParameters {
         return new SourceTraceTreeFilterParameters(
             serviceIds: $traceTreeFilterParameters->serviceIds,
             types: $traceTreeFilterParameters->types,
@@ -36,21 +37,32 @@ readonly class TraceParametersTransport
         );
     }
 
-    private function toTraceDataFilter(TraceDataFilterItemParameters $traceDataFilterItemParameters): SourceTraceDataFilterItemParameters
-    {
+    private function toTraceDataFilter(
+        TraceDataFilterItemParameters $traceDataFilterItemParameters
+    ): SourceTraceDataFilterItemParameters {
         return new SourceTraceDataFilterItemParameters(
             field: $traceDataFilterItemParameters->field,
             null: $traceDataFilterItemParameters->null,
             exists: $traceDataFilterItemParameters->exists,
-            numeric: $traceDataFilterItemParameters->numeric === null ? null : new TraceDataFilterNumericParameters(
-                value: $traceDataFilterItemParameters->numeric->value,
-                comp: TraceDataFilterCompNumericTypeEnum::from($traceDataFilterItemParameters->numeric->comp->value),
-            ),
-            string: $traceDataFilterItemParameters->string === null ? null : new TraceDataFilterStringParameters(
-                value: $traceDataFilterItemParameters->string->value,
-                comp: TraceDataFilterCompStringTypeEnum::from($traceDataFilterItemParameters->string->comp->value),
-            ),
-            boolean: $traceDataFilterItemParameters->boolean === null ? null : new TraceDataFilterBooleanParameters($traceDataFilterItemParameters->boolean->value),
+            numeric: $traceDataFilterItemParameters->numeric === null
+                ? null
+                : new TraceDataFilterNumericParameters(
+                    value: $traceDataFilterItemParameters->numeric->value,
+                    comp: TraceDataFilterCompNumericTypeEnum::from(
+                        $traceDataFilterItemParameters->numeric->comp->value
+                    ),
+                ),
+            string: $traceDataFilterItemParameters->string === null
+                ? null
+                : new TraceDataFilterStringParameters(
+                    value: $traceDataFilterItemParameters->string->value,
+                    comp: TraceDataFilterCompStringTypeEnum::from(
+                        $traceDataFilterItemParameters->string->comp->value
+                    ),
+                ),
+            boolean: $traceDataFilterItemParameters->boolean === null
+                ? null
+                : new TraceDataFilterBooleanParameters($traceDataFilterItemParameters->boolean->value),
         );
     }
 }

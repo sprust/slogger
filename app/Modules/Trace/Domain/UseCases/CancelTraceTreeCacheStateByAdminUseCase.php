@@ -10,8 +10,9 @@ use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
 
 readonly class CancelTraceTreeCacheStateByAdminUseCase
 {
-    public function __construct(private CancelTraceTreeCacheStateAction $cancelTraceTreeCacheStateAction)
-    {
+    public function __construct(
+        private CancelTraceTreeCacheStateAction $cancelTraceTreeCacheStateAction
+    ) {
     }
 
     /**

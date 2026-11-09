@@ -64,7 +64,9 @@ readonly class UpdateWatcherAction
             settings: $settings->toArray(),
             traceMatch: $this->matchFactory->toArray($match),
             collectSince: $filterChanged || $deepened || (!$watcher->enabled && $parameters->enabled)
-                ? $this->collectionStart->afterNextReload(Carbon::now())
+                ? $this->collectionStart->afterNextReload(
+                    Carbon::now()
+                )
                 : $watcher->collectSince
         );
     }

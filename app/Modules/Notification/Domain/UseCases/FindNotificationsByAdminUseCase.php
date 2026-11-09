@@ -9,8 +9,9 @@ use App\Modules\Notification\Domain\Actions\Queries\FindNotificationsAction;
 
 readonly class FindNotificationsByAdminUseCase
 {
-    public function __construct(private FindNotificationsAction $findNotificationsAction)
-    {
+    public function __construct(
+        private FindNotificationsAction $findNotificationsAction
+    ) {
     }
 
     /**

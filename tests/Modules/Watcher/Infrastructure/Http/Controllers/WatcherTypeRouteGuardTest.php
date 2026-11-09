@@ -20,15 +20,25 @@ class WatcherTypeRouteGuardTest extends TestCase
     {
         $updateAction = $this->createMock(UpdateWatcherAction::class);
 
-        $updateAction->expects($this->never())->method('handle');
+        $updateAction->expects(
+            $this->never()
+        )->method('handle');
 
         $controller = new SlowTracesWatcherController(
-            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase($this->createMock(CreateWatcherAction::class)),
+            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase(
+                $this->createMock(CreateWatcherAction::class)
+            ),
             updateWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\UpdateWatcherByAdminUseCase(
-                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction($this->findWatcherAction(WatcherTypeEnum::ManyTraces)),
+                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::ManyTraces)
+                ),
                 updateWatcherAction: $updateAction,
             ),
-            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction($this->findWatcherAction(WatcherTypeEnum::ManyTraces))),
+            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(
+                new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::ManyTraces)
+                )
+            ),
         );
 
         $this->expectException(WatcherNotFoundException::class);
@@ -43,15 +53,25 @@ class WatcherTypeRouteGuardTest extends TestCase
     {
         $updateAction = $this->createMock(UpdateWatcherAction::class);
 
-        $updateAction->expects($this->once())->method('handle');
+        $updateAction->expects(
+            $this->once()
+        )->method('handle');
 
         $controller = new SlowTracesWatcherController(
-            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase($this->createMock(CreateWatcherAction::class)),
+            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase(
+                $this->createMock(CreateWatcherAction::class)
+            ),
             updateWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\UpdateWatcherByAdminUseCase(
-                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction($this->findWatcherAction(WatcherTypeEnum::SlowTraces)),
+                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::SlowTraces)
+                ),
                 updateWatcherAction: $updateAction,
             ),
-            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction($this->findWatcherAction(WatcherTypeEnum::SlowTraces))),
+            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(
+                new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::SlowTraces)
+                )
+            ),
         );
 
         $controller->update(
@@ -63,12 +83,20 @@ class WatcherTypeRouteGuardTest extends TestCase
     public function testEditingAWatcherThatIsNotThereIsNotFound(): void
     {
         $controller = new SlowTracesWatcherController(
-            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase($this->createMock(CreateWatcherAction::class)),
+            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase(
+                $this->createMock(CreateWatcherAction::class)
+            ),
             updateWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\UpdateWatcherByAdminUseCase(
-                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction($this->findWatcherAction(null)),
+                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(null)
+                ),
                 updateWatcherAction: $this->createMock(UpdateWatcherAction::class),
             ),
-            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction($this->findWatcherAction(null))),
+            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(
+                new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(null)
+                )
+            ),
         );
 
         $this->expectException(WatcherNotFoundException::class);
@@ -111,7 +139,11 @@ class WatcherTypeRouteGuardTest extends TestCase
     {
         $action = $this->createMock(FindWatcherAction::class);
 
-        $action->method('handle')->willReturn(is_null($storedType) ? null : $this->watcher($storedType));
+        $action
+            ->method('handle')
+            ->willReturn(
+                is_null($storedType) ? null : $this->watcher($storedType)
+            );
 
         return $action;
     }

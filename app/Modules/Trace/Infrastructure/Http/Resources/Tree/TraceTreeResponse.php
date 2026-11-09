@@ -61,7 +61,8 @@ class TraceTreeResponse extends AbstractStreamedApiResource
     private static function chunks(TraceTreeResultObject $resource): Generator
     {
         yield '{"data":{"state":' . new TraceTreeStateResource($resource->state)->toJson()
-            . ',"lazy":' . ($resource->lazy ? 'true' : 'false')
+            . ',"lazy":'
+            . ($resource->lazy ? 'true' : 'false')
             . ',"items":';
 
         if ($resource->items === null) {
@@ -83,7 +84,8 @@ class TraceTreeResponse extends AbstractStreamedApiResource
                 continue;
             }
 
-            yield ($written ? ',' : '') . implode(',', $encoded);
+            yield ($written ? ',' : ''
+            ) . implode(',', $encoded);
 
             $written = true;
 
@@ -91,7 +93,8 @@ class TraceTreeResponse extends AbstractStreamedApiResource
         }
 
         if ($encoded !== []) {
-            yield ($written ? ',' : '') . implode(',', $encoded);
+            yield ($written ? ',' : ''
+            ) . implode(',', $encoded);
         }
 
         yield ']}}';

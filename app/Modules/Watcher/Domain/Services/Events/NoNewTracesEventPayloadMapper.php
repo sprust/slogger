@@ -51,7 +51,9 @@ readonly class NoNewTracesEventPayloadMapper implements WatcherEventPayloadMappe
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof NoNewTracesEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

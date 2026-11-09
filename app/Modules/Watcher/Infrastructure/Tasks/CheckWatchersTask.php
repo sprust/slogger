@@ -44,8 +44,12 @@ class CheckWatchersTask implements TaskInterface
      */
     private ?int $previousMinute = null;
 
-    public function __construct(private readonly FindWatchersAction $findWatchersAction, private readonly FindWatcherBufferCountAction $findWatcherBufferCountAction, private readonly CheckWatcherAction $checkWatcherAction, private readonly TaskPoolLogger $logger)
-    {
+    public function __construct(
+        private readonly FindWatchersAction $findWatchersAction,
+        private readonly FindWatcherBufferCountAction $findWatcherBufferCountAction,
+        private readonly CheckWatcherAction $checkWatcherAction,
+        private readonly TaskPoolLogger $logger
+    ) {
     }
 
     public function name(): string
@@ -76,9 +80,7 @@ class CheckWatchersTask implements TaskInterface
             enabled: true,
         );
 
-        if (
-            !count($enabled)
-        ) {
+        if (!count($enabled)) {
             return TickResultEnum::Idle;
         }
 

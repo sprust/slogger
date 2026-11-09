@@ -11,8 +11,9 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 
 readonly class FindWatcherByAdminUseCase
 {
-    public function __construct(private FindTypedWatcherAction $findTypedWatcherAction)
-    {
+    public function __construct(
+        private FindTypedWatcherAction $findTypedWatcherAction
+    ) {
     }
 
     /** @throws WatcherNotFoundException */

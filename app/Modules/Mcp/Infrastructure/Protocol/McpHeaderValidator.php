@@ -28,7 +28,8 @@ readonly class McpHeaderValidator
             throw $this->mismatch(
                 $message,
                 sprintf(
-                    'Header mismatch: MCP-Protocol-Version header is required; this server supports protocol version %s only',
+                    ('Header mismatch: MCP-Protocol-Version header is required; this '
+                        . 'server supports protocol version %s only'),
                     McpVersionValidator::SUPPORTED_VERSION
                 )
             );
@@ -92,8 +93,12 @@ readonly class McpHeaderValidator
     /**
      * @throws McpProtocolException
      */
-    private function read(McpRequestMessage $message, string $header, ?string $value, bool $encodable): ?string
-    {
+    private function read(
+        McpRequestMessage $message,
+        string $header,
+        ?string $value,
+        bool $encodable
+    ): ?string {
         if (is_null($value) || $value === '') {
             return null;
         }
@@ -105,7 +110,11 @@ readonly class McpHeaderValidator
             );
         }
 
-        if (!$encodable || !str_starts_with($value, '=?base64?') || !str_ends_with($value, '?=')) {
+        if (
+            !$encodable
+            || !str_starts_with($value, '=?base64?')
+            || !str_ends_with($value, '?=')
+        ) {
             return $value;
         }
 

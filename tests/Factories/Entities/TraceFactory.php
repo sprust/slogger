@@ -10,8 +10,10 @@ use Illuminate\Support\Carbon;
 
 readonly class TraceFactory
 {
-    public function __construct(private ClickhouseClient $clickhouseClient, private ServiceFactory $serviceFactory)
-    {
+    public function __construct(
+        private ClickhouseClient $clickhouseClient,
+        private ServiceFactory $serviceFactory
+    ) {
     }
 
     /** @throws ClickhouseQueryException */

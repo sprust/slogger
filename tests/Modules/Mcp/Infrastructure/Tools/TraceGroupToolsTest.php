@@ -52,51 +52,64 @@ class TraceGroupToolsTest extends TestCase
     {
         $result = $this
             ->topTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'service_ids' => [
-                    2,
-                ],
-                'by' => [
-                    'service',
-                    'type',
-                ],
-                'statuses' => [
-                    'failed',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'service_ids' => [2],
+                    'by'          => [
+                        'service',
+                        'type',
+                    ],
+                    'statuses' => ['failed'],
+                ])
+            );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame([
-            'service' => [
-                'id'   => 2,
-                'name' => 'pms',
+        $this->assertSame(
+            [
+                'service' => [
+                    'id'   => 2,
+                    'name' => 'pms',
+                ],
+                'type'             => 'request',
+                'count'            => 12,
+                'duration_avg'     => 0.5,
+                'duration_p95'     => 1.25,
+                'duration_max'     => 2.0,
+                'example_trace_id' => 'slow-1',
             ],
-            'type'             => 'request',
-            'count'            => 12,
-            'duration_avg'     => 0.5,
-            'duration_p95'     => 1.25,
-            'duration_max'     => 2.0,
-            'example_trace_id' => 'slow-1',
-        ], $result->data['groups'][0]);
+            $result->data['groups'][0]
+        );
 
-        $this->assertFalse($result->data['truncated']);
+        $this->assertFalse(
+            $result->data['truncated']
+        );
 
-        $this->assertSame([
-            TraceGroupFieldEnum::Service,
-            TraceGroupFieldEnum::Type,
-        ], $this->groupsParameters?->groupBy);
+        $this->assertSame(
+            [
+                TraceGroupFieldEnum::Service,
+                TraceGroupFieldEnum::Type,
+            ],
+            $this->groupsParameters?->groupBy
+        );
 
-        $this->assertSame(100, $this->groupsParameters->limit);
+        $this->assertSame(
+            100,
+            $this->groupsParameters->limit
+        );
 
-        $this->assertSame([
-            2,
-        ], $this->groupsParameters->serviceIds);
+        $this->assertSame(
+            [2],
+            $this->groupsParameters->serviceIds
+        );
 
-        $this->assertSame([
-            'failed',
-        ], $this->groupsParameters->statuses);
+        $this->assertSame(
+            ['failed'],
+            $this->groupsParameters->statuses
+        );
 
         $this->assertSame(
             '2026-09-28 10:59:59',
@@ -108,21 +121,24 @@ class TraceGroupToolsTest extends TestCase
     {
         $result = $this
             ->topTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'by' => [
-                    'minute10',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'by' => ['minute10'],
+                ])
+            );
 
-        $this->assertSame([
-            'minute10',
-            'count',
-            'duration_avg',
-            'duration_p95',
-            'duration_max',
-            'example_trace_id',
-        ], array_keys($result->data['groups'][0]));
+        $this->assertSame(
+            [
+                'minute10',
+                'count',
+                'duration_avg',
+                'duration_p95',
+                'duration_max',
+                'example_trace_id',
+            ],
+            array_keys($result->data['groups'][0])
+        );
 
         $this->assertSame(
             '2026-09-28T10:10:00Z',
@@ -149,9 +165,7 @@ class TraceGroupToolsTest extends TestCase
                 ],
             ],
             'unknown' => [
-                [
-                    'tag',
-                ],
+                ['tag'],
             ],
             'too many' => [
                 [
@@ -168,39 +182,52 @@ class TraceGroupToolsTest extends TestCase
      * @param string[] $by
      */
     #[DataProvider('invalidGroupBy')]
-    public function testInvalidGroupBy(array $by): void
-    {
+    public function testInvalidGroupBy(
+        array $by
+    ): void {
         $result = $this
             ->topTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'by' => $by,
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'by' => $by,
+                ])
+            );
 
-        $this->assertTrue($result->isError);
+        $this->assertTrue(
+            $result->isError
+        );
 
-        $this->assertSame('invalid_group_by', $result->data['error']);
+        $this->assertSame(
+            'invalid_group_by',
+            $result->data['error']
+        );
 
-        $this->assertNull($this->groupsParameters);
+        $this->assertNull(
+            $this->groupsParameters
+        );
     }
 
     public function testGroupsWithDataFilter(): void
     {
         $result = $this
             ->topTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'by' => [
-                    'type',
-                ],
-                'data_filter' => [
-                    'response.status >= 500',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'by'          => ['type'],
+                    'data_filter' => ['response.status >= 500'],
+                ])
+            );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertCount(1, $this->groupsParameters?->data?->filter ?? []);
+        $this->assertCount(
+            1,
+            $this->groupsParameters?->data?->filter ?? []
+        );
 
         $this->assertSame(
             'dt.response.status',
@@ -217,58 +244,78 @@ class TraceGroupToolsTest extends TestCase
     {
         $this
             ->topTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'by' => [
-                    'type',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'by' => ['type'],
+                ])
+            );
 
-        $this->assertNotNull($this->groupsParameters);
+        $this->assertNotNull(
+            $this->groupsParameters
+        );
 
-        $this->assertNull($this->groupsParameters->data);
+        $this->assertNull(
+            $this->groupsParameters->data
+        );
     }
 
     public function testInvalidDataFilter(): void
     {
         $result = $this
             ->topTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'by' => [
-                    'type',
-                ],
-                'data_filter' => [
-                    'status ~ 5',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'by'          => ['type'],
+                    'data_filter' => ['status ~ 5'],
+                ])
+            );
 
-        $this->assertTrue($result->isError);
+        $this->assertTrue(
+            $result->isError
+        );
 
-        $this->assertSame('invalid_data_filter', $result->data['error']);
+        $this->assertSame(
+            'invalid_data_filter',
+            $result->data['error']
+        );
 
-        $this->assertStringContainsString('status ~ 5', $result->data['hint']);
+        $this->assertStringContainsString(
+            'status ~ 5',
+            $result->data['hint']
+        );
 
-        $this->assertNull($this->groupsParameters);
+        $this->assertNull(
+            $this->groupsParameters
+        );
     }
 
     public function testWholeRetentionIsAggregated(): void
     {
         $result = $this
             ->topTool()
-            ->call(new McpToolArguments([
-                'from' => '2026-09-25T11:00:00Z',
-                'to'   => '2026-09-28T11:00:00Z',
-                'by'   => [
-                    'type',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'from' => '2026-09-25T11:00:00Z',
+                    'to'   => '2026-09-28T11:00:00Z',
+                    'by'   => ['type'],
+                ])
+            );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame('2026-09-25T11:00:00Z', $result->data['from']);
+        $this->assertSame(
+            '2026-09-25T11:00:00Z',
+            $result->data['from']
+        );
 
-        $this->assertSame('2026-09-28T11:00:00Z', $result->data['to']);
+        $this->assertSame(
+            '2026-09-28T11:00:00Z',
+            $result->data['to']
+        );
 
         $this->assertSame(
             '2026-09-25 11:00:00',
@@ -280,47 +327,61 @@ class TraceGroupToolsTest extends TestCase
     {
         $result = $this
             ->compareTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'group_a_statuses' => [
-                    'failed',
-                ],
-                'by' => 'type',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'group_a_statuses' => ['failed'],
+                    'by'               => 'type',
+                ])
+            );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame(10, $result->data['group_a_total']);
+        $this->assertSame(
+            10,
+            $result->data['group_a_total']
+        );
 
-        $this->assertSame([
-            'value'         => 'request',
-            'group_a_count' => 8,
-            'group_a_share' => 0.8,
-            'group_b_count' => 10,
-            'group_b_share' => 0.1,
-        ], $result->data['rows'][0]);
+        $this->assertSame(
+            [
+                'value'         => 'request',
+                'group_a_count' => 8,
+                'group_a_share' => 0.8,
+                'group_b_count' => 10,
+                'group_b_share' => 0.1,
+            ],
+            $result->data['rows'][0]
+        );
 
         $this->assertSame(
             TraceCompareByEnum::Type,
             $this->compareParameters?->by
         );
 
-        $this->assertSame([], $this->compareParameters->groupBStatuses);
+        $this->assertSame(
+            [],
+            $this->compareParameters->groupBStatuses
+        );
 
-        $this->assertSame(30, $this->compareParameters->limit);
+        $this->assertSame(
+            30,
+            $this->compareParameters->limit
+        );
     }
 
     public function testCompareByDataKey(): void
     {
         $this
             ->compareTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'group_a_statuses' => [
-                    'failed',
-                ],
-                'by' => 'data.response.status',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'group_a_statuses' => ['failed'],
+                    'by'               => 'data.response.status',
+                ])
+            );
 
         $this->assertSame(
             TraceCompareByEnum::Data,
@@ -337,37 +398,32 @@ class TraceGroupToolsTest extends TestCase
     {
         $this
             ->compareTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'group_a_statuses' => [
-                    'failed',
-                ],
-                'by' => 'data.dt.x',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'group_a_statuses' => ['failed'],
+                    'by'               => 'data.dt.x',
+                ])
+            );
 
-        $this->assertSame('dt.x', $this->compareParameters?->dataKey);
+        $this->assertSame(
+            'dt.x',
+            $this->compareParameters?->dataKey
+        );
     }
 
     public function testDataFilterWithARestrictedKeyIsAToolError(): void
     {
-        foreach (
-            [
-                'user-agent exists',
-                "a'b exists",
-                'a..b exists',
-            ] as $condition
-        ) {
+        foreach (['user-agent exists', "a'b exists", 'a..b exists'] as $condition) {
             $result = $this
                 ->topTool()
-                ->call(new McpToolArguments([
-                    ...self::SCOPE,
-                    'by' => [
-                        'type',
-                    ],
-                    'data_filter' => [
-                        $condition,
-                    ],
-                ]));
+                ->call(
+                    new McpToolArguments([
+                        ...self::SCOPE,
+                        'by'          => ['type'],
+                        'data_filter' => [$condition],
+                    ])
+                );
 
             $this->assertSame(
                 'invalid_data_filter',
@@ -376,7 +432,9 @@ class TraceGroupToolsTest extends TestCase
             );
         }
 
-        $this->assertNull($this->groupsParameters);
+        $this->assertNull(
+            $this->groupsParameters
+        );
     }
 
     public function testCompareByServiceNamesTheService(): void
@@ -385,43 +443,35 @@ class TraceGroupToolsTest extends TestCase
             ->compareTool(
                 serviceValue: true,
             )
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'group_a_statuses' => [
-                    'failed',
-                ],
-                'by' => 'service',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'group_a_statuses' => ['failed'],
+                    'by'               => 'service',
+                ])
+            );
 
-        $this->assertSame([
-            'id'   => 2,
-            'name' => 'pms',
-        ], $result->data['rows'][0]['value']);
+        $this->assertSame(
+            [
+                'id'   => 2,
+                'name' => 'pms',
+            ],
+            $result->data['rows'][0]['value']
+        );
     }
 
     public function testCompareErrors(): void
     {
-        foreach (
-            [
-                'data.',
-                'data.a b',
-                'data',
-                'hour',
-                'data.a-b',
-                "data.a'b",
-                'data.a..b',
-                "data.abc\n",
-            ] as $by
-        ) {
+        foreach (['data.', 'data.a b', 'data', 'hour', 'data.a-b', "data.a'b", 'data.a..b', "data.abc\n"] as $by) {
             $result = $this
                 ->compareTool()
-                ->call(new McpToolArguments([
-                    ...self::SCOPE,
-                    'group_a_statuses' => [
-                        'failed',
-                    ],
-                    'by' => $by,
-                ]));
+                ->call(
+                    new McpToolArguments([
+                        ...self::SCOPE,
+                        'group_a_statuses' => ['failed'],
+                        'by'               => $by,
+                    ])
+                );
 
             $this->assertSame(
                 'invalid_group_by',
@@ -432,26 +482,31 @@ class TraceGroupToolsTest extends TestCase
 
         $result = $this
             ->compareTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'group_a_statuses' => [
-                    'failed',
-                ],
-                'group_b_statuses' => [
-                    'failed',
-                    'success',
-                ],
-                'by' => 'type',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'group_a_statuses' => ['failed'],
+                    'group_b_statuses' => [
+                        'failed',
+                        'success',
+                    ],
+                    'by' => 'type',
+                ])
+            );
 
         $this->assertSame(
             'overlapping_groups',
             $result->data['error'] ?? null
         );
 
-        $this->assertStringContainsString('failed', $result->data['hint']);
+        $this->assertStringContainsString(
+            'failed',
+            $result->data['hint']
+        );
 
-        $this->assertNull($this->compareParameters);
+        $this->assertNull(
+            $this->compareParameters
+        );
     }
 
     private function topTool(): AggregateTracesTool
@@ -460,29 +515,31 @@ class TraceGroupToolsTest extends TestCase
 
         $action
             ->method('handle')
-            ->willReturnCallback(function (TraceFindGroupsParameters $parameters) {
-                $this->groupsParameters = $parameters;
+            ->willReturnCallback(
+                function (TraceFindGroupsParameters $parameters) {
+                    $this->groupsParameters = $parameters;
 
-                return new TraceGroupsObject(
-                    items: [
-                        new TraceGroupObject(
-                            serviceId: 2,
-                            type: 'request',
-                            status: 'failed',
-                            startedAt: Carbon::parse(
-                                time: '2026-09-28 10:10:00',
-                                timezone: 'UTC',
+                    return new TraceGroupsObject(
+                        items: [
+                            new TraceGroupObject(
+                                serviceId: 2,
+                                type: 'request',
+                                status: 'failed',
+                                startedAt: Carbon::parse(
+                                    time: '2026-09-28 10:10:00',
+                                    timezone: 'UTC',
+                                ),
+                                count: 12,
+                                durationAvg: 0.5,
+                                durationP95: 1.25,
+                                durationMax: 2.0,
+                                exampleTraceId: 'slow-1',
                             ),
-                            count: 12,
-                            durationAvg: 0.5,
-                            durationP95: 1.25,
-                            durationMax: 2.0,
-                            exampleTraceId: 'slow-1',
-                        ),
-                    ],
-                    truncated: false,
-                );
-            });
+                        ],
+                        truncated: false,
+                    );
+                }
+            );
 
         return new AggregateTracesTool(
             findMcpTraceGroupsAction: new FindMcpTraceGroupsAction(
@@ -569,7 +626,9 @@ class TraceGroupToolsTest extends TestCase
             serviceFinder: $this->serviceFinder(),
             periodResolver: new McpTracePeriodResolver(),
             formatter: new McpToolFormatter(),
-            findMcpTraceLifetimeAction: new FindMcpTraceLifetimeAction($this->findSettingValueAction()),
+            findMcpTraceLifetimeAction: new FindMcpTraceLifetimeAction(
+                $this->findSettingValueAction()
+            ),
         );
     }
 

@@ -14,8 +14,10 @@ use App\Modules\Watcher\Entities\WatcherObject;
 
 readonly class McpIncidentObjectTransport
 {
-    public function fromWatcher(WatcherIncidentObject $incident, ?WatcherObject $watcher): McpIncidentObject
-    {
+    public function fromWatcher(
+        WatcherIncidentObject $incident,
+        ?WatcherObject $watcher
+    ): McpIncidentObject {
         return new McpIncidentObject(
             incident: new McpIncidentDataObject(
                 id: $incident->id,

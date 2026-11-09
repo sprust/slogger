@@ -48,9 +48,7 @@ class OaResponsesParser
         $scheme = new OaScheme();
 
         $customProperties = collect($this->customProperties)
-            ->keyBy(
-                fn(CustomResponseProperty $customProperty) => $customProperty->name
-            )
+            ->keyBy(fn(CustomResponseProperty $customProperty) => $customProperty->name)
             ->toArray();
 
         foreach ($resourceReflection->getProperties() as $reflectionProperty) {
@@ -66,7 +64,11 @@ class OaResponsesParser
             /** @var CustomResponseProperty|null $customProperty */
             if ($customProperty = $customProperties[$propertyName] ?? null) {
                 $scheme->properties[$propertyName] = $this->parseCustomProperty($customProperty);
-            } elseif ($this->isResourceUnion($reflectionProperty->getType())) {
+            } elseif (
+                $this->isResourceUnion(
+                    $reflectionProperty->getType()
+                )
+            ) {
                 /** @var ReflectionUnionType $propertyType */
                 $propertyType = $reflectionProperty->getType();
 
@@ -79,7 +81,9 @@ class OaResponsesParser
                 }
 
                 if (!$propertyType instanceof ReflectionNamedType) {
-                    throw new RuntimeException("Unsupported property type for $this->resourceClass::$propertyName");
+                    throw new RuntimeException(
+                        "Unsupported property type for $this->resourceClass::$propertyName"
+                    );
                 }
 
                 $scheme->properties[$propertyName] = $this->parseReflectionPropertyDTO(
@@ -124,7 +128,11 @@ class OaResponsesParser
                 return false;
             }
 
-            if ($type->getName() !== 'null' && !RouterConfigs::isClassResource($type->getName())) {
+            if (
+                $type->getName() !== 'null' && !RouterConfigs::isClassResource(
+                    $type->getName()
+                )
+            ) {
                 return false;
             }
         }
@@ -156,8 +164,9 @@ class OaResponsesParser
         return $scheme;
     }
 
-    private function parseCustomProperty(CustomResponseProperty $customProperty): BaseOaProperty|OaScheme
-    {
+    private function parseCustomProperty(
+        CustomResponseProperty $customProperty
+    ): BaseOaProperty|OaScheme {
         if (RouterConfigs::isClassResource($customProperty->type)) {
             return $this->parseReflectionPropertyDTO(
                 new ReflectionPropertyDto(
@@ -177,11 +186,15 @@ class OaResponsesParser
             return $property;
         }
 
-        throw new RuntimeException('Unknown custom type ' . PHP_EOL . print_r($customProperty->type, true));
+        throw new RuntimeException(
+            'Unknown custom type ' . PHP_EOL
+                . print_r($customProperty->type, true)
+        );
     }
 
-    private function parseReflectionPropertyDTO(ReflectionPropertyDto $reflectionPropertyDTO): BaseOaProperty|OaScheme
-    {
+    private function parseReflectionPropertyDTO(
+        ReflectionPropertyDto $reflectionPropertyDTO
+    ): BaseOaProperty|OaScheme {
         $propertyTypeName = $reflectionPropertyDTO->type;
 
         if ($propertyTypeName !== 'array') {
@@ -196,8 +209,9 @@ class OaResponsesParser
                     $propertyView = $reflectionPropertyDTO->declaringClass . '::' . $reflectionPropertyDTO->name;
 
                     throw new RuntimeException(
-                        "Method: $propertyView" . PHP_EOL .
-                        "Not found attribute: " . class_basename(OaListItemTypeAttribute::class)
+                        "Method: $propertyView" . PHP_EOL
+                            . "Not found attribute: "
+                            . class_basename(OaListItemTypeAttribute::class)
                     );
                 }
 
@@ -220,8 +234,10 @@ class OaResponsesParser
         return $property;
     }
 
-    private function detectJsonProperty(string $propertyTypeName, bool $isRecursiveArray = false): BaseOaJsonObject
-    {
+    private function detectJsonProperty(
+        string $propertyTypeName,
+        bool $isRecursiveArray = false
+    ): BaseOaJsonObject {
         if ($propertyTypeName === 'string') {
             return new OaStringProperty();
         }
@@ -250,10 +266,7 @@ class OaResponsesParser
             if ((new ReflectionClass($propertyTypeName))->isEnum()) {
                 $property = new OaEnumProperty();
 
-                $property->enum = array_map(
-                    fn(\BackedEnum $enum) => $enum->value,
-                    $propertyTypeName::cases()
-                );
+                $property->enum = array_map(fn(\BackedEnum $enum) => $enum->value, $propertyTypeName::cases());
 
                 $property->enumClass = $propertyTypeName;
 
@@ -267,7 +280,10 @@ class OaResponsesParser
                     ++$depth;
                 }
 
-                return (new self($propertyTypeName, recursiveDepth: $depth))->getScheme();
+                return (new self(
+                    $propertyTypeName,
+                    recursiveDepth: $depth
+                ))->getScheme();
             }
         }
 

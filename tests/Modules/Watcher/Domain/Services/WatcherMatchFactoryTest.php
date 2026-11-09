@@ -33,12 +33,29 @@ class WatcherMatchFactoryTest extends TestCase
             )
         );
 
-        $this->assertNotNull($match);
-        $this->assertSame([3, 7], $match->serviceIds);
-        $this->assertSame(['http'], $match->types);
-        $this->assertSame(['billing'], $match->tags);
-        $this->assertSame(['failed'], $match->statuses);
-        $this->assertSame(WatcherMatchObject::VERSION, $match->version);
+        $this->assertNotNull(
+            $match
+        );
+        $this->assertSame(
+            [3, 7],
+            $match->serviceIds
+        );
+        $this->assertSame(
+            ['http'],
+            $match->types
+        );
+        $this->assertSame(
+            ['billing'],
+            $match->tags
+        );
+        $this->assertSame(
+            ['failed'],
+            $match->statuses
+        );
+        $this->assertSame(
+            WatcherMatchObject::VERSION,
+            $match->version
+        );
     }
 
     /**
@@ -49,20 +66,44 @@ class WatcherMatchFactoryTest extends TestCase
     {
         $factory = new WatcherMatchFactory();
 
-        $this->assertNull($factory->make(new BufferOverflowSettingsObject()));
-        $this->assertNull($factory->make(new InvalidBufferGrownSettingsObject()));
+        $this->assertNull(
+            $factory->make(
+                new BufferOverflowSettingsObject()
+            )
+        );
+        $this->assertNull(
+            $factory->make(
+                new InvalidBufferGrownSettingsObject()
+            )
+        );
     }
 
     /** An unfiltered watcher counts everything, which is a filter of empty lists — not null. */
     public function testAnEmptyFilterIsStillAMatch(): void
     {
-        $match = new WatcherMatchFactory()->make(new NoNewTracesSettingsObject());
+        $match = new WatcherMatchFactory()->make(
+            new NoNewTracesSettingsObject()
+        );
 
-        $this->assertNotNull($match);
-        $this->assertSame([], $match->serviceIds);
-        $this->assertSame([], $match->types);
-        $this->assertSame([], $match->tags);
-        $this->assertSame([], $match->statuses);
+        $this->assertNotNull(
+            $match
+        );
+        $this->assertSame(
+            [],
+            $match->serviceIds
+        );
+        $this->assertSame(
+            [],
+            $match->types
+        );
+        $this->assertSame(
+            [],
+            $match->tags
+        );
+        $this->assertSame(
+            [],
+            $match->statuses
+        );
     }
 
     public function testTheStoredShapeIsTheOneTheReceiverReads(): void
@@ -88,6 +129,8 @@ class WatcherMatchFactoryTest extends TestCase
 
     public function testNothingToStoreForAWatcherWithoutAMatch(): void
     {
-        $this->assertNull(new WatcherMatchFactory()->toArray(null));
+        $this->assertNull(
+            new WatcherMatchFactory()->toArray(null)
+        );
     }
 }

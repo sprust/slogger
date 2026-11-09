@@ -31,7 +31,9 @@ class TestingEnvironment
         $application->beforeBootstrapping(
             bootstrapper: RegisterProviders::class,
             callback: static function (Application $application): void {
-                self::assertIsolated($application->make('config'));
+                self::assertIsolated(
+                    $application->make('config')
+                );
             },
         );
     }
@@ -61,12 +63,7 @@ class TestingEnvironment
             }
         }
 
-        foreach (
-            [
-                'mysql',
-                'sconcur_mysql',
-            ] as $connection
-        ) {
+        foreach (['mysql', 'sconcur_mysql'] as $connection) {
             if (
                 $configuration->get("database.connections.$connection.url") !== null
                 || $configuration->get("database.connections.$connection.unix_socket") !== ''

@@ -8,8 +8,9 @@ use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 
 readonly class DeleteTraceAdminStoreByAdminUseCase
 {
-    public function __construct(private DeleteTraceAdminStoreAction $deleteTraceAdminStoreAction)
-    {
+    public function __construct(
+        private DeleteTraceAdminStoreAction $deleteTraceAdminStoreAction
+    ) {
     }
 
     public function handle(string $id): bool

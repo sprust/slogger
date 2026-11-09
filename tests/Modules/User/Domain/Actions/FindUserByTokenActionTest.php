@@ -18,8 +18,12 @@ class FindUserByTokenActionTest extends TestCase
         // for both, and neither is a reason to go looking for a user.
         $tokens->method('findUserIdByToken')->willReturn(null);
 
-        $users->expects($this->never())->method('findById');
+        $users->expects(
+            $this->never()
+        )->method('findById');
 
-        $this->assertNull(new FindUserByTokenAction($users, $tokens)->handle('gone'));
+        $this->assertNull(
+            new FindUserByTokenAction($users, $tokens)->handle('gone')
+        );
     }
 }

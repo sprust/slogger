@@ -40,13 +40,17 @@ readonly class FindMcpLogEntriesAction
         $files = array_values(
             array_filter(
                 $allFiles,
-                static fn(LogFileObject $file) => mb_strtolower($file->source) === mb_strtolower($parameters->source)
+                static fn(
+                    LogFileObject $file
+                ) => mb_strtolower($file->source) === mb_strtolower($parameters->source)
             )
         );
 
         if (count($files) === 0) {
             throw new McpLogSourceNotFoundException(
-                array_values(array_unique(array_map(static fn(LogFileObject $file) => $file->source, $allFiles)))
+                array_values(
+                    array_unique(array_map(static fn(LogFileObject $file) => $file->source, $allFiles))
+                )
             );
         }
 

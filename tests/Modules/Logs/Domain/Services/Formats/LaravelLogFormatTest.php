@@ -28,7 +28,9 @@ class LaravelLogFormatTest extends TestCase
 
     public function testAStackTraceBelongsToItsEntry(): void
     {
-        $first  = "[2026-09-25 05:35:29] local.ERROR: boom {\"exception\":\"[object] ...\n[stacktrace]\n#0 /app/a.php(1): f()\n#1 {main}\n\"} \n";
+        $first  = ("[2026-09-25 05:35:29] local.ERROR: boom "
+            . "{\"exception\":\"[object] ...\n[stacktrace]\n#0 /app/a.php(1): "
+            . "f()\n#1 {main}\n\"} \n");
         $second = "[2026-09-25 05:35:30] production.INFO: next\n";
 
         $starts = $this->find($first . $second);
@@ -59,10 +61,16 @@ class LaravelLogFormatTest extends TestCase
 
     public function testEveryLevelIsKnown(): void
     {
-        foreach (['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'] as $index => $level) {
+        $levels = ['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'];
+
+        foreach ($levels as $index => $level) {
             $starts = $this->find("[2026-09-25 05:35:29] local.$level: m\n");
 
-            $this->assertSame($index + 1, $starts[0]->level, $level);
+            $this->assertSame(
+                $index + 1,
+                $starts[0]->level,
+                $level
+            );
         }
     }
 
@@ -87,6 +95,8 @@ class LaravelLogFormatTest extends TestCase
      */
     private function find(string $chunk): array
     {
-        return new LaravelLogFormat(new LogTimeParser())->findEntryStarts($chunk);
+        return new LaravelLogFormat(
+            new LogTimeParser()
+        )->findEntryStarts($chunk);
     }
 }

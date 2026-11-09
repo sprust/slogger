@@ -43,7 +43,11 @@ readonly class TrimWatcherTimelineAction
 
         $this->timelineRepository->trim(
             watcherId: $watcher->id,
-            before: $now->clone()->subMinutes($settings->timelineDepthMinutes() + self::SLACK_MINUTES)
+            before: $now
+                ->clone()
+                ->subMinutes(
+                    $settings->timelineDepthMinutes() + self::SLACK_MINUTES
+                )
         );
     }
 }

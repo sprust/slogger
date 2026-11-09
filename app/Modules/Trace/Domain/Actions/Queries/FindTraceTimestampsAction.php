@@ -58,9 +58,7 @@ readonly class FindTraceTimestampsAction
             if ($field === TraceMetricFieldEnum::Count) {
                 $fieldsFilter[] = new TraceMetricFieldsFilterDto(
                     field: $field,
-                    aggregations: [
-                        TraceMetricFieldAggregatorEnum::Sum,
-                    ]
+                    aggregations: [TraceMetricFieldAggregatorEnum::Sum]
                 );
 
                 continue;

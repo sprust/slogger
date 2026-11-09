@@ -18,7 +18,8 @@ use App\Modules\Logs\Enums\HttpStatusClassEnum;
  */
 readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
 {
-    private const string LINE_PATTERN = '/^(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+ (?=\S+ \S+ (\d{3}) )\S+ \S+ \d{3} [\d.]+)ms(?= |$))?[^\n]*$/m';
+    private const string LINE_PATTERN = ('/^(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+ (?=\S+ \S+ '
+        . '(\d{3}) )\S+ \S+ \d{3} [\d.]+)ms(?= |$))?[^\n]*$/m');
 
     private const string ENTRY_PATTERN = '/^\S+ (\S+) (\S+) (\d{3}) ([\d.]+)ms(?: (\S*#\d+) pid=(\d+))?/';
 
@@ -27,17 +28,33 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
         $line = rtrim($text, "\r\n");
 
         if (preg_match(self::ENTRY_PATTERN, $line, $match) !== 1) {
-            return new LogEntryDetailsObject(message: $line, context: null, fields: []);
+            return new LogEntryDetailsObject(
+                message: $line,
+                context: null,
+                fields: []
+            );
         }
 
         return new LogEntryDetailsObject(
             message: sprintf('%s %s', $match[1], $match[2]),
             context: null,
             fields: [
-                new LogEntryFieldObject(key: 'method', value: $match[1]),
-                new LogEntryFieldObject(key: 'path', value: $match[2]),
-                new LogEntryFieldObject(key: 'status', value: $match[3]),
-                new LogEntryFieldObject(key: 'duration_ms', value: $match[4]),
+                new LogEntryFieldObject(
+                    key: 'method',
+                    value: $match[1]
+                ),
+                new LogEntryFieldObject(
+                    key: 'path',
+                    value: $match[2]
+                ),
+                new LogEntryFieldObject(
+                    key: 'status',
+                    value: $match[3]
+                ),
+                new LogEntryFieldObject(
+                    key: 'duration_ms',
+                    value: $match[4]
+                ),
                 new LogEntryFieldObject(
                     key: 'worker',
                     value: ($match[5] ?? '') === '' ? null : $match[5]

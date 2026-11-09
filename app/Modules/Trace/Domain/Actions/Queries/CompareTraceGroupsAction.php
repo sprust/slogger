@@ -28,7 +28,9 @@ readonly class CompareTraceGroupsAction
         $loggedAtTo   = $parameters->loggingPeriod->to ?? Carbon::now();
 
         $statuses = count($parameters->groupBStatuses) > 0
-            ? array_values(array_unique([...$parameters->groupAStatuses, ...$parameters->groupBStatuses]))
+            ? array_values(
+                array_unique([...$parameters->groupAStatuses, ...$parameters->groupBStatuses])
+            )
             : [];
 
         $counts = $this->traceGroupsRepository->compareGroups(
@@ -107,6 +109,7 @@ readonly class CompareTraceGroupsAction
 
     private function valueKey(string|int|float|bool|null $value): string
     {
-        return get_debug_type($value) . ':' . var_export($value, true);
+        return get_debug_type($value) . ':'
+            . var_export($value, true);
     }
 }

@@ -12,8 +12,10 @@ readonly class McpIncidentEventObjectTransport
     /**
      * @param array<string, mixed>|null $numbers
      */
-    public function fromWatcher(WatcherIncidentEventObject $watcherIncidentEventObject, ?array $numbers): McpIncidentEventObject
-    {
+    public function fromWatcher(
+        WatcherIncidentEventObject $watcherIncidentEventObject,
+        ?array $numbers
+    ): McpIncidentEventObject {
         return new McpIncidentEventObject(
             occurredAt: $watcherIncidentEventObject->occurredAt,
             numbers: $numbers,

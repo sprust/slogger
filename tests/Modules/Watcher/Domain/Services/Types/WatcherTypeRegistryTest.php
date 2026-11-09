@@ -23,7 +23,10 @@ class WatcherTypeRegistryTest extends TestCase
         $registry = $this->registry();
 
         foreach (WatcherTypeEnum::cases() as $type) {
-            $this->assertSame($type, $registry->for($type)->describe()->type);
+            $this->assertSame(
+                $type,
+                $registry->for($type)->describe()->type
+            );
         }
     }
 
@@ -42,7 +45,9 @@ class WatcherTypeRegistryTest extends TestCase
 
         $this->assertEquals(
             $settings,
-            $this->registry()->for(WatcherTypeEnum::ManyTraces)->makeSettings($settings->toArray())
+            $this->registry()->for(WatcherTypeEnum::ManyTraces)->makeSettings(
+                $settings->toArray()
+            )
         );
     }
 
@@ -55,22 +60,46 @@ class WatcherTypeRegistryTest extends TestCase
     {
         $settings = $this->registry()->for(WatcherTypeEnum::SlowTraces)->makeSettings([]);
 
-        $this->assertInstanceOf(SlowTracesSettingsObject::class, $settings);
-        $this->assertSame(10.0, $settings->duration);
-        $this->assertSame(5, $settings->windowMinutes);
-        $this->assertSame([], $settings->traceFilter()->serviceIds);
+        $this->assertInstanceOf(
+            SlowTracesSettingsObject::class,
+            $settings
+        );
+        $this->assertSame(
+            10.0,
+            $settings->duration
+        );
+        $this->assertSame(
+            5,
+            $settings->windowMinutes
+        );
+        $this->assertSame(
+            [],
+            $settings->traceFilter()->serviceIds
+        );
     }
 
     /** A filter of the wrong shape is no filter, not a fatal. */
     public function testAMalformedFilterLoadsAsEmpty(): void
     {
-        $settings = $this->registry()->for(WatcherTypeEnum::NoNewTraces)->makeSettings(
-            ['period_minutes' => 15, 'filter' => 'nonsense']
-        );
+        $settings = $this
+            ->registry()
+            ->for(WatcherTypeEnum::NoNewTraces)
+            ->makeSettings(
+                ['period_minutes' => 15, 'filter' => 'nonsense']
+            );
 
-        $this->assertInstanceOf(NoNewTracesSettingsObject::class, $settings);
-        $this->assertSame(15, $settings->periodMinutes);
-        $this->assertSame([], $settings->traceFilter()->tags);
+        $this->assertInstanceOf(
+            NoNewTracesSettingsObject::class,
+            $settings
+        );
+        $this->assertSame(
+            15,
+            $settings->periodMinutes
+        );
+        $this->assertSame(
+            [],
+            $settings->traceFilter()->tags
+        );
     }
 
     /** The form is built from these, so a type has to say which numbers it takes. */
@@ -91,13 +120,27 @@ class WatcherTypeRegistryTest extends TestCase
     {
         $registry = $this->registry();
 
-        $this->assertFalse($registry->for(WatcherTypeEnum::BufferOverflow)->describe()->hasTraceFilter);
-        $this->assertFalse($registry->for(WatcherTypeEnum::InvalidBufferGrown)->describe()->hasTraceFilter);
-        $this->assertTrue($registry->for(WatcherTypeEnum::NoNewTraces)->describe()->hasTraceFilter);
-        $this->assertTrue($registry->for(WatcherTypeEnum::ManyTraces)->describe()->hasTraceFilter);
-        $this->assertTrue($registry->for(WatcherTypeEnum::SlowTraces)->describe()->hasTraceFilter);
-        $this->assertFalse($registry->for(WatcherTypeEnum::LogErrors)->describe()->hasTraceFilter);
-        $this->assertFalse($registry->for(WatcherTypeEnum::ReceiverErrors)->describe()->hasTraceFilter);
+        $this->assertFalse(
+            $registry->for(WatcherTypeEnum::BufferOverflow)->describe()->hasTraceFilter
+        );
+        $this->assertFalse(
+            $registry->for(WatcherTypeEnum::InvalidBufferGrown)->describe()->hasTraceFilter
+        );
+        $this->assertTrue(
+            $registry->for(WatcherTypeEnum::NoNewTraces)->describe()->hasTraceFilter
+        );
+        $this->assertTrue(
+            $registry->for(WatcherTypeEnum::ManyTraces)->describe()->hasTraceFilter
+        );
+        $this->assertTrue(
+            $registry->for(WatcherTypeEnum::SlowTraces)->describe()->hasTraceFilter
+        );
+        $this->assertFalse(
+            $registry->for(WatcherTypeEnum::LogErrors)->describe()->hasTraceFilter
+        );
+        $this->assertFalse(
+            $registry->for(WatcherTypeEnum::ReceiverErrors)->describe()->hasTraceFilter
+        );
     }
 
     private function registry(): WatcherTypeRegistry

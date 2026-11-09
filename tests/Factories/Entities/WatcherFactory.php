@@ -10,8 +10,10 @@ use Illuminate\Support\Carbon;
 
 readonly class WatcherFactory
 {
-    public function __construct(private WatcherRepository $watcherRepository, private ChannelFactory $channelFactory)
-    {
+    public function __construct(
+        private WatcherRepository $watcherRepository,
+        private ChannelFactory $channelFactory
+    ) {
     }
 
     /**
@@ -31,7 +33,9 @@ readonly class WatcherFactory
         ?array $traceMatch = null,
         ?Carbon $collectSince = null,
     ): int {
-        $type = $type ?? fake()->randomElement(WatcherTypeEnum::cases());
+        $type = $type ?? fake()->randomElement(
+            WatcherTypeEnum::cases()
+        );
 
         return $this->watcherRepository->create(
             name: $name ?? fake()->word(),

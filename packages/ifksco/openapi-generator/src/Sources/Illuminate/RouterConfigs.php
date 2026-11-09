@@ -87,7 +87,10 @@ class RouterConfigs
     {
         return array_map(
             static fn(string $resolverClass) => app($resolverClass),
-            config('oa-generator.custom.path_extensions', [])
+            config(
+                'oa-generator.custom.path_extensions',
+                []
+            )
         );
     }
 }

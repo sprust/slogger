@@ -22,7 +22,9 @@ readonly class ChannelFactory
     ): int {
         return $this->channelRepository->create(
             name: $name ?? fake()->word(),
-            type: ($type ?? fake()->randomElement(NotificationChannelTypeEnum::cases()))->value,
+            type: ($type ?? fake()->randomElement(
+                NotificationChannelTypeEnum::cases()
+            ))->value,
             enabled: $enabled ?? fake()->boolean(),
             settings: $settings ?? [],
         )->id;

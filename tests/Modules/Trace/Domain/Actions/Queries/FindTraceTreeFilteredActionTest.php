@@ -21,39 +21,83 @@ class FindTraceTreeFilteredActionTest extends TestCase
      */
     public function testMatchesComeWithEveryAncestorUpToTheTop(): void
     {
-        $result = $this->action(matchedIds: ['a1', 'b11'], limit: 10)->handle('top', $this->parameters());
+        $result = $this
+            ->action(
+                matchedIds: ['a1', 'b11'],
+                limit: 10
+            )
+            ->handle('top', $this->parameters());
 
         $ids = array_map(static fn(TraceTreeRawObject $node): string => $node->traceId, $result->items);
 
         sort($ids);
 
-        self::assertSame(['a', 'a1', 'b', 'b1', 'b11', 'top'], $ids);
-        self::assertSame(2, $result->matchedCount);
-        self::assertFalse($result->truncated);
+        self::assertSame(
+            ['a', 'a1', 'b', 'b1', 'b11', 'top'],
+            $ids
+        );
+        self::assertSame(
+            2,
+            $result->matchedCount
+        );
+        self::assertFalse(
+            $result->truncated
+        );
     }
 
     public function testAMatchAboveAnotherIsNotReadTwice(): void
     {
-        $result = $this->action(matchedIds: ['a', 'a1'], limit: 10)->handle('top', $this->parameters());
+        $result = $this
+            ->action(
+                matchedIds: ['a', 'a1'],
+                limit: 10
+            )
+            ->handle('top', $this->parameters());
 
-        self::assertCount(3, $result->items);
+        self::assertCount(
+            3,
+            $result->items
+        );
     }
 
     public function testMatchesPastTheLimitAreCut(): void
     {
-        $result = $this->action(matchedIds: ['a1', 'b11', 'a2'], limit: 2)->handle('top', $this->parameters());
+        $result = $this
+            ->action(
+                matchedIds: ['a1', 'b11', 'a2'],
+                limit: 2
+            )
+            ->handle('top', $this->parameters());
 
-        self::assertTrue($result->truncated);
-        self::assertSame(2, $result->matchedCount);
-        self::assertCount(6, $result->items);
+        self::assertTrue(
+            $result->truncated
+        );
+        self::assertSame(
+            2,
+            $result->matchedCount
+        );
+        self::assertCount(
+            6,
+            $result->items
+        );
     }
 
     public function testNoMatchesNoNodes(): void
     {
-        $result = $this->action(matchedIds: [], limit: 10)->handle('top', $this->parameters());
+        $result = $this
+            ->action(
+                matchedIds: [],
+                limit: 10
+            )
+            ->handle('top', $this->parameters());
 
-        self::assertSame([], $result->items);
-        self::assertFalse($result->truncated);
+        self::assertSame(
+            [],
+            $result->items
+        );
+        self::assertFalse(
+            $result->truncated
+        );
     }
 
     /**
@@ -81,16 +125,27 @@ class FindTraceTreeFilteredActionTest extends TestCase
 
         $repository = $this->createMock(TraceTreeCacheRepository::class);
 
-        $repository->method('findFiltered')
+        $repository
+            ->method('findFiltered')
             ->willReturnCallback(
-                static fn(string $rootTraceId, TraceTreeFilterParameters $parameters, int $limit): array => array_slice(
-                    array_map(static fn(string $traceId): TraceTreeRawObject => $nodes[$traceId], $matchedIds),
+                static fn(
+                    string $rootTraceId,
+                    TraceTreeFilterParameters $parameters,
+                    int $limit
+                ): array => array_slice(
+                    array_map(
+                        static fn(
+                            string $traceId
+                        ): TraceTreeRawObject => $nodes[$traceId],
+                        $matchedIds
+                    ),
                     0,
                     $limit
                 )
             );
 
-        $repository->method('findByTraceIds')
+        $repository
+            ->method('findByTraceIds')
             ->willReturnCallback(
                 static fn(string $rootTraceId, array $traceIds): array => array_values(
                     array_intersect_key($nodes, array_flip($traceIds))

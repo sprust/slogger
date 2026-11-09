@@ -37,30 +37,21 @@ class ModuleDispatchRegistrationTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function cases(): iterable
     {
-        yield 'registered application jobs' => [
-            'jobs',
-        ];
+        yield 'registered application jobs' => ['jobs'];
 
-        yield 'single listener registration' => [
-            'listeners',
-        ];
+        yield 'single listener registration' => ['listeners'];
 
-        yield 'module commands' => [
-            'commands',
-        ];
+        yield 'module commands' => ['commands'];
 
-        yield 'singleton factories' => [
-            'factories',
-        ];
+        yield 'singleton factories' => ['factories'];
 
-        yield 'scheduled application jobs' => [
-            'schedule',
-        ];
+        yield 'scheduled application jobs' => ['schedule'];
     }
 
     #[DataProvider('cases')]
-    public function test(string $case): void
-    {
+    public function test(
+        string $case
+    ): void {
         config(
             key: [
                 'queue.default'                 => 'sync',
@@ -76,16 +67,16 @@ class ModuleDispatchRegistrationTest extends TestCase
         if ($case === 'commands') {
             $commands = $this->app->make(Kernel::class)->all();
 
-            foreach (
-                [
-                    'traces-clearing:clear' => ClearTracesCommand::class,
-                    'logs:index'            => IndexLogsCommand::class,
-                    'logs:clean'            => CleanLogsCommand::class,
-                    'service:create'        => CreateServiceCommand::class,
-                    'user:create'           => CreateUserCommand::class,
-                    'user:tokens:clear'     => DeleteExpiredUserTokensCommand::class,
-                ] as $name => $class
-            ) {
+            $commandClasses = [
+                'traces-clearing:clear' => ClearTracesCommand::class,
+                'logs:index'            => IndexLogsCommand::class,
+                'logs:clean'            => CleanLogsCommand::class,
+                'service:create'        => CreateServiceCommand::class,
+                'user:create'           => CreateUserCommand::class,
+                'user:tokens:clear'     => DeleteExpiredUserTokensCommand::class,
+            ];
+
+            foreach ($commandClasses as $name => $class) {
                 self::assertInstanceOf(
                     $class,
                     $commands[$name]
@@ -96,12 +87,7 @@ class ModuleDispatchRegistrationTest extends TestCase
         }
 
         if ($case === 'factories') {
-            foreach (
-                [
-                    McpToolRegistry::class,
-                    McpPromptRegistry::class,
-                ] as $class
-            ) {
+            foreach ([McpToolRegistry::class, McpPromptRegistry::class] as $class) {
                 self::assertSame(
                     $this->app->make($class),
                     $this->app->make($class)
@@ -143,15 +129,15 @@ class ModuleDispatchRegistrationTest extends TestCase
         if ($case === 'listeners') {
             $listeners = $this->app->make(Dispatcher::class)->getRawListeners();
 
-            foreach (
-                [
-                    TraceTreeCacheBuildRequestedEvent::class,
-                    TraceTreeCacheDeleteRequestedEvent::class,
-                    TraceTreeCacheStateChangedEvent::class,
-                    NotificationEnqueuedEvent::class,
-                    WatcherIncidentChangedEvent::class,
-                ] as $eventClass
-            ) {
+            $eventClasses = [
+                TraceTreeCacheBuildRequestedEvent::class,
+                TraceTreeCacheDeleteRequestedEvent::class,
+                TraceTreeCacheStateChangedEvent::class,
+                NotificationEnqueuedEvent::class,
+                WatcherIncidentChangedEvent::class,
+            ];
+
+            foreach ($eventClasses as $eventClass) {
                 self::assertCount(
                     1,
                     $listeners[$eventClass],
@@ -175,15 +161,17 @@ class ModuleDispatchRegistrationTest extends TestCase
                 )
             );
 
-            $dispatcher->event(new NotificationEnqueuedEvent('notification'));
+            $dispatcher->event(
+                new NotificationEnqueuedEvent('notification')
+            );
 
-            foreach (
-                [
-                    BuildTraceTreeCacheJob::class,
-                    DeleteTraceTreeCacheJob::class,
-                    SendNotificationJob::class,
-                ] as $jobClass
-            ) {
+            $jobClasses = [
+                BuildTraceTreeCacheJob::class,
+                DeleteTraceTreeCacheJob::class,
+                SendNotificationJob::class,
+            ];
+
+            foreach ($jobClasses as $jobClass) {
                 Queue::assertPushed(
                     $jobClass,
                     1
@@ -240,10 +228,8 @@ class ModuleDispatchRegistrationTest extends TestCase
             }
 
             if (
-                !$event instanceof CallbackEvent || !array_key_exists(
-                    $event->description,
-                    $expectedSchedules,
-                )
+                !$event instanceof CallbackEvent
+                || !array_key_exists($event->description, $expectedSchedules)
             ) {
                 continue;
             }
@@ -268,9 +254,7 @@ class ModuleDispatchRegistrationTest extends TestCase
             $scheduledCommands
         );
 
-        foreach (
-            array_keys($expectedSchedules) as $jobClass
-        ) {
+        foreach (array_keys($expectedSchedules) as $jobClass) {
             Queue::assertPushed(
                 $jobClass,
                 1

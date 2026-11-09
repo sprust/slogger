@@ -48,225 +48,529 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/auth')
     ->as('auth.')
-    ->group(function () {
-        Route::get('/me', MeController::class)->name('me');
-        Route::post('/login', LoginController::class)->withoutMiddleware(AuthMiddleware::class)->name('login');
-        Route::post('/logout', LogoutController::class)->name('logout');
-    });
+    ->group(
+        function () {
+            Route::get('/me', MeController::class)
+                ->name('me');
+            Route::post('/login', LoginController::class)
+                ->withoutMiddleware(AuthMiddleware::class)
+                ->name('login');
+            Route::post('/logout', LogoutController::class)
+                ->name('logout');
+        }
+    );
 
 Route::prefix('/dashboard')
     ->as('dashboard.')
-    ->group(function () {
-        Route::get('/database', [DatabaseStatController::class, 'index'])->name('index');
-        Route::get('/sconcur', [SconcurStatController::class, 'index'])->name('sconcur');
-        Route::get('/trace-metrics/{serviceId}', [TraceMetricController::class, 'index'])->name('trace-metrics');
-    });
+    ->group(
+        function () {
+            Route::get(
+                '/database',
+                [DatabaseStatController::class, 'index']
+            )
+                ->name('index');
+            Route::get(
+                '/sconcur',
+                [SconcurStatController::class, 'index']
+            )
+                ->name('sconcur');
+            Route::get(
+                '/trace-metrics/{serviceId}',
+                [TraceMetricController::class, 'index']
+            )
+                ->name('trace-metrics');
+        }
+    );
 
 Route::prefix('/tools')
     ->as('tools.')
-    ->group(function () {
-        Route::get('/links', ToolLinksController::class)->name('links');
-    });
+    ->group(
+        function () {
+            Route::get('/links', ToolLinksController::class)
+                ->name('links');
+        }
+    );
 
 Route::prefix('/services')
     ->as('services.')
-    ->group(function () {
-        Route::get('', [ServiceController::class, 'index'])->name('index');
-        Route::post('', [ServiceController::class, 'create'])->name('create');
-        Route::patch('/positions', [ServiceController::class, 'sort'])->name('positions');
-        Route::get('/{id}', [ServiceController::class, 'show'])->whereNumber('id')->name('show');
-        Route::patch('/{id}', [ServiceController::class, 'update'])->whereNumber('id')->name('update');
-    });
+    ->group(
+        function () {
+            Route::get(
+                '',
+                [ServiceController::class, 'index']
+            )
+                ->name('index');
+            Route::post(
+                '',
+                [ServiceController::class, 'create']
+            )
+                ->name('create');
+            Route::patch(
+                '/positions',
+                [ServiceController::class, 'sort']
+            )
+                ->name('positions');
+            Route::get(
+                '/{id}',
+                [ServiceController::class, 'show']
+            )
+                ->whereNumber('id')
+                ->name('show');
+            Route::patch(
+                '/{id}',
+                [ServiceController::class, 'update']
+            )
+                ->whereNumber('id')
+                ->name('update');
+        }
+    );
 
 Route::prefix('/settings')
     ->as('settings.')
-    ->group(function () {
-        $keys = array_column(SettingKeyEnum::cases(), 'value');
+    ->group(
+        function () {
+            $keys = array_column(SettingKeyEnum::cases(), 'value');
 
-        Route::get('', [SettingController::class, 'index'])->name('index');
-        Route::patch('/{key}', [SettingController::class, 'update'])->whereIn('key', $keys)->name('update');
-        Route::delete('/{key}', [SettingController::class, 'reset'])->whereIn('key', $keys)->name('reset');
-    });
+            Route::get(
+                '',
+                [SettingController::class, 'index']
+            )
+                ->name('index');
+            Route::patch(
+                '/{key}',
+                [SettingController::class, 'update']
+            )
+                ->whereIn('key', $keys)
+                ->name('update');
+            Route::delete(
+                '/{key}',
+                [SettingController::class, 'reset']
+            )
+                ->whereIn('key', $keys)
+                ->name('reset');
+        }
+    );
 
 Route::prefix('/users')
     ->as('users.')
-    ->group(function () {
-        Route::get('', [UserController::class, 'index'])->name('index');
-        Route::post('', [UserController::class, 'create'])->name('create');
-        Route::patch('/{id}', [UserController::class, 'update'])->whereNumber('id')->name('update');
-    });
+    ->group(
+        function () {
+            Route::get(
+                '',
+                [UserController::class, 'index']
+            )
+                ->name('index');
+            Route::post(
+                '',
+                [UserController::class, 'create']
+            )
+                ->name('create');
+            Route::patch(
+                '/{id}',
+                [UserController::class, 'update']
+            )
+                ->whereNumber('id')
+                ->name('update');
+        }
+    );
 
 Route::prefix('/trace-aggregator')
     ->as('trace-aggregator.')
-    ->group(function () {
-        Route::prefix('/traces')
-            ->as('traces.')
-            ->group(function () {
-                Route::post('', [TraceController::class, 'index'])->name('index');
+    ->group(
+        function () {
+            Route::prefix('/traces')
+                ->as('traces.')
+                ->group(
+                    function () {
+                        Route::post(
+                            '',
+                            [TraceController::class, 'index']
+                        )
+                            ->name('index');
 
-                Route::post('/tree', [TraceTreeController::class, 'tree'])->name('tree');
-                Route::post('/tree/content', [TraceTreeController::class, 'content'])->name('content');
-                Route::post('/tree/children', [TraceTreeController::class, 'children'])->name('children');
-                Route::post('/tree/filter', [TraceTreeController::class, 'filter'])->name('filter');
-                Route::get('/tree/processes', [TraceTreeStateController::class, 'processes'])->name('processes');
-                Route::patch('/tree/processes/cancel', [TraceTreeStateController::class, 'cancelProcess'])->name('processes.cancel');
-                Route::patch('/tree/processes/delete', [TraceTreeStateController::class, 'deleteProcess'])->name('processes.delete');
+                        Route::post(
+                            '/tree',
+                            [TraceTreeController::class, 'tree']
+                        )
+                            ->name('tree');
+                        Route::post(
+                            '/tree/content',
+                            [TraceTreeController::class, 'content']
+                        )
+                            ->name('content');
+                        Route::post(
+                            '/tree/children',
+                            [TraceTreeController::class, 'children']
+                        )
+                            ->name('children');
+                        Route::post(
+                            '/tree/filter',
+                            [TraceTreeController::class, 'filter']
+                        )
+                            ->name('filter');
+                        Route::get(
+                            '/tree/processes',
+                            [TraceTreeStateController::class, 'processes']
+                        )
+                            ->name('processes');
+                        Route::patch(
+                            '/tree/processes/cancel',
+                            [TraceTreeStateController::class, 'cancelProcess']
+                        )
+                            ->name('processes.cancel');
+                        Route::patch(
+                            '/tree/processes/delete',
+                            [TraceTreeStateController::class, 'deleteProcess']
+                        )
+                            ->name('processes.delete');
 
-                Route::prefix('{traceId}')
-                    ->group(function () {
-                        Route::get('', [TraceController::class, 'show'])->name('show');
-                    });
-            });
+                        Route::prefix('{traceId}')
+                            ->group(
+                                function () {
+                                    Route::get(
+                                        '',
+                                        [TraceController::class, 'show']
+                                    )
+                                        ->name('show');
+                                }
+                            );
+                    }
+                );
 
-        Route::prefix('/traces-content')
-            ->as('traces-content.')
-            ->group(function () {
-                Route::post('/types', [TraceContentController::class, 'types'])->name('types');
-                Route::post('/tags', [TraceContentController::class, 'tags'])->name('tags');
-                Route::post('/statuses', [TraceContentController::class, 'statuses'])->name('statuses');
-            });
+            Route::prefix('/traces-content')
+                ->as('traces-content.')
+                ->group(
+                    function () {
+                        Route::post(
+                            '/types',
+                            [TraceContentController::class, 'types']
+                        )
+                            ->name('types');
+                        Route::post(
+                            '/tags',
+                            [TraceContentController::class, 'tags']
+                        )
+                            ->name('tags');
+                        Route::post(
+                            '/statuses',
+                            [TraceContentController::class, 'statuses']
+                        )
+                            ->name('statuses');
+                    }
+                );
 
-        Route::prefix('/trace-metrics')
-            ->as('trace-metrics.')
-            ->group(function () {
-                Route::post('', [TraceTimestampsController::class, 'index'])->name('index');
-                Route::get('/fields', [TraceTimestampsController::class, 'fields'])->name('fields');
-            });
+            Route::prefix('/trace-metrics')
+                ->as('trace-metrics.')
+                ->group(
+                    function () {
+                        Route::post(
+                            '',
+                            [TraceTimestampsController::class, 'index']
+                        )
+                            ->name('index');
+                        Route::get(
+                            '/fields',
+                            [TraceTimestampsController::class, 'fields']
+                        )
+                            ->name('fields');
+                    }
+                );
 
-        Route::prefix('/trace-timestamp-periods')
-            ->as('trace-timestamp-periods.')
-            ->group(function () {
-                Route::get('', [TraceTimestampPeriodsController::class, 'index'])->name('index');
-            });
+            Route::prefix('/trace-timestamp-periods')
+                ->as('trace-timestamp-periods.')
+                ->group(
+                    function () {
+                        Route::get(
+                            '',
+                            [TraceTimestampPeriodsController::class, 'index']
+                        )
+                            ->name('index');
+                    }
+                );
 
-        Route::prefix('/states')
-            ->as('states.')
-            ->group(function () {
-                Route::get('', [TraceAdminStoreController::class, 'index'])->name('index');
-                Route::post('', [TraceAdminStoreController::class, 'create'])->name('create');
-                Route::delete('/{id}', [TraceAdminStoreController::class, 'delete'])->name('delete');
-            });
-    });
+            Route::prefix('/states')
+                ->as('states.')
+                ->group(
+                    function () {
+                        Route::get(
+                            '',
+                            [TraceAdminStoreController::class, 'index']
+                        )
+                            ->name('index');
+                        Route::post(
+                            '',
+                            [TraceAdminStoreController::class, 'create']
+                        )
+                            ->name('create');
+                        Route::delete(
+                            '/{id}',
+                            [TraceAdminStoreController::class, 'delete']
+                        )
+                            ->name('delete');
+                    }
+                );
+        }
+    );
 
 Route::prefix('/trace-cleaner')
     ->as('trace-cleaner.')
-    ->group(function () {
-        Route::get('/processes', [ProcessController::class, 'index'])
-            ->name('processes');
-    });
+    ->group(
+        function () {
+            Route::get(
+                '/processes',
+                [ProcessController::class, 'index']
+            )
+                ->name('processes');
+        }
+    );
 
 Route::prefix('/watchers')
     ->as('watchers.')
-    ->group(function () {
-        Route::get('', [WatcherController::class, 'index'])->name('index');
-        Route::get('/types', [WatcherController::class, 'types'])->name('types');
+    ->group(
+        function () {
+            Route::get(
+                '',
+                [WatcherController::class, 'index']
+            )
+                ->name('index');
+            Route::get(
+                '/types',
+                [WatcherController::class, 'types']
+            )
+                ->name('types');
 
-        // Before the {id} routes, or `incidents` is read as a watcher id.
-        Route::prefix('/incidents')
-            ->as('incidents.')
-            ->group(function () {
-                Route::get('', [WatcherIncidentController::class, 'index'])->name('index');
-                // What the header's badge reads on every page, so it never has to fetch
-                // the list to count it.
-                Route::get('/stat', [WatcherIncidentController::class, 'stat'])->name('stat');
-                Route::patch('/{id}/close', [WatcherIncidentController::class, 'close'])->name('close');
+            // Before the {id} routes, or `incidents` is read as a watcher id.
+            Route::prefix('/incidents')
+                ->as('incidents.')
+                ->group(
+                    function () {
+                        Route::get(
+                            '',
+                            [WatcherIncidentController::class, 'index']
+                        )
+                            ->name('index');
+                        // What the header's badge reads on every page, so it never has to fetch
+                        // the list to count it.
+                        Route::get(
+                            '/stat',
+                            [WatcherIncidentController::class, 'stat']
+                        )
+                            ->name('stat');
+                        Route::patch(
+                            '/{id}/close',
+                            [WatcherIncidentController::class, 'close']
+                        )
+                            ->name('close');
 
-                // A route per type, because the payload follows the watcher's type: the
-                // stored event does not carry it, and this is what makes the generated
-                // schema say which numbers an event of this watcher holds.
-                $eventTypes = [
-                    'buffer-overflow'      => BufferOverflowIncidentEventController::class,
-                    'invalid-buffer-grown' => InvalidBufferGrownIncidentEventController::class,
-                    'no-new-traces'        => NoNewTracesIncidentEventController::class,
-                    'many-traces'         => ManyTracesIncidentEventController::class,
-                    'slow-traces'          => SlowTracesIncidentEventController::class,
-                    'log-errors'           => LogErrorsIncidentEventController::class,
-                    'receiver-errors'      => ReceiverErrorsIncidentEventController::class,
-                ];
+                        // A route per type, because the payload follows the watcher's type: the
+                        // stored event does not carry it, and this is what makes the generated
+                        // schema say which numbers an event of this watcher holds.
+                        $eventTypes = [
+                            'buffer-overflow'      => BufferOverflowIncidentEventController::class,
+                            'invalid-buffer-grown' => InvalidBufferGrownIncidentEventController::class,
+                            'no-new-traces'        => NoNewTracesIncidentEventController::class,
+                            'many-traces'          => ManyTracesIncidentEventController::class,
+                            'slow-traces'          => SlowTracesIncidentEventController::class,
+                            'log-errors'           => LogErrorsIncidentEventController::class,
+                            'receiver-errors'      => ReceiverErrorsIncidentEventController::class,
+                        ];
 
-                foreach ($eventTypes as $segment => $controller) {
-                    Route::get("/{id}/events/$segment", [$controller, 'index'])
-                        ->name("events.$segment");
-                }
-            });
+                        foreach ($eventTypes as $segment => $controller) {
+                            Route::get(
+                                "/{id}/events/$segment",
+                                [$controller, 'index']
+                            )
+                                ->name("events.$segment");
+                        }
+                    }
+                );
 
-        // A route per type, because the body follows the type: this is what makes the
-        // generated schema say which numbers a watcher of this type takes, rather than
-        // offering every number any type might take.
-        $types = [
-            'buffer-overflow'      => BufferOverflowWatcherController::class,
-            'invalid-buffer-grown' => InvalidBufferGrownWatcherController::class,
-            'no-new-traces'        => NoNewTracesWatcherController::class,
-            'many-traces'         => ManyTracesWatcherController::class,
-            'slow-traces'          => SlowTracesWatcherController::class,
-            'log-errors'           => LogErrorsWatcherController::class,
-            'receiver-errors'      => ReceiverErrorsWatcherController::class,
-        ];
+            // A route per type, because the body follows the type: this is what makes the
+            // generated schema say which numbers a watcher of this type takes, rather than
+            // offering every number any type might take.
+            $types = [
+                'buffer-overflow'      => BufferOverflowWatcherController::class,
+                'invalid-buffer-grown' => InvalidBufferGrownWatcherController::class,
+                'no-new-traces'        => NoNewTracesWatcherController::class,
+                'many-traces'          => ManyTracesWatcherController::class,
+                'slow-traces'          => SlowTracesWatcherController::class,
+                'log-errors'           => LogErrorsWatcherController::class,
+                'receiver-errors'      => ReceiverErrorsWatcherController::class,
+            ];
 
-        foreach ($types as $segment => $controller) {
-            Route::prefix("/$segment")
-                ->as("$segment.")
-                ->group(function () use ($controller) {
-                    Route::post('', [$controller, 'create'])->name('create');
-                    // The settings of one watcher, typed because the route names the type.
-                    Route::get('/{id}', [$controller, 'show'])->name('show');
-                    Route::patch('/{id}', [$controller, 'update'])->name('update');
-                });
+            foreach ($types as $segment => $controller) {
+                Route::prefix("/$segment")
+                    ->as("$segment.")
+                    ->group(
+                        function () use ($controller) {
+                            Route::post(
+                                '',
+                                [$controller, 'create']
+                            )
+                                ->name('create');
+                            // The settings of one watcher, typed because the route names the type.
+                            Route::get(
+                                '/{id}',
+                                [$controller, 'show']
+                            )
+                                ->name('show');
+                            Route::patch(
+                                '/{id}',
+                                [$controller, 'update']
+                            )
+                                ->name('update');
+                        }
+                    );
+            }
+
+            Route::delete(
+                '/{id}',
+                [WatcherController::class, 'delete']
+            )
+                ->name('delete');
         }
-
-        Route::delete('/{id}', [WatcherController::class, 'delete'])->name('delete');
-    });
+    );
 
 Route::prefix('/notification-channels')
     ->as('notification-channels.')
-    ->group(function () {
-        Route::get('', [NotificationChannelController::class, 'index'])->name('index');
-        Route::get('/types', [NotificationChannelController::class, 'types'])->name('types');
+    ->group(
+        function () {
+            Route::get(
+                '',
+                [NotificationChannelController::class, 'index']
+            )
+                ->name('index');
+            Route::get(
+                '/types',
+                [NotificationChannelController::class, 'types']
+            )
+                ->name('types');
 
-        // A route per type, because the body follows the type.
-        $types = [
-            'telegram' => TelegramChannelController::class,
-            'slack'    => SlackChannelController::class,
-            'webhook'  => WebhookChannelController::class,
-        ];
+            // A route per type, because the body follows the type.
+            $types = [
+                'telegram' => TelegramChannelController::class,
+                'slack'    => SlackChannelController::class,
+                'webhook'  => WebhookChannelController::class,
+            ];
 
-        foreach ($types as $segment => $controller) {
-            Route::prefix("/$segment")
-                ->as("$segment.")
-                ->group(function () use ($controller) {
-                    Route::post('', [$controller, 'create'])->name('create');
-                    Route::get('/{id}', [$controller, 'show'])->name('show');
-                    Route::patch('/{id}', [$controller, 'update'])->name('update');
-                });
+            foreach ($types as $segment => $controller) {
+                Route::prefix("/$segment")
+                    ->as("$segment.")
+                    ->group(
+                        function () use ($controller) {
+                            Route::post(
+                                '',
+                                [$controller, 'create']
+                            )
+                                ->name('create');
+                            Route::get(
+                                '/{id}',
+                                [$controller, 'show']
+                            )
+                                ->name('show');
+                            Route::patch(
+                                '/{id}',
+                                [$controller, 'update']
+                            )
+                                ->name('update');
+                        }
+                    );
+            }
+
+            Route::get(
+                '/{id}/deliveries',
+                [NotificationChannelController::class, 'deliveries']
+            )
+                ->name('deliveries');
+            Route::post(
+                '/{id}/test',
+                [NotificationChannelController::class, 'test']
+            )
+                ->name('test');
+            Route::delete(
+                '/{id}',
+                [NotificationChannelController::class, 'delete']
+            )
+                ->name('delete');
         }
-
-        Route::get('/{id}/deliveries', [NotificationChannelController::class, 'deliveries'])->name('deliveries');
-        Route::post('/{id}/test', [NotificationChannelController::class, 'test'])->name('test');
-        Route::delete('/{id}', [NotificationChannelController::class, 'delete'])->name('delete');
-    });
+    );
 
 Route::prefix('/mcps')
     ->as('mcps.')
-    ->group(function () {
-        Route::get('', [McpController::class, 'index'])->name('index');
-        Route::post('', [McpController::class, 'create'])->name('create');
-        Route::get('/settings', [McpSettingsController::class, 'show'])->name('settings');
-        Route::get('/{id}', [McpController::class, 'show'])->whereNumber('id')->name('show');
-        Route::patch('/{id}', [McpController::class, 'update'])->whereNumber('id')->name('update');
-        Route::patch('/{id}/token', [McpController::class, 'regenerateToken'])->whereNumber('id')->name('token');
-        Route::delete('/{id}', [McpController::class, 'delete'])->whereNumber('id')->name('delete');
-    });
+    ->group(
+        function () {
+            Route::get(
+                '',
+                [McpController::class, 'index']
+            )
+                ->name('index');
+            Route::post(
+                '',
+                [McpController::class, 'create']
+            )
+                ->name('create');
+            Route::get(
+                '/settings',
+                [McpSettingsController::class, 'show']
+            )
+                ->name('settings');
+            Route::get(
+                '/{id}',
+                [McpController::class, 'show']
+            )
+                ->whereNumber('id')
+                ->name('show');
+            Route::patch(
+                '/{id}',
+                [McpController::class, 'update']
+            )
+                ->whereNumber('id')
+                ->name('update');
+            Route::patch(
+                '/{id}/token',
+                [McpController::class, 'regenerateToken']
+            )
+                ->whereNumber('id')
+                ->name('token');
+            Route::delete(
+                '/{id}',
+                [McpController::class, 'delete']
+            )
+                ->whereNumber('id')
+                ->name('delete');
+        }
+    );
 
 Route::prefix('/logs')
     ->as('logs.')
-    ->group(function () {
-        Route::post('/entries', [LogEntryController::class, 'index'])->name('entries.index');
+    ->group(
+        function () {
+            Route::post(
+                '/entries',
+                [LogEntryController::class, 'index']
+            )
+                ->name('entries.index');
 
-        Route::prefix('/files')
-            ->as('files.')
-            ->group(function () {
-                Route::get('/', [LogFileController::class, 'index'])->name('index');
-                Route::get('/{id}/download', [LogFileController::class, 'download'])->name('download');
-                Route::delete('/{id}', [LogFileController::class, 'delete'])->name('delete');
-            });
-    });
+            Route::prefix('/files')
+                ->as('files.')
+                ->group(
+                    function () {
+                        Route::get(
+                            '/',
+                            [LogFileController::class, 'index']
+                        )
+                            ->name('index');
+                        Route::get(
+                            '/{id}/download',
+                            [LogFileController::class, 'download']
+                        )
+                            ->name('download');
+                        Route::delete(
+                            '/{id}',
+                            [LogFileController::class, 'delete']
+                        )
+                            ->name('delete');
+                    }
+                );
+        }
+    );

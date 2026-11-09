@@ -19,15 +19,20 @@ readonly class FindMcpIncidentsAction
 {
     public const int PER_PAGE = 50;
 
-    public function __construct(private FindIncidentsAction $findIncidentsAction, private FindWatcherAction $findWatcherAction, private McpIncidentObjectTransport $mcpIncidentObjectTransport)
-    {
+    public function __construct(
+        private FindIncidentsAction $findIncidentsAction,
+        private FindWatcherAction $findWatcherAction,
+        private McpIncidentObjectTransport $mcpIncidentObjectTransport
+    ) {
     }
 
     public function handle(FindMcpIncidentsParameters $parameters): McpIncidentPageObject
     {
         $incidents = $this->findIncidentsAction->handle(
             new FindIncidentsParameters(
-                status: $parameters->status === null ? null : WatcherIncidentStatusEnum::from($parameters->status->value),
+                status: $parameters->status === null
+                    ? null
+                    : WatcherIncidentStatusEnum::from($parameters->status->value),
                 watcherId: $parameters->watcherId,
                 page: $parameters->page,
                 perPage: self::PER_PAGE,
@@ -35,7 +40,9 @@ readonly class FindMcpIncidentsAction
         );
         $next = $this->findIncidentsAction->handle(
             new FindIncidentsParameters(
-                status: $parameters->status === null ? null : WatcherIncidentStatusEnum::from($parameters->status->value),
+                status: $parameters->status === null
+                    ? null
+                    : WatcherIncidentStatusEnum::from($parameters->status->value),
                 watcherId: $parameters->watcherId,
                 page: $parameters->page * self::PER_PAGE + 1,
                 perPage: 1,
@@ -46,12 +53,7 @@ readonly class FindMcpIncidentsAction
         return new McpIncidentPageObject(
             items: array_map(
                 function (WatcherIncidentObject $incident) use (&$watchers): McpIncidentObject {
-                    if (
-                        !array_key_exists(
-                            $incident->watcherId,
-                            $watchers,
-                        )
-                    ) {
+                    if (!array_key_exists($incident->watcherId, $watchers)) {
                         $watchers[$incident->watcherId] = $this->findWatcher($incident->watcherId);
                     }
 

@@ -11,8 +11,9 @@ use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
 
 readonly class FindUserByTokenByAdminUseCase
 {
-    public function __construct(private FindUserByTokenAction $findUserByTokenAction)
-    {
+    public function __construct(
+        private FindUserByTokenAction $findUserByTokenAction
+    ) {
     }
 
     /**

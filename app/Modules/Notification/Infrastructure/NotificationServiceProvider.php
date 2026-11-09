@@ -87,20 +87,14 @@ class NotificationServiceProvider extends BaseServiceProvider
 
     protected function getJobs(): array
     {
-        return [
-            SendNotificationJob::class,
-        ];
+        return [SendNotificationJob::class];
     }
 
     protected function getListeners(): array
     {
         return [
-            NotificationEnqueuedEvent::class => [
-                DispatchNotificationListener::class,
-            ],
-            WatcherIncidentChangedEvent::class => [
-                EnqueueNotificationsListener::class,
-            ],
+            NotificationEnqueuedEvent::class   => [DispatchNotificationListener::class],
+            WatcherIncidentChangedEvent::class => [EnqueueNotificationsListener::class],
         ];
     }
 

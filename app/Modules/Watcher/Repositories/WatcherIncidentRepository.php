@@ -30,15 +30,16 @@ readonly class WatcherIncidentRepository
             $filter['watcherId'] = $parameters->watcherId;
         }
 
-        $cursor = WatcherIncident::sconcur()->find(
-            filter: $filter,
-            // Still open first, then newest: the list is a work queue, and a closed
-            // incident is history whatever its date. `opened` sorts after `closed`, which
-            // is what the descending order is for; the id carries the time it was made.
-            sort: ['status' => -1, '_id' => -1],
-            limit: $parameters->perPage,
-            skip: ($parameters->page - 1) * $parameters->perPage,
-        );
+        $cursor = WatcherIncident::sconcur()
+            ->find(
+                filter: $filter,
+                // Still open first, then newest: the list is a work queue, and a closed
+                // incident is history whatever its date. `opened` sorts after `closed`, which
+                // is what the descending order is for; the id carries the time it was made.
+                sort: ['status' => -1, '_id' => -1],
+                limit: $parameters->perPage,
+                skip: ($parameters->page - 1) * $parameters->perPage,
+            );
 
         $incidents = [];
 
@@ -51,14 +52,15 @@ readonly class WatcherIncidentRepository
 
     public function findLastOpenByWatcherId(int $watcherId): ?WatcherIncidentObject
     {
-        $cursor = WatcherIncident::sconcur()->find(
-            filter: [
-                'watcherId' => $watcherId,
-                'status'    => WatcherIncidentStatusEnum::Opened->value,
-            ],
-            sort: ['_id' => -1],
-            limit: 1,
-        );
+        $cursor = WatcherIncident::sconcur()
+            ->find(
+                filter: [
+                    'watcherId' => $watcherId,
+                    'status'    => WatcherIncidentStatusEnum::Opened->value,
+                ],
+                sort: ['_id' => -1],
+                limit: 1,
+            );
 
         foreach ($cursor as $document) {
             return $this->makeObject($document);
@@ -75,29 +77,32 @@ readonly class WatcherIncidentRepository
             return null;
         }
 
-        $document = WatcherIncident::sconcur()->findOne(['_id' => $objectId]);
+        $document = WatcherIncident::sconcur()
+            ->findOne(['_id' => $objectId]);
 
         return is_null($document) ? null : $this->makeObject($document);
     }
 
     public function countOpen(): int
     {
-        return WatcherIncident::sconcur()->countDocuments([
-            'status' => WatcherIncidentStatusEnum::Opened->value,
-        ]);
+        return WatcherIncident::sconcur()
+            ->countDocuments([
+                'status' => WatcherIncidentStatusEnum::Opened->value,
+            ]);
     }
 
     public function create(int $watcherId, Carbon $occurredAt): WatcherIncidentObject
     {
-        $result = WatcherIncident::sconcur()->insertOne([
-            'watcherId'      => $watcherId,
-            'status'         => WatcherIncidentStatusEnum::Opened->value,
-            'firstEventAt'   => new UTCDateTime($occurredAt),
-            'lastEventAt'    => new UTCDateTime($occurredAt),
-            'eventsCount'    => 0,
-            'closedAt'       => null,
-            'closedByUserId' => null,
-        ]);
+        $result = WatcherIncident::sconcur()
+            ->insertOne([
+                'watcherId'      => $watcherId,
+                'status'         => WatcherIncidentStatusEnum::Opened->value,
+                'firstEventAt'   => new UTCDateTime($occurredAt),
+                'lastEventAt'    => new UTCDateTime($occurredAt),
+                'eventsCount'    => 0,
+                'closedAt'       => null,
+                'closedByUserId' => null,
+            ]);
 
         return new WatcherIncidentObject(
             id: (string) $result->insertedId,
@@ -119,16 +124,17 @@ readonly class WatcherIncidentRepository
             return;
         }
 
-        WatcherIncident::sconcur()->updateOne(
-            filter: ['_id' => $objectId],
-            update: [
-                // $inc rather than a read-modify-write: the counter is a denormalisation
-                // of the events collection, and the database is the only thing that can
-                // add to it without a window in which somebody else's event is lost.
-                '$inc' => ['eventsCount' => 1],
-                '$set' => ['lastEventAt' => new UTCDateTime($lastEventAt)],
-            ],
-        );
+        WatcherIncident::sconcur()
+            ->updateOne(
+                filter: ['_id' => $objectId],
+                update: [
+                    // $inc rather than a read-modify-write: the counter is a denormalisation
+                    // of the events collection, and the database is the only thing that can
+                    // add to it without a window in which somebody else's event is lost.
+                    '$inc' => ['eventsCount' => 1],
+                    '$set' => ['lastEventAt' => new UTCDateTime($lastEventAt)],
+                ],
+            );
     }
 
     public function updateStatus(
@@ -143,16 +149,17 @@ readonly class WatcherIncidentRepository
             return;
         }
 
-        WatcherIncident::sconcur()->updateOne(
-            filter: ['_id' => $objectId],
-            update: [
-                '$set' => [
-                    'status'         => $status->value,
-                    'closedAt'       => is_null($closedAt) ? null : new UTCDateTime($closedAt),
-                    'closedByUserId' => $closedByUserId,
+        WatcherIncident::sconcur()
+            ->updateOne(
+                filter: ['_id' => $objectId],
+                update: [
+                    '$set' => [
+                        'status'         => $status->value,
+                        'closedAt'       => is_null($closedAt) ? null : new UTCDateTime($closedAt),
+                        'closedByUserId' => $closedByUserId,
+                    ],
                 ],
-            ],
-        );
+            );
     }
 
     /**

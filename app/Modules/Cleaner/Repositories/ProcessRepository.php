@@ -18,12 +18,13 @@ class ProcessRepository
      */
     public function find(int $page, int $perPage): array
     {
-        $cursor = TraceClearingProcess::sconcur()->find(
-            filter: [],
-            sort: ['createdAt' => -1],
-            limit: $perPage,
-            skip: ($page - 1) * $perPage,
-        );
+        $cursor = TraceClearingProcess::sconcur()
+            ->find(
+                filter: [],
+                sort: ['createdAt' => -1],
+                limit: $perPage,
+                skip: ($page - 1) * $perPage,
+            );
 
         $processes = [];
 
@@ -36,15 +37,16 @@ class ProcessRepository
 
     public function exists(bool $clearedAtIsNull): ?ProcessObject
     {
-        $cursor = TraceClearingProcess::sconcur()->find(
-            filter: [
-                'clearedAt' => $clearedAtIsNull
-                    ? null
-                    : ['$ne' => null],
-            ],
-            sort: ['createdAt' => -1],
-            limit: 1,
-        );
+        $cursor = TraceClearingProcess::sconcur()
+            ->find(
+                filter: [
+                    'clearedAt' => $clearedAtIsNull
+                        ? null
+                        : ['$ne' => null],
+                ],
+                sort: ['createdAt' => -1],
+                limit: 1,
+            );
 
         foreach ($cursor as $document) {
             return $this->documentToObject($document);
@@ -57,15 +59,16 @@ class ProcessRepository
     {
         $createdAt = Carbon::now();
 
-        $result = TraceClearingProcess::sconcur()->insertOne([
-            'clearedCollectionsCount' => 0,
-            'clearedTracesCount'      => 0,
-            'error'                   => null,
-            'errorTrace'              => null,
-            'clearedAt'               => null,
-            'createdAt'               => new UTCDateTime($createdAt),
-            'updatedAt'               => new UTCDateTime($createdAt),
-        ]);
+        $result = TraceClearingProcess::sconcur()
+            ->insertOne([
+                'clearedCollectionsCount' => 0,
+                'clearedTracesCount'      => 0,
+                'error'                   => null,
+                'errorTrace'              => null,
+                'clearedAt'               => null,
+                'createdAt'               => new UTCDateTime($createdAt),
+                'updatedAt'               => new UTCDateTime($createdAt),
+            ]);
 
         return new ProcessObject(
             id: (string) $result->insertedId,
@@ -85,24 +88,33 @@ class ProcessRepository
         ?Carbon $clearedAt,
         ?Throwable $exception
     ): void {
-        TraceClearingProcess::sconcur()->updateOne(
-            filter: ['_id' => new ObjectId($processId)],
-            update: [
-                '$set' => [
-                    'clearedCollectionsCount' => $clearedCollectionsCount,
-                    'clearedTracesCount'      => $clearedTracesCount,
-                    'error'                   => $exception ? ($exception->getMessage() ?: $exception::class) : null,
-                    'errorTrace'              => $exception ? ($exception->getTraceAsString()) : null,
-                    'clearedAt'               => $clearedAt ? new UTCDateTime($clearedAt) : null,
-                    'updatedAt'               => new UTCDateTime(now()),
+        TraceClearingProcess::sconcur()
+            ->updateOne(
+                filter: ['_id' => new ObjectId($processId)],
+                update: [
+                    '$set' => [
+                        'clearedCollectionsCount' => $clearedCollectionsCount,
+                        'clearedTracesCount'      => $clearedTracesCount,
+                        'error'                   => $exception
+                            ? (
+                                $exception->getMessage()
+                            ?: $exception::class
+                            ) : null,
+                        'errorTrace'              => $exception
+                            ? (
+                                $exception->getTraceAsString()
+                            ) : null,
+                        'clearedAt'               => $clearedAt ? new UTCDateTime($clearedAt) : null,
+                        'updatedAt'               => new UTCDateTime(now()),
+                    ],
                 ],
-            ],
-        );
+            );
     }
 
     public function deleteByProcessId(string $processId): void
     {
-        TraceClearingProcess::sconcur()->deleteOne(['_id' => new ObjectId($processId)]);
+        TraceClearingProcess::sconcur()
+            ->deleteOne(['_id' => new ObjectId($processId)]);
     }
 
     /**

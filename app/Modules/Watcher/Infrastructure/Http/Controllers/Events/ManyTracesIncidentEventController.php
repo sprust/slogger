@@ -13,8 +13,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class ManyTracesIncidentEventController extends AbstractIncidentEventController
 {
     #[OaListItemTypeAttribute(ManyTracesIncidentEventResource::class)]
-    public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
-    {
+    public function index(
+        string $id,
+        IndexIncidentEventsRequest $request
+    ): AnonymousResourceCollection {
         return ManyTracesIncidentEventResource::collection(
             $this->incidentEvents(
                 WatcherTypeEnum::ManyTraces,

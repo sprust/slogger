@@ -15,21 +15,34 @@ class RefreshTraceDataPathTypesTaskTest extends TestCase
     public function testRefreshesAtStartThenWaitsForTheInterval(): void
     {
         $action = $this->createMock(RefreshTraceDataPathTypesAction::class);
-        $action->expects($this->once())->method('handle')->willReturn(2);
+        $action->expects(
+            $this->once()
+        )->method('handle')->willReturn(2);
 
         $task = new RefreshTraceDataPathTypesTask($action);
 
-        $this->assertSame(TickResultEnum::Worked, $task->tick());
-        $this->assertSame(TickResultEnum::Idle, $task->tick());
+        $this->assertSame(
+            TickResultEnum::Worked,
+            $task->tick()
+        );
+        $this->assertSame(
+            TickResultEnum::Idle,
+            $task->tick()
+        );
     }
 
     public function testAFailedRefreshIsTriedAgainOnTheNextTick(): void
     {
         $action = $this->createMock(RefreshTraceDataPathTypesAction::class);
-        $action->expects($this->exactly(2))
+        $action
+            ->expects(
+                $this->exactly(2)
+            )
             ->method('handle')
             ->willReturnOnConsecutiveCalls(
-                $this->throwException(new RuntimeException('ClickHouse is unreachable')),
+                $this->throwException(
+                    new RuntimeException('ClickHouse is unreachable')
+                ),
                 1
             );
 
@@ -41,6 +54,9 @@ class RefreshTraceDataPathTypesTaskTest extends TestCase
         } catch (RuntimeException) {
         }
 
-        $this->assertSame(TickResultEnum::Worked, $task->tick());
+        $this->assertSame(
+            TickResultEnum::Worked,
+            $task->tick()
+        );
     }
 }

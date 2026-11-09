@@ -26,11 +26,12 @@ class TraceTreeCacheStateRepository
             $filter['status'] = ['$ne' => $excludeStatus->value];
         }
 
-        $cursor = TraceTreeCacheState::sconcur()->find(
-            filter: $filter,
-            sort: ['updatedAt' => -1],
-            limit: $limit,
-        );
+        $cursor = TraceTreeCacheState::sconcur()
+            ->find(
+                filter: $filter,
+                sort: ['updatedAt' => -1],
+                limit: $limit,
+            );
 
         $states = [];
 
@@ -43,7 +44,8 @@ class TraceTreeCacheStateRepository
 
     public function findOneByRootTraceId(string $rootTraceId): ?TraceTreeCacheStateObject
     {
-        $document = TraceTreeCacheState::sconcur()->findOne(['rootTraceId' => $rootTraceId]);
+        $document = TraceTreeCacheState::sconcur()
+            ->findOne(['rootTraceId' => $rootTraceId]);
 
         return $document ? $this->documentToObject($document) : null;
     }
@@ -55,57 +57,66 @@ class TraceTreeCacheStateRepository
     ): TraceTreeCacheStateObject {
         $startedAt = now();
 
-        TraceTreeCacheState::sconcur()->updateOne(
-            filter: ['rootTraceId' => $rootTraceId],
-            update: [
-                '$set' => [
-                    'version'    => $version,
-                    'status'     => $status->value,
-                    'count'      => 0,
-                    'error'      => null,
-                    'startedAt'  => new UTCDateTime($startedAt),
-                    'finishedAt' => null,
-                    'updatedAt'  => new UTCDateTime($startedAt),
-                    'createdAt'  => new UTCDateTime($startedAt),
+        TraceTreeCacheState::sconcur()
+            ->updateOne(
+                filter: ['rootTraceId' => $rootTraceId],
+                update: [
+                    '$set' => [
+                        'version'    => $version,
+                        'status'     => $status->value,
+                        'count'      => 0,
+                        'error'      => null,
+                        'startedAt'  => new UTCDateTime($startedAt),
+                        'finishedAt' => null,
+                        'updatedAt'  => new UTCDateTime($startedAt),
+                        'createdAt'  => new UTCDateTime($startedAt),
+                    ],
                 ],
-            ],
-            upsert: true,
-        );
+                upsert: true,
+            );
 
         $state = $this->findOneByRootTraceId($rootTraceId);
 
         if ($state === null) {
-            throw new RuntimeException('Trace tree cache state was not created.');
+            throw new RuntimeException(
+                'Trace tree cache state was not created.',
+            );
         }
 
         return $state;
     }
 
-    public function saveFinished(string $rootTraceId, string $version, int $count = 0): TraceTreeCacheStateObject
-    {
+    public function saveFinished(
+        string $rootTraceId,
+        string $version,
+        int $count = 0
+    ): TraceTreeCacheStateObject {
         $finishedAt = now();
 
-        TraceTreeCacheState::sconcur()->updateOne(
-            filter: ['rootTraceId' => $rootTraceId],
-            update: [
-                '$set' => [
-                    'version'    => $version,
-                    'status'     => TraceTreeCacheStateStatusEnum::Finished->value,
-                    'count'      => $count,
-                    'error'      => null,
-                    'startedAt'  => new UTCDateTime($finishedAt),
-                    'finishedAt' => new UTCDateTime($finishedAt),
-                    'updatedAt'  => new UTCDateTime($finishedAt),
-                    'createdAt'  => new UTCDateTime($finishedAt),
+        TraceTreeCacheState::sconcur()
+            ->updateOne(
+                filter: ['rootTraceId' => $rootTraceId],
+                update: [
+                    '$set' => [
+                        'version'    => $version,
+                        'status'     => TraceTreeCacheStateStatusEnum::Finished->value,
+                        'count'      => $count,
+                        'error'      => null,
+                        'startedAt'  => new UTCDateTime($finishedAt),
+                        'finishedAt' => new UTCDateTime($finishedAt),
+                        'updatedAt'  => new UTCDateTime($finishedAt),
+                        'createdAt'  => new UTCDateTime($finishedAt),
+                    ],
                 ],
-            ],
-            upsert: true,
-        );
+                upsert: true,
+            );
 
         $state = $this->findOneByRootTraceId($rootTraceId);
 
         if ($state === null) {
-            throw new RuntimeException('Trace tree cache state was not saved.');
+            throw new RuntimeException(
+                'Trace tree cache state was not saved.',
+            );
         }
 
         return $state;

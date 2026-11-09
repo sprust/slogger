@@ -40,9 +40,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             ],
             pages: [
                 0 => [
-                    [
-                        'root',
-                    ],
+                    ['root'],
                 ],
             ],
         );
@@ -53,20 +51,31 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             afterId: null,
         );
 
-        self::assertSame([
-            'root',
-        ], $written[0]);
+        self::assertSame(
+            ['root'],
+            $written[0]
+        );
 
-        self::assertSame([
-            'a',
-            'b',
-        ], $written[1]);
+        self::assertSame(
+            [
+                'a',
+                'b',
+            ],
+            $written[1]
+        );
 
-        self::assertFalse($slice->finished);
+        self::assertFalse(
+            $slice->finished
+        );
 
-        self::assertSame(1, $slice->nextDepth);
+        self::assertSame(
+            1,
+            $slice->nextDepth
+        );
 
-        self::assertNull($slice->nextAfterId);
+        self::assertNull(
+            $slice->nextAfterId
+        );
     }
 
     /**
@@ -106,13 +115,24 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             afterId: null,
         );
 
-        self::assertCount(6000, $written[2]);
+        self::assertCount(
+            6000,
+            $written[2]
+        );
 
-        self::assertFalse($slice->finished);
+        self::assertFalse(
+            $slice->finished
+        );
 
-        self::assertSame(1, $slice->nextDepth);
+        self::assertSame(
+            1,
+            $slice->nextDepth
+        );
 
-        self::assertSame('id-p-1000', $slice->nextAfterId);
+        self::assertSame(
+            'id-p-1000',
+            $slice->nextAfterId
+        );
     }
 
     /**
@@ -151,13 +171,23 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             afterId: null,
         );
 
-        self::assertSame([], $written);
+        self::assertSame(
+            [],
+            $written
+        );
 
-        self::assertFalse($slice->finished);
+        self::assertFalse(
+            $slice->finished
+        );
 
-        self::assertSame(2, $slice->nextDepth);
+        self::assertSame(
+            2,
+            $slice->nextDepth
+        );
 
-        self::assertNull($slice->nextAfterId);
+        self::assertNull(
+            $slice->nextAfterId
+        );
     }
 
     /**
@@ -191,11 +221,19 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             afterId: null,
         );
 
-        self::assertFalse($slice->finished);
+        self::assertFalse(
+            $slice->finished
+        );
 
-        self::assertSame(1, $slice->nextDepth);
+        self::assertSame(
+            1,
+            $slice->nextDepth
+        );
 
-        self::assertSame('id-p-1000', $slice->nextAfterId);
+        self::assertSame(
+            'id-p-1000',
+            $slice->nextAfterId
+        );
     }
 
     public function testALevelWithNoChildrenEndsTheBuildAndWritesTheAncestors(): void
@@ -206,14 +244,10 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             children: [],
             pages: [
                 2 => [
-                    [
-                        'leaf',
-                    ],
+                    ['leaf'],
                 ],
             ],
-            ancestors: [
-                'grandparent',
-            ],
+            ancestors: ['grandparent'],
         );
         $slice = $service->handleSlice(
             rootTraceId: 'root',
@@ -222,13 +256,18 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             afterId: null,
         );
 
-        self::assertTrue($slice->finished);
+        self::assertTrue(
+            $slice->finished
+        );
 
-        self::assertNull($slice->nextDepth);
+        self::assertNull(
+            $slice->nextDepth
+        );
 
-        self::assertSame([
-            'grandparent',
-        ], $written[-1]);
+        self::assertSame(
+            ['grandparent'],
+            $written[-1]
+        );
     }
 
     public function testACanceledBuildStopsWithoutWriting(): void
@@ -237,15 +276,11 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $service = $this->service(
             written: $written,
             children: [
-                'root' => [
-                    'a',
-                ],
+                'root' => ['a'],
             ],
             pages: [
                 0 => [
-                    [
-                        'root',
-                    ],
+                    ['root'],
                 ],
             ],
             canContinue: false,
@@ -257,9 +292,14 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             afterId: null,
         );
 
-        self::assertTrue($slice->stopped);
+        self::assertTrue(
+            $slice->stopped
+        );
 
-        self::assertSame([], $written);
+        self::assertSame(
+            [],
+            $written
+        );
     }
 
     /**
@@ -273,9 +313,13 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $events  = $this->createMock(Dispatcher::class);
 
         $events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with($this->isInstanceOf(TraceTreeCacheStateChangedEvent::class));
+            ->with(
+                $this->isInstanceOf(TraceTreeCacheStateChangedEvent::class)
+            );
 
         $this
             ->service(
@@ -289,9 +333,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
                 ],
                 pages: [
                     0 => [
-                        [
-                            'root',
-                        ],
+                        ['root'],
                     ],
                 ],
                 events: $events,
@@ -310,33 +352,44 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
      * @param array<int, list<list<string>>> $pages     the pages of each depth, in order
      * @param string[]                       $ancestors
      */
-    private function service(array &$written, array $children, array $pages, array $ancestors = [], bool $canContinue = true, ?Dispatcher $events = null, float $timeBudgetSeconds = 5.0): TraceTreeCacheBuilderService
-    {
+    private function service(
+        array &$written,
+        array $children,
+        array $pages,
+        array $ancestors = [],
+        bool $canContinue = true,
+        ?Dispatcher $events = null,
+        float $timeBudgetSeconds = 5.0
+    ): TraceTreeCacheBuilderService {
         $traces = $this->createMock(TraceRepository::class);
 
-        $traces->method('findOneDetailByTraceId')->willReturn($this->trace('root'));
+        $traces->method('findOneDetailByTraceId')->willReturn(
+            $this->trace('root')
+        );
 
         $traces
             ->method('findTreeNodesByTraceIds')
-            ->willReturnCallback(fn(array $traceIds): array => array_map($this->node(...), $traceIds));
+            ->willReturnCallback(
+                fn(array $traceIds): array => array_map($this->node(...), $traceIds)
+            );
 
         $tree = $this->createMock(TraceTreeRepository::class);
 
         $tree
             ->method('findChildrenTraceIds')
-            ->willReturnCallback(static function (array $parentTraceIds) use ($children): array {
-                $found = [];
+            ->willReturnCallback(
+                static function (array $parentTraceIds) use ($children): array {
+                    $found = [];
 
-                foreach ($parentTraceIds as $parentTraceId) {
-                    foreach ($children[$parentTraceId] ?? [] as $childTraceId) {
-                        $found[] = $childTraceId;
+                    foreach ($parentTraceIds as $parentTraceId) {
+                        foreach ($children[$parentTraceId] ?? [] as $childTraceId) {
+                            $found[] = $childTraceId;
+                        }
                     }
-                }
 
-                return $found === [] ? [] : [
-                    $found,
-                ];
-            });
+                    return $found === [] ? [] : [$found];
+                }
+            );
 
         $tree->method('findChainToParentTraceId')->willReturn($ancestors);
 
@@ -345,7 +398,11 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $cache
             ->method('createMany')
             ->willReturnCallback(
-                static function (string $rootTraceId, int $depth, array $parametersList) use (&$written): int {
+                static function (
+                    string $rootTraceId,
+                    int $depth,
+                    array $parametersList
+                ) use (&$written): int {
                     foreach ($parametersList as $parameters) {
                         $written[$depth][] = $parameters->traceId;
                     }
@@ -362,7 +419,10 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $cache
             ->method('findTraceIdsPage')
             ->willReturnCallback(
-                static function (string $rootTraceId, int $depth) use (&$remainingPages): TraceTreeCachePageDto {
+                static function (
+                    string $rootTraceId,
+                    int $depth
+                ) use (&$remainingPages): TraceTreeCachePageDto {
                     $page = array_shift($remainingPages[$depth]) ?? [];
 
                     return new TraceTreeCachePageDto(
@@ -374,7 +434,12 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
 
         $cache
             ->method('existsByDepth')
-            ->willReturnCallback(static fn(string $rootTraceId, int $depth): bool => isset($pages[$depth]) || $depth === 1);
+            ->willReturnCallback(
+                static fn(
+                    string $rootTraceId,
+                    int $depth
+                ): bool => isset($pages[$depth]) || $depth === 1
+            );
 
         $states = $this->createMock(TraceTreeCacheStateRepository::class);
 
@@ -416,13 +481,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
      */
     private function ids(string $prefix, int $count): array
     {
-        return array_map(
-            static fn(int $index): string => "{$prefix}-{$index}",
-            range(
-                1,
-                $count,
-            )
-        );
+        return array_map(static fn(int $index): string => "{$prefix}-{$index}", range(1, $count));
     }
 
     private function node(string $traceId): TraceTreeNodeDto

@@ -190,7 +190,7 @@ readonly class TraceContentRepository
         $rows = $this->client->select(
             sql: sprintf(
                 'SELECT %s AS name, count() AS count FROM traces FINAL WHERE %s GROUP BY name %s '
-                . 'ORDER BY count DESC, name LIMIT {limit:UInt32}',
+                    . 'ORDER BY count DESC, name LIMIT {limit:UInt32}',
                 $value,
                 $condition->sql,
                 $having

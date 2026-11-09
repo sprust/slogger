@@ -10,8 +10,10 @@ use App\Modules\Common\Domain\Services\DispatcherInterface;
 
 readonly class DeleteTraceTreeCacheStateAction
 {
-    public function __construct(private TraceTreeCacheStateRepository $traceTreeCacheStateRepository, private DispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
+        private DispatcherInterface $dispatcher
+    ) {
     }
 
     public function handle(string $rootTraceId): void

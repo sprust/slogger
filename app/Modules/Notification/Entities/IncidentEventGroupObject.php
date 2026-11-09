@@ -18,7 +18,14 @@ readonly class IncidentEventGroupObject
     /**
      * @param string[] $tags
      */
-    public function __construct(public int $serviceId, public string $type, public array $tags, public int $count, public ?float $durationMax, public ?string $slowestTraceId, public ?string $slowestTraceLoggedAt)
-    {
+    public function __construct(
+        public int $serviceId,
+        public string $type,
+        public array $tags,
+        public int $count,
+        public ?float $durationMax,
+        public ?string $slowestTraceId,
+        public ?string $slowestTraceLoggedAt
+    ) {
     }
 }

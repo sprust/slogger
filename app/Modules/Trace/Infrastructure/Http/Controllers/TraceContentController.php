@@ -22,16 +22,21 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceContentController
 {
-    public function __construct(private FindTypesByAdminUseCase $findTypesByAdminUseCase, private FindTagsByAdminUseCase $findTagsByAdminUseCase, private FindStatusesByAdminUseCase $findStatusesByAdminUseCase, private DataFilterParameterTransport $dataFilterParameterTransport)
-    {
+    public function __construct(
+        private FindTypesByAdminUseCase $findTypesByAdminUseCase,
+        private FindTagsByAdminUseCase $findTagsByAdminUseCase,
+        private FindStatusesByAdminUseCase $findStatusesByAdminUseCase,
+        private DataFilterParameterTransport $dataFilterParameterTransport
+    ) {
     }
 
     /**
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
-    public function types(TraceFindTypesRequest $request): AnonymousResourceCollection
-    {
+    public function types(
+        TraceFindTypesRequest $request
+    ): AnonymousResourceCollection {
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(
@@ -83,8 +88,9 @@ readonly class TraceContentController
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
-    public function tags(TraceFindTagsRequest $request): AnonymousResourceCollection
-    {
+    public function tags(
+        TraceFindTagsRequest $request
+    ): AnonymousResourceCollection {
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(
@@ -136,8 +142,9 @@ readonly class TraceContentController
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
-    public function statuses(TraceFindStatusesRequest $request): AnonymousResourceCollection
-    {
+    public function statuses(
+        TraceFindStatusesRequest $request
+    ): AnonymousResourceCollection {
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(

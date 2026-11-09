@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Common\Infrastructure;
 
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerRegistry;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
 use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Common\Infrastructure\Services\Dispatcher;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
@@ -21,7 +21,7 @@ class CommonServiceProvider extends BaseServiceProvider
     protected function getContracts(): array
     {
         return [
-            ExceptionManagerRegistry::class,
+            ExceptionManagers::class,
             DispatcherInterface::class   => Dispatcher::class,
             MutexManagerInterface::class => MutexManager::class,
         ];

@@ -32,11 +32,12 @@ readonly class TraceBufferRepository
      */
     public function countInvalidBetween(Carbon $since, Carbon $until): int
     {
-        return TraceInvalidBuffer::sconcur()->countDocuments([
-            'iat' => [
-                '$gt'  => new UTCDateTime($since),
-                '$lte' => new UTCDateTime($until),
-            ],
-        ]);
+        return TraceInvalidBuffer::sconcur()
+            ->countDocuments([
+                'iat' => [
+                    '$gt'  => new UTCDateTime($since),
+                    '$lte' => new UTCDateTime($until),
+                ],
+            ]);
     }
 }

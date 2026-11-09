@@ -82,9 +82,13 @@ code-analise-cs-fixer-check:
 code-analise-cs-fixer-fix:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --verbose
 
+code-analise-line-length:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php code-analyse/line-length.php
+
 code-analise:
 	make code-analise-declare-strict-fix
 	make code-analise-cs-fixer-check
+	make code-analise-line-length
 	make code-analise-stan
 	make code-analise-deptrac
 	make code-analise-modules-structure

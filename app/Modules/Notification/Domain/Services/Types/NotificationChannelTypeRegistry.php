@@ -16,8 +16,9 @@ readonly class NotificationChannelTypeRegistry
     ) {
     }
 
-    public function for(NotificationChannelTypeEnum $type): NotificationChannelTypeDefinitionInterface
-    {
+    public function for(
+        NotificationChannelTypeEnum $type
+    ): NotificationChannelTypeDefinitionInterface {
         return match ($type) {
             NotificationChannelTypeEnum::Telegram => $this->telegram,
             NotificationChannelTypeEnum::Slack    => $this->slack,
@@ -31,7 +32,9 @@ readonly class NotificationChannelTypeRegistry
     public function describeAll(): array
     {
         return array_map(
-            fn(NotificationChannelTypeEnum $type): ChannelTypeObject => $this->for($type)->describe(),
+            fn(
+                NotificationChannelTypeEnum $type
+            ): ChannelTypeObject => $this->for($type)->describe(),
             NotificationChannelTypeEnum::cases()
         );
     }

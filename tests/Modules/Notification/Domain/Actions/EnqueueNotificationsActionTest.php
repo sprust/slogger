@@ -43,7 +43,9 @@ class EnqueueNotificationsActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
 
         $repository
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('create')
             ->with(
                 1,
@@ -51,7 +53,9 @@ class EnqueueNotificationsActionTest extends TestCase
                 '68be1f000000000000000009',
                 NotificationKindEnum::Opened
             )
-            ->willReturn($this->notification());
+            ->willReturn(
+                $this->notification()
+            );
 
         $this
             ->action(
@@ -59,8 +63,12 @@ class EnqueueNotificationsActionTest extends TestCase
                 channel: $this->channel(),
             )
             ->handle(
-                watcher: $this->notificationWatcher($this->watcher()),
-                incident: $this->notificationIncident($this->incident()),
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
                 event: $this->notificationEvent(
                     event: null,
                     type: $this->watcher()->type,
@@ -73,7 +81,9 @@ class EnqueueNotificationsActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
 
         $repository
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('create')
             ->with(
                 1,
@@ -81,7 +91,9 @@ class EnqueueNotificationsActionTest extends TestCase
                 '68be1f000000000000000009',
                 NotificationKindEnum::Event
             )
-            ->willReturn($this->notification());
+            ->willReturn(
+                $this->notification()
+            );
 
         $this
             ->action(
@@ -113,7 +125,9 @@ class EnqueueNotificationsActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
 
         $repository
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('create')
             ->with(
                 1,
@@ -121,7 +135,9 @@ class EnqueueNotificationsActionTest extends TestCase
                 '68be1f000000000000000009',
                 NotificationKindEnum::Closed
             )
-            ->willReturn($this->notification());
+            ->willReturn(
+                $this->notification()
+            );
 
         $this
             ->action(
@@ -129,7 +145,9 @@ class EnqueueNotificationsActionTest extends TestCase
                 channel: $this->channel(),
             )
             ->handle(
-                watcher: $this->notificationWatcher($this->watcher()),
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
                 incident: $this->notificationIncident(
                     $this->incident(
                         status: WatcherIncidentStatusEnum::Closed,
@@ -147,7 +165,9 @@ class EnqueueNotificationsActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->never())->method('create');
+        $repository->expects(
+            $this->never()
+        )->method('create');
 
         $this
             ->action(
@@ -160,7 +180,9 @@ class EnqueueNotificationsActionTest extends TestCase
                         notifyOnOpened: false,
                     )
                 ),
-                incident: $this->notificationIncident($this->incident()),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
                 event: $this->notificationEvent(
                     event: null,
                     type: $this->watcher(
@@ -174,7 +196,9 @@ class EnqueueNotificationsActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->never())->method('create');
+        $repository->expects(
+            $this->never()
+        )->method('create');
 
         $this
             ->action(
@@ -205,7 +229,9 @@ class EnqueueNotificationsActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->never())->method('create');
+        $repository->expects(
+            $this->never()
+        )->method('create');
 
         $this
             ->action(
@@ -237,13 +263,19 @@ class EnqueueNotificationsActionTest extends TestCase
     {
         $findChannelAction = $this->createMock(FindChannelAction::class);
 
-        $findChannelAction->expects($this->never())->method('handle');
+        $findChannelAction->expects(
+            $this->never()
+        )->method('handle');
 
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->never())->method('create');
+        $repository->expects(
+            $this->never()
+        )->method('create');
 
-        $this->events->expects($this->never())->method('event');
+        $this->events->expects(
+            $this->never()
+        )->method('event');
 
         (new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
@@ -257,7 +289,9 @@ class EnqueueNotificationsActionTest extends TestCase
                     channelId: null,
                 )
             ),
-            incident: $this->notificationIncident($this->incident()),
+            incident: $this->notificationIncident(
+                $this->incident()
+            ),
             event: $this->notificationEvent(
                 event: null,
                 type: $this->watcher(
@@ -272,7 +306,9 @@ class EnqueueNotificationsActionTest extends TestCase
         $findChannelAction = $this->createMock(FindChannelAction::class);
 
         $findChannelAction
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with(4)
             ->willReturn(
@@ -283,7 +319,9 @@ class EnqueueNotificationsActionTest extends TestCase
 
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->method('create')->willReturn($this->notification());
+        $repository->method('create')->willReturn(
+            $this->notification()
+        );
 
         $messageFactory = $this->createMock(IncidentMessageFactory::class);
 
@@ -301,7 +339,9 @@ class EnqueueNotificationsActionTest extends TestCase
                     channelId: 4,
                 )
             ),
-            incident: $this->notificationIncident($this->incident()),
+            incident: $this->notificationIncident(
+                $this->incident()
+            ),
             event: $this->notificationEvent(
                 event: null,
                 type: $this->watcher(
@@ -316,7 +356,9 @@ class EnqueueNotificationsActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->never())->method('create');
+        $repository->expects(
+            $this->never()
+        )->method('create');
 
         $this
             ->action(
@@ -326,8 +368,12 @@ class EnqueueNotificationsActionTest extends TestCase
                 ),
             )
             ->handle(
-                watcher: $this->notificationWatcher($this->watcher()),
-                incident: $this->notificationIncident($this->incident()),
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
                 event: $this->notificationEvent(
                     event: null,
                     type: $this->watcher()->type,
@@ -340,7 +386,9 @@ class EnqueueNotificationsActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->never())->method('create');
+        $repository->expects(
+            $this->never()
+        )->method('create');
 
         $this
             ->action(
@@ -348,8 +396,12 @@ class EnqueueNotificationsActionTest extends TestCase
                 channel: null,
             )
             ->handle(
-                watcher: $this->notificationWatcher($this->watcher()),
-                incident: $this->notificationIncident($this->incident()),
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
                 event: $this->notificationEvent(
                     event: null,
                     type: $this->watcher()->type,
@@ -362,9 +414,13 @@ class EnqueueNotificationsActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
 
         $this->events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with(new NotificationEnqueuedEvent('68be1f000000000000000001'));
+            ->with(
+                new NotificationEnqueuedEvent('68be1f000000000000000001')
+            );
 
         $this
             ->action(
@@ -372,8 +428,12 @@ class EnqueueNotificationsActionTest extends TestCase
                 channel: $this->channel(),
             )
             ->handle(
-                watcher: $this->notificationWatcher($this->watcher()),
-                incident: $this->notificationIncident($this->incident()),
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
                 event: $this->notificationEvent(
                     event: null,
                     type: $this->watcher()->type,
@@ -388,11 +448,13 @@ class EnqueueNotificationsActionTest extends TestCase
 
         $repository
             ->method('create')
-            ->willReturnCallback(function () use (&$written): NotificationObject {
-                $written++;
+            ->willReturnCallback(
+                function () use (&$written): NotificationObject {
+                    $written++;
 
-                return $this->notification();
-            });
+                    return $this->notification();
+                }
+            );
 
         $this->events
             ->method('event')
@@ -409,8 +471,12 @@ class EnqueueNotificationsActionTest extends TestCase
                     channel: $this->channel(),
                 )
                 ->handle(
-                    watcher: $this->notificationWatcher($this->watcher()),
-                    incident: $this->notificationIncident($this->incident()),
+                    watcher: $this->notificationWatcher(
+                        $this->watcher()
+                    ),
+                    incident: $this->notificationIncident(
+                        $this->incident()
+                    ),
                     event: $this->notificationEvent(
                         event: null,
                         type: $this->watcher()->type,
@@ -419,11 +485,16 @@ class EnqueueNotificationsActionTest extends TestCase
         } catch (RuntimeException) {
         }
 
-        $this->assertSame(1, $written);
+        $this->assertSame(
+            1,
+            $written
+        );
     }
 
-    private function action(NotificationRepository $repository, ?ChannelObject $channel): EnqueueNotificationsAction
-    {
+    private function action(
+        NotificationRepository $repository,
+        ?ChannelObject $channel
+    ): EnqueueNotificationsAction {
         $findChannelAction = $this->createMock(FindChannelAction::class);
 
         $findChannelAction->method('handle')->willReturn($channel);
@@ -432,7 +503,9 @@ class EnqueueNotificationsActionTest extends TestCase
 
         $messageFactory->method('make')->willReturn('a watcher went off');
 
-        $repository->method('create')->willReturn($this->notification());
+        $repository->method('create')->willReturn(
+            $this->notification()
+        );
 
         return new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
@@ -480,8 +553,12 @@ class EnqueueNotificationsActionTest extends TestCase
         );
     }
 
-    private function watcher(?int $channelId = 1, bool $notifyOnOpened = true, bool $notifyOnEvent = false, bool $notifyOnClosed = true): WatcherObject
-    {
+    private function watcher(
+        ?int $channelId = 1,
+        bool $notifyOnOpened = true,
+        bool $notifyOnEvent = false,
+        bool $notifyOnClosed = true
+    ): WatcherObject {
         $now = Carbon::parse(
             time: '2026-09-08 19:00:00',
         );
@@ -506,8 +583,10 @@ class EnqueueNotificationsActionTest extends TestCase
         );
     }
 
-    private function incident(WatcherIncidentStatusEnum $status = WatcherIncidentStatusEnum::Opened, int $eventsCount = 1): WatcherIncidentObject
-    {
+    private function incident(
+        WatcherIncidentStatusEnum $status = WatcherIncidentStatusEnum::Opened,
+        int $eventsCount = 1
+    ): WatcherIncidentObject {
         return new WatcherIncidentObject(
             id: '68be1f000000000000000009',
             watcherId: 7,

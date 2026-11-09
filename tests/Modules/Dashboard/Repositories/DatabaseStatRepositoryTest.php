@@ -6,6 +6,7 @@ namespace Tests\Modules\Dashboard\Repositories;
 
 use App\Modules\Dashboard\Repositories\DatabaseStatRepository;
 use App\Services\Clickhouse\ClickhouseQueryException;
+use App\Modules\Common\Infrastructure\Exceptions\ReportableException;
 use App\Services\Mongo\MongoConnectionFactory;
 use Illuminate\Support\Facades\Exceptions;
 use SConcur\Features\Mongodb\Connection\Client;
@@ -61,34 +62,67 @@ class DatabaseStatRepositoryTest extends TestCase
             ),
         ))->handle();
 
-        $this->assertCount(1, $stats);
+        $this->assertCount(
+            1,
+            $stats
+        );
 
         $clickhouse = $stats[0];
 
-        $this->assertSame('clickhouse', $clickhouse->name);
+        $this->assertSame(
+            'clickhouse',
+            $clickhouse->name
+        );
 
-        $this->assertSame(5, $clickhouse->totalDocumentsCount);
+        $this->assertSame(
+            5,
+            $clickhouse->totalDocumentsCount
+        );
 
-        $this->assertSame(2.0, $clickhouse->memoryUsage);
+        $this->assertSame(
+            2.0,
+            $clickhouse->memoryUsage
+        );
 
-        $this->assertSame([
-            'another_table',
-            'traces',
-        ], array_map(static fn($table) => $table->name, $clickhouse->collections));
+        $this->assertSame(
+            [
+                'another_table',
+                'traces',
+            ],
+            array_map(static fn($table) => $table->name, $clickhouse->collections)
+        );
 
         $traces = $clickhouse->collections[1];
 
-        $this->assertSame(3.0, $traces->size);
+        $this->assertSame(
+            3.0,
+            $traces->size
+        );
 
-        $this->assertSame(1.0, $traces->indexesSize);
+        $this->assertSame(
+            1.0,
+            $traces->indexesSize
+        );
 
-        $this->assertSame(4.0, $traces->totalSize);
+        $this->assertSame(
+            4.0,
+            $traces->totalSize
+        );
 
-        $this->assertSame(1.0, $traces->avgObjSize);
+        $this->assertSame(
+            1.0,
+            $traces->avgObjSize
+        );
 
-        $this->assertSame('tid_bf', $traces->indexes[0]->name);
+        $this->assertSame(
+            'tid_bf',
+            $traces->indexes[0]->name
+        );
 
-        $this->assertSame([], $clickhouse->collections[0]->indexes);
+        $this->assertSame(
+            [],
+            $clickhouse->collections[0]->indexes
+        );
     }
 
     public function testClickhouseOutageKeepsTheMongoStats(): void
@@ -136,9 +170,7 @@ class DatabaseStatRepositoryTest extends TestCase
 
         $connections
             ->method('connectionNames')
-            ->willReturn([
-                'mongodb',
-            ]);
+            ->willReturn(['mongodb']);
 
         $connections->method('client')->willReturn($client);
 
@@ -158,14 +190,25 @@ class DatabaseStatRepositoryTest extends TestCase
             ),
         ))->handle();
 
-        $this->assertSame([
-            'slogger',
-        ], array_map(static fn($stat) => $stat->name, $stats));
+        $this->assertSame(
+            ['slogger'],
+            array_map(static fn($stat) => $stat->name, $stats)
+        );
 
-        $this->assertSame(2.0, $stats[0]->size);
+        $this->assertSame(
+            2.0,
+            $stats[0]->size
+        );
 
-        $this->assertSame(1.0, $stats[0]->memoryUsage);
+        $this->assertSame(
+            1.0,
+            $stats[0]->memoryUsage
+        );
 
-        Exceptions::assertReported(ClickhouseQueryException::class);
+        Exceptions::assertReported(
+            static fn(
+                ReportableException $exception
+            ): bool => $exception->getException() instanceof ClickhouseQueryException
+        );
     }
 }

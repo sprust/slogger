@@ -8,8 +8,9 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
 
 readonly class FindWatcherBufferCountAction
 {
-    public function __construct(private FindTraceBufferCountAction $findTraceBufferCountAction)
-    {
+    public function __construct(
+        private FindTraceBufferCountAction $findTraceBufferCountAction
+    ) {
     }
 
     public function handle(): int

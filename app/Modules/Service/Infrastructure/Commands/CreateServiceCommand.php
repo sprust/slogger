@@ -43,7 +43,9 @@ class CreateServiceCommand extends Command
                 )
             );
         } catch (ServiceAlreadyExistsException $exception) {
-            $this->error($exception->getMessage());
+            $this->error(
+                $exception->getMessage()
+            );
 
             return self::FAILURE;
         }

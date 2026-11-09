@@ -30,18 +30,15 @@ abstract class TestCase extends BaseTestCase
 
     private function forgetConfigOverlay(): void
     {
-        foreach (
-            [
-                'CTX_KEY',
-                'CTX_PATHS_KEY',
-            ] as $constant
-        ) {
+        foreach (['CTX_KEY', 'CTX_PATHS_KEY'] as $constant) {
             $reflectionClassConstant = new ReflectionClassConstant(
                 class: AsyncConfig::class,
                 constant: $constant,
             );
 
-            Context::current()->forget((string) $reflectionClassConstant->getValue());
+            Context::current()->forget(
+                (string) $reflectionClassConstant->getValue()
+            );
         }
     }
 }

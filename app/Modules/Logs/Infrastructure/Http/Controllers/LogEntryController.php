@@ -14,8 +14,9 @@ use Illuminate\Support\Carbon;
 
 readonly class LogEntryController
 {
-    public function __construct(private FindLogEntriesByAdminUseCase $findLogEntriesByAdminUseCase)
-    {
+    public function __construct(
+        private FindLogEntriesByAdminUseCase $findLogEntriesByAdminUseCase
+    ) {
     }
 
     public function index(FindLogEntriesRequest $request): LogEntriesPageResource
@@ -48,10 +49,12 @@ readonly class LogEntryController
                 levelKeys: $levelKeys === null ? null : array_values($levelKeys),
                 fromTime: $from === null ? null : Carbon::parse(
                     time: $from,
-                )->getTimestamp(),
+                )
+                    ->getTimestamp(),
                 toTime: $to === null ? null : Carbon::parse(
                     time: $to,
-                )->getTimestamp(),
+                )
+                    ->getTimestamp(),
                 searchQuery: ArrayValueGetter::stringNull(
                     data: $validated,
                     key: 'search_query',
@@ -60,7 +63,9 @@ readonly class LogEntryController
                     data: $validated,
                     key: 'cursor',
                 ),
-                direction: $direction === null ? LogCursorDirectionEnum::Older : LogCursorDirectionEnum::from($direction),
+                direction: $direction === null
+                    ? LogCursorDirectionEnum::Older
+                    : LogCursorDirectionEnum::from($direction),
                 perPage: ArrayValueGetter::intNull(
                     data: $validated,
                     key: 'per_page',

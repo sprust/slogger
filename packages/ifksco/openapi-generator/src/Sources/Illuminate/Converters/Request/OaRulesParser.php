@@ -19,9 +19,7 @@ class OaRulesParser
     /**
      * @var class-string<BaseOaRuleConverter>[]
      */
-    private array $converterClasses = [
-        OaRuleAsStringConverter::class,
-    ];
+    private array $converterClasses = [OaRuleAsStringConverter::class];
 
     /**
      * @var string[]
@@ -64,17 +62,30 @@ class OaRulesParser
     /**
      * @param array<string, array> $rules
      */
-    public function makeSchemeByRules(string $subject, array $rules, string $contentType): OaRequestScheme
-    {
+    public function makeSchemeByRules(
+        string $subject,
+        array $rules,
+        string $contentType
+    ): OaRequestScheme {
         $rulesCollection = collect($rules);
 
         $nestedRules = $rulesCollection
-            ->filter(static fn($value, $key) => Str::contains($key, ['.', '*']))
+            ->filter(
+                static fn($value, $key) => Str::contains(
+                    $key,
+                    ['.', '*']
+                )
+            )
             ->undot()
             ->toArray();
 
         $scalarRules = $rulesCollection
-            ->filter(static fn($value, $key) => !Str::contains($key, ['.', '*']))
+            ->filter(
+                static fn($value, $key) => !Str::contains(
+                    $key,
+                    ['.', '*']
+                )
+            )
             ->toArray();
 
         if (array_key_exists('*', $nestedRules)) {
@@ -87,7 +98,10 @@ class OaRulesParser
 
             $schema = new OaRequestScheme();
 
-            $schema->items       = $this->parseListItem(subject: $subject, rules: $nestedRules['*']);
+            $schema->items       = $this->parseListItem(
+                subject: $subject,
+                rules: $nestedRules['*']
+            );
             $schema->contentType = $contentType;
 
             return $schema;
@@ -125,8 +139,10 @@ class OaRulesParser
         return $this->prepareScheme($contentType, $objects);
     }
 
-    private function parseNested(string $subject, array $nestedRules): OaObjectProperty|OaArrayProperty
-    {
+    private function parseNested(
+        string $subject,
+        array $nestedRules
+    ): OaObjectProperty|OaArrayProperty {
         if (count($nestedRules) && !isset($nestedRules['*'])) {
             $parent = new OaObjectProperty();
 
@@ -311,7 +327,9 @@ class OaRulesParser
     private function throwException(string $subject, string $message, $data = null): never
     {
         throw new RuntimeException(
-            'Subject: ' . $subject . '. ' . $message . ($data ? (PHP_EOL . print_r($data, true)) : '')
+            'Subject: ' . $subject . '. ' . $message
+                . ($data ? (PHP_EOL
+                    . print_r($data, true)) : '')
         );
     }
 
@@ -359,7 +377,10 @@ class OaRulesParser
 
         $filteredProperties = collect($properties)
             ->filter(
-                static function (BaseOaProperty $property, string $fieldName) use ($requiredWithoutFieldNames) {
+                static function (
+                    BaseOaProperty $property,
+                    string $fieldName
+                ) use ($requiredWithoutFieldNames) {
                     return !in_array($fieldName, $requiredWithoutFieldNames);
                 }
             );
@@ -367,9 +388,11 @@ class OaRulesParser
         $schema->properties = $filteredProperties->toArray();
 
         $schema->required = $filteredProperties
-            ->filter(static function (BaseOaProperty $property) {
-                return $property->required;
-            })
+            ->filter(
+                static function (BaseOaProperty $property) {
+                    return $property->required;
+                }
+            )
             ->keys()
             ->toArray();
 

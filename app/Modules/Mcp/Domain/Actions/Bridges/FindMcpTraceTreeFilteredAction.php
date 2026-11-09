@@ -18,15 +18,23 @@ use App\Modules\Mcp\Enums\TraceTreeCacheStateStatusEnum as McpTraceTreeCacheStat
 
 readonly class FindMcpTraceTreeFilteredAction
 {
-    public function __construct(private FindTraceTreeStateAction $findTraceTreeStateAction, private FindTraceTreeFilteredAction $findTraceTreeFilteredAction, private McpTraceTreeNodeFactory $nodeFactory, private TraceObjectTransport $traceObjectTransport, private TraceParametersTransport $traceParametersTransport)
-    {
+    public function __construct(
+        private FindTraceTreeStateAction $findTraceTreeStateAction,
+        private FindTraceTreeFilteredAction $findTraceTreeFilteredAction,
+        private McpTraceTreeNodeFactory $nodeFactory,
+        private TraceObjectTransport $traceObjectTransport,
+        private TraceParametersTransport $traceParametersTransport
+    ) {
     }
 
     /**
      * @throws ClickhouseQueryException
      */
-    public function handle(string $traceId, TraceTreeFilterParameters $parameters, int $limit): ?McpTraceTreeObject
-    {
+    public function handle(
+        string $traceId,
+        TraceTreeFilterParameters $parameters,
+        int $limit
+    ): ?McpTraceTreeObject {
         $tree = $this->findTraceTreeStateAction->handle($traceId);
 
         if (is_null($tree)) {
@@ -38,7 +46,9 @@ readonly class FindMcpTraceTreeFilteredAction
         if (is_null($state) || $state->status !== TraceTreeCacheStateStatusEnum::Finished) {
             return new McpTraceTreeObject(
                 rootTraceId: $tree->rootTraceId,
-                status: $state === null ? null : McpTraceTreeCacheStateStatusEnum::from($state->status->value),
+                status: $state === null
+                    ? null
+                    : McpTraceTreeCacheStateStatusEnum::from($state->status->value),
                 error: $state?->error,
                 nodes: [],
                 nextCursor: null,
@@ -67,12 +77,10 @@ readonly class FindMcpTraceTreeFilteredAction
             error: null,
             nodes: $this->nodeFactory->make(
                 nodes: array_map(
-                    fn(TraceTreeRawObject $node) => $this->traceObjectTransport->toTraceTreeNodeParameters($node),
-                    array_slice(
-                        $matched,
-                        0,
-                        $limit,
-                    )
+                    fn(
+                        TraceTreeRawObject $node
+                    ) => $this->traceObjectTransport->toTraceTreeNodeParameters($node),
+                    array_slice($matched, 0, $limit)
                 ),
                 childrenCounts: null,
             ),
@@ -82,38 +90,32 @@ readonly class FindMcpTraceTreeFilteredAction
         );
     }
 
-    private static function matches(TraceTreeRawObject $node, TraceTreeFilterParameters $parameters): bool
-    {
+    private static function matches(
+        TraceTreeRawObject $node,
+        TraceTreeFilterParameters $parameters
+    ): bool {
         if (
-            count($parameters->serviceIds) > 0 && !in_array(
-                $node->serviceId,
-                $parameters->serviceIds,
-                true,
-            )
+            count($parameters->serviceIds) > 0
+            && !in_array($node->serviceId, $parameters->serviceIds, true)
         ) {
             return false;
         }
 
         if (
-            count($parameters->types) > 0 && !in_array(
-                $node->type,
-                $parameters->types,
-                true,
-            )
+            count($parameters->types) > 0
+            && !in_array($node->type, $parameters->types, true)
         ) {
             return false;
         }
 
         if (
-            count($parameters->statuses) > 0 && !in_array(
-                $node->status,
-                $parameters->statuses,
-                true,
-            )
+            count($parameters->statuses) > 0
+            && !in_array($node->status, $parameters->statuses, true)
         ) {
             return false;
         }
 
-        return count($parameters->tags) === 0 || count(array_intersect($node->tags, $parameters->tags)) > 0;
+        return count($parameters->tags) === 0
+            || count(array_intersect($node->tags, $parameters->tags)) > 0;
     }
 }

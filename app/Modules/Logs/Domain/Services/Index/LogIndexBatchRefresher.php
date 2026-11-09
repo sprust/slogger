@@ -38,7 +38,9 @@ readonly class LogIndexBatchRefresher
 
         $missingFileIds = [];
 
-        $waitGroup = WaitGroup::create(max(1, $concurrency));
+        $waitGroup = WaitGroup::create(
+            max(1, $concurrency)
+        );
 
         $keys = [];
 
@@ -84,7 +86,10 @@ readonly class LogIndexBatchRefresher
                 continue;
             }
 
-            $indexed[] = new LogFileIndexObject(file: $file, meta: $meta);
+            $indexed[] = new LogFileIndexObject(
+                file: $file,
+                meta: $meta
+            );
 
             $indexedBytes += min($meta->indexedBytes, $file->sizeBytes);
 

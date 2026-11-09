@@ -19,8 +19,10 @@ return [
     | app (master runs in the workers container, the app in php-fpm). The dashboard
     | client GETs this URL with the adminToken bearer.
     */
-    'panel_host' => env('SCONCUR_PANEL_HOST', 'http://127.0.0.1:28081/api/stats'),
-
+    'panel_host' => env(
+        'SCONCUR_PANEL_HOST',
+        'http://127.0.0.1:28081/api/stats'
+    ),
     /*
     |--------------------------------------------------------------------------
     | Scoped services
@@ -32,7 +34,6 @@ return [
     'scoped_services' => [
         // \Some\Package\Manager::class,
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Filesystem
@@ -48,7 +49,6 @@ return [
         'files'      => (bool) env('SCONCUR_FILESYSTEM_FILES', false),
         'timeout_ms' => (int) env('SCONCUR_FILESYSTEM_TIMEOUT_MS', 0),
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Listeners
@@ -67,14 +67,9 @@ return [
     | asynchronous call: the master's process refuses one.
     */
     'listeners' => [
-        WorkerForked::class => [
-            TagLogWithWorkerListener::class,
-        ],
-        WorkerWatchdogTriggered::class => [
-            ReportWorkerWatchdogListener::class,
-        ],
+        WorkerForked::class            => [TagLogWithWorkerListener::class],
+        WorkerWatchdogTriggered::class => [ReportWorkerWatchdogListener::class],
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Master config
@@ -115,83 +110,82 @@ return [
         // Where the workers write their access lines: `file` (a daily file per worker in
         // logDir, rotated with the journal), `stdout` (the master's journal) or `off`.
         'accessLog'           => env('SCONCUR_HTTP_ACCESS_LOG', 'file'),
-
         // array_values, and not for tidiness: array_filter preserves keys, so dropping
         // the conditional rabbitmq group out of the middle leaves [0 => http, 2 => tasks]
         // — and WorkerMaster takes its groups as a list.
-        'groups' => array_values(array_filter([
-            [
-                'name'        => 'http',
-                'role'        => 'http',
-                // Two, not one: a worker that crashes or reaches its limits is replaced
-                // while the other keeps the port served through SO_REUSEPORT.
-                'workerCount' => (int) env('SCONCUR_HTTP_WORKER_COUNT', 2),
-                // The settings of the HttpServer each worker builds.
-                'server'      => [
-                    'address'             => env('SCONCUR_HTTP_ADDRESS', '0.0.0.0:28080'),
-                    'maxRequests'         => (int) env('SCONCUR_HTTP_MAX_REQUESTS', 0),
-                    'maxConcurrency'      => (int) env('SCONCUR_HTTP_MAX_CONCURRENCY', 0),
-                    'maxRequestBody'      => (int) env('SCONCUR_HTTP_MAX_REQUEST_BODY', 10485760),
-                    'readHeaderTimeoutMs' => (int) env('SCONCUR_HTTP_READ_HEADER_TIMEOUT_MS', 10000),
-                    'readTimeoutMs'       => (int) env('SCONCUR_HTTP_READ_TIMEOUT_MS', 30000),
-                    'writeTimeoutMs'      => (int) env('SCONCUR_HTTP_WRITE_TIMEOUT_MS', 30000),
-                    'idleTimeoutMs'       => (int) env('SCONCUR_HTTP_IDLE_TIMEOUT_MS', 60000),
-                    'handlerTimeoutMs'    => (int) env('SCONCUR_HTTP_HANDLER_TIMEOUT_MS', 60000),
-                    'shutdownTimeoutMs'   => (int) env('SCONCUR_HTTP_SERVER_SHUTDOWN_TIMEOUT_MS', 5000),
+        'groups' => array_values(
+            array_filter([
+                [
+                    'name'        => 'http',
+                    'role'        => 'http',
+                    // Two, not one: a worker that crashes or reaches its limits is replaced
+                    // while the other keeps the port served through SO_REUSEPORT.
+                    'workerCount' => (int) env('SCONCUR_HTTP_WORKER_COUNT', 2),
+                    // The settings of the HttpServer each worker builds.
+                    'server'      => [
+                        'address'             => env('SCONCUR_HTTP_ADDRESS', '0.0.0.0:28080'),
+                        'maxRequests'         => (int) env('SCONCUR_HTTP_MAX_REQUESTS', 0),
+                        'maxConcurrency'      => (int) env('SCONCUR_HTTP_MAX_CONCURRENCY', 0),
+                        'maxRequestBody'      => (int) env('SCONCUR_HTTP_MAX_REQUEST_BODY', 10485760),
+                        'readHeaderTimeoutMs' => (int) env('SCONCUR_HTTP_READ_HEADER_TIMEOUT_MS', 10000),
+                        'readTimeoutMs'       => (int) env('SCONCUR_HTTP_READ_TIMEOUT_MS', 30000),
+                        'writeTimeoutMs'      => (int) env('SCONCUR_HTTP_WRITE_TIMEOUT_MS', 30000),
+                        'idleTimeoutMs'       => (int) env('SCONCUR_HTTP_IDLE_TIMEOUT_MS', 60000),
+                        'handlerTimeoutMs'    => (int) env('SCONCUR_HTTP_HANDLER_TIMEOUT_MS', 60000),
+                        'shutdownTimeoutMs'   => (int) env('SCONCUR_HTTP_SERVER_SHUTDOWN_TIMEOUT_MS', 5000),
+                    ],
                 ],
-            ],
-
-            /*
+                /*
             | The queue-consumer pool. A worker count below one leaves the group out of
             | the master config entirely, which is how the pool is turned off: setting
             | workerCount to 0 would not do it — to the master that means one worker per
             | CPU, not none.
             */
-            (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 1) < 1 ? null : [
-                'name'        => 'rabbitmq',
-                'role'        => 'rabbitmq',
-                'workerCount' => (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 1),
-                'server'      => [
-                    // Queues and their weights: how many consumers each gets, every
-                    // one on its own channel. A handler still runs in its own coroutine
-                    // per message.
-                    'queues'           => [
-                        [
-                            'name'           => 'default',
-                            'coroutineCount' => (int) env('SCONCUR_RABBITMQ_DEFAULT_CONSUMERS', 5),
+                (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 1) < 1 ? null : [
+                    'name'        => 'rabbitmq',
+                    'role'        => 'rabbitmq',
+                    'workerCount' => (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 1),
+                    'server'      => [
+                        // Queues and their weights: how many consumers each gets, every
+                        // one on its own channel. A handler still runs in its own coroutine
+                        // per message.
+                        'queues'           => [
+                            [
+                                'name'           => 'default',
+                                'coroutineCount' => (int) env('SCONCUR_RABBITMQ_DEFAULT_CONSUMERS', 5),
+                            ],
+                            [
+                                'name'           => env('QUEUE_TRACE_TREE_NAME', 'trace-tree'),
+                                'coroutineCount' => (int) env('QUEUE_TRACE_TREE_WORKERS_COUNT', 1),
+                            ],
+                            [
+                                'name'           => env('QUEUE_TRACES_CLEANER_NAME', 'traces-clearing'),
+                                'coroutineCount' => (int) env('SCONCUR_RABBITMQ_CLEANER_CONSUMERS', 1),
+                            ],
+                            [
+                                // The trace queue of the slogger package.
+                                'name'           => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
+                                'coroutineCount' => (int) env('SLOGGER_DISPATCHER_QUEUE_WORKERS_COUNT', 5),
+                            ],
                         ],
-                        [
-                            'name'           => env('QUEUE_TRACE_TREE_NAME', 'trace-tree'),
-                            'coroutineCount' => (int) env('QUEUE_TRACE_TREE_WORKERS_COUNT', 1),
-                        ],
-                        [
-                            'name'           => env('QUEUE_TRACES_CLEANER_NAME', 'traces-clearing'),
-                            'coroutineCount' => (int) env('SCONCUR_RABBITMQ_CLEANER_CONSUMERS', 1),
-                        ],
-                        [
-                            // The trace queue of the slogger package.
-                            'name'           => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
-                            'coroutineCount' => (int) env('SLOGGER_DISPATCHER_QUEUE_WORKERS_COUNT', 5),
-                        ],
+                        // One is the right answer for a coroutine pool: the next message
+                        // goes to a free coroutine rather than into a busy one's buffer.
+                        'prefetchCount'    => (int) env('SCONCUR_RABBITMQ_PREFETCH_COUNT', 1),
+                        // No deadline by default: trace-tree and traces-clearing ran under
+                        // `queue:work --timeout=0` before this pool replaced them, and a tree
+                        // build is legitimately long. A deadline here would refuse the job,
+                        // not slow it down.
+                        'handlerTimeoutMs' => (int) env('SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS', 0),
+                        // False dead-letters a failed message (or drops it where the queue
+                        // names no exchange); true loops forever on one that always fails.
+                        // Retries are the job's own business, through release().
+                        'requeueOnFailure'  => (bool) env('SCONCUR_RABBITMQ_REQUEUE_ON_FAILURE', false),
+                        'maxMessages'       => (int) env('SCONCUR_RABBITMQ_MAX_MESSAGES', 0),
+                        'maxRuntimeSeconds' => (int) env('SCONCUR_RABBITMQ_MAX_RUNTIME_SECONDS', 0),
+                        'maxMemoryBytes'    => (int) env('SCONCUR_RABBITMQ_MAX_MEMORY_BYTES', 0),
                     ],
-                    // One is the right answer for a coroutine pool: the next message
-                    // goes to a free coroutine rather than into a busy one's buffer.
-                    'prefetchCount'    => (int) env('SCONCUR_RABBITMQ_PREFETCH_COUNT', 1),
-                    // No deadline by default: trace-tree and traces-clearing ran under
-                    // `queue:work --timeout=0` before this pool replaced them, and a tree
-                    // build is legitimately long. A deadline here would refuse the job,
-                    // not slow it down.
-                    'handlerTimeoutMs' => (int) env('SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS', 0),
-                    // False dead-letters a failed message (or drops it where the queue
-                    // names no exchange); true loops forever on one that always fails.
-                    // Retries are the job's own business, through release().
-                    'requeueOnFailure'  => (bool) env('SCONCUR_RABBITMQ_REQUEUE_ON_FAILURE', false),
-                    'maxMessages'       => (int) env('SCONCUR_RABBITMQ_MAX_MESSAGES', 0),
-                    'maxRuntimeSeconds' => (int) env('SCONCUR_RABBITMQ_MAX_RUNTIME_SECONDS', 0),
-                    'maxMemoryBytes'    => (int) env('SCONCUR_RABBITMQ_MAX_MEMORY_BYTES', 0),
                 ],
-            ],
-            /*
+                /*
             | The WebSocket pool. Its `server` block is the settings of the WsServer
             | each worker builds.
             |
@@ -201,50 +195,47 @@ return [
             | leaves the entry out of the master config entirely, which is how the pool is
             | switched off without taking its configuration with it.
             */
-            (int) env('SCONCUR_WS_WORKER_COUNT', 0) < 1 ? null : [
-                'name'        => 'ws',
-                'role'        => 'ws',
-                'workerCount' => (int) env('SCONCUR_WS_WORKER_COUNT'),
-                'server'      => [
-                    'address'   => env('SCONCUR_WS_ADDRESS', '0.0.0.0:28090'),
-
-                    // The exact path clients upgrade on, key included: the comparison
-                    // ignores the query string, so Echo's /app/{key}?protocol=7 matches and
-                    // a wrong key is a 404 on the handshake, before PHP sees it. An empty
-                    // string would accept any path and leave the check to the handler.
-                    'path'      => env('SCONCUR_WS_PATH', rtrim(env('SCONCUR_WS_PATH_PREFIX', '/app'), '/') . '/' . env('SCONCUR_WS_APP_KEY', '')),
-
-                    'handshakeTimeoutMs' => (int) env('SCONCUR_WS_HANDSHAKE_TIMEOUT_MS', 10000),
-
-                    // Off: silence from a client is normal here — a page may only ever
-                    // listen. What keeps a dead peer from being held for ever is the ping
-                    // below, not an idle deadline.
-                    'idleTimeoutMs'      => (int) env('SCONCUR_WS_IDLE_TIMEOUT_MS', 0),
-
-                    'writeTimeoutMs'     => (int) env('SCONCUR_WS_WRITE_TIMEOUT_MS', 30000),
-                    'pingIntervalMs'     => (int) env('SCONCUR_WS_PING_INTERVAL_MS', 30000),
-                    'maxMessageBytes'    => (int) env('SCONCUR_WS_MAX_MESSAGE_BYTES', 1048576),
-                    'maxConcurrency'     => (int) env('SCONCUR_WS_MAX_CONCURRENCY', 0),
-
-                    // Not a per-frame deadline: it bounds the whole life of a connection,
-                    // and anything above zero disconnects every client on a timer. Left
-                    // hard-coded rather than env-driven, because there is no value of it
-                    // that a ws pool wants.
-                    'handlerTimeoutMs'   => 0,
-
-                    // How many connections to serve before standing down, not how many to
-                    // hold at once. A leak guard, off by default.
-                    'maxConnections'     => (int) env('SCONCUR_WS_MAX_CONNECTIONS', 0),
-
-                    'shutdownTimeoutMs'   => (int) env('SCONCUR_WS_SHUTDOWN_TIMEOUT_MS', 10000),
-
-                    // Off, as in the library: with preemption on, a neighbour runs between
-                    // any two statements of a handler and overwrites the state PHP keeps per
-                    // process (json_last_error(), error_get_last(), output buffers).
-                    'preemptionQuantumMs' => (int) env('SCONCUR_WS_PREEMPTION_QUANTUM_MS', 0),
+                (int) env('SCONCUR_WS_WORKER_COUNT', 0) < 1 ? null : [
+                    'name'        => 'ws',
+                    'role'        => 'ws',
+                    'workerCount' => (int) env('SCONCUR_WS_WORKER_COUNT'),
+                    'server'      => [
+                        'address'   => env('SCONCUR_WS_ADDRESS', '0.0.0.0:28090'),
+                        // The exact path clients upgrade on, key included: the comparison
+                        // ignores the query string, so Echo's /app/{key}?protocol=7 matches and
+                        // a wrong key is a 404 on the handshake, before PHP sees it. An empty
+                        // string would accept any path and leave the check to the handler.
+                        'path'      => env(
+                            'SCONCUR_WS_PATH',
+                            rtrim(env('SCONCUR_WS_PATH_PREFIX', '/app'), '/')
+                                . '/'
+                                . env('SCONCUR_WS_APP_KEY', '')
+                        ),
+                        'handshakeTimeoutMs' => (int) env('SCONCUR_WS_HANDSHAKE_TIMEOUT_MS', 10000),
+                        // Off: silence from a client is normal here — a page may only ever
+                        // listen. What keeps a dead peer from being held for ever is the ping
+                        // below, not an idle deadline.
+                        'idleTimeoutMs'      => (int) env('SCONCUR_WS_IDLE_TIMEOUT_MS', 0),
+                        'writeTimeoutMs'     => (int) env('SCONCUR_WS_WRITE_TIMEOUT_MS', 30000),
+                        'pingIntervalMs'     => (int) env('SCONCUR_WS_PING_INTERVAL_MS', 30000),
+                        'maxMessageBytes'    => (int) env('SCONCUR_WS_MAX_MESSAGE_BYTES', 1048576),
+                        'maxConcurrency'     => (int) env('SCONCUR_WS_MAX_CONCURRENCY', 0),
+                        // Not a per-frame deadline: it bounds the whole life of a connection,
+                        // and anything above zero disconnects every client on a timer. Left
+                        // hard-coded rather than env-driven, because there is no value of it
+                        // that a ws pool wants.
+                        'handlerTimeoutMs'   => 0,
+                        // How many connections to serve before standing down, not how many to
+                        // hold at once. A leak guard, off by default.
+                        'maxConnections'      => (int) env('SCONCUR_WS_MAX_CONNECTIONS', 0),
+                        'shutdownTimeoutMs'   => (int) env('SCONCUR_WS_SHUTDOWN_TIMEOUT_MS', 10000),
+                        // Off, as in the library: with preemption on, a neighbour runs between
+                        // any two statements of a handler and overwrites the state PHP keeps per
+                        // process (json_last_error(), error_get_last(), output buffers).
+                        'preemptionQuantumMs' => (int) env('SCONCUR_WS_PREEMPTION_QUANTUM_MS', 0),
+                    ],
                 ],
-            ],
-            /*
+                /*
             | The periodic task pool. Exactly one worker, always: a second one would tick
             | the cron twice a minute, and workerCount 0 does not mean none — to the
             | master it means one worker per CPU.
@@ -255,27 +246,26 @@ return [
             | extension's own runtime, because it runs no such runtime — see
             | TaskPoolTelemetry and the `tasks` section further down.
             */
-            [
-                'name'        => 'tasks',
-                'role'        => 'tasks',
-                'workerCount' => 1,
-                // Not the master's `always`: this pool is meant to be stoppable.
-                // `sconcur:tasks:stop` drains the tasks and exits 0, and under `always`
-                // the master would put a fresh pool up within the second — a stop that
-                // does not stop. The exits that do want a new process — the memory limit,
-                // and a signal while the master supervises the pool (its watchdog, an
-                // operator's kill) — are non-zero on purpose (TaskPool::EXIT_RESTART).
-                'restartPolicy' => 'on-failure',
-                // Must exceed the pool's own shutdown deadline (20 s), or the master
-                // kills it before the graceful stop can finish; and supervisor's
-                // stopwaitsecs for the master (40 s) must in turn exceed this. There is
-                // no supervisor program for the pool itself — the master forks it.
-                'shutdownTimeoutMs' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_MS', 30000),
-            ],
-        ])),
-
+                [
+                    'name'        => 'tasks',
+                    'role'        => 'tasks',
+                    'workerCount' => 1,
+                    // Not the master's `always`: this pool is meant to be stoppable.
+                    // `sconcur:tasks:stop` drains the tasks and exits 0, and under `always`
+                    // the master would put a fresh pool up within the second — a stop that
+                    // does not stop. The exits that do want a new process — the memory limit,
+                    // and a signal while the master supervises the pool (its watchdog, an
+                    // operator's kill) — are non-zero on purpose (TaskPool::EXIT_RESTART).
+                    'restartPolicy' => 'on-failure',
+                    // Must exceed the pool's own shutdown deadline (20 s), or the master
+                    // kills it before the graceful stop can finish; and supervisor's
+                    // stopwaitsecs for the master (40 s) must in turn exceed this. There is
+                    // no supervisor program for the pool itself — the master forks it.
+                    'shutdownTimeoutMs' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_MS', 30000),
+                ],
+            ])
+        ),
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Queue transports
@@ -290,7 +280,6 @@ return [
     'queue' => [
         'rabbitmq' => [
             'connection' => env('SCONCUR_RABBITMQ_CONNECTION', 'sconcur_rabbitmq'),
-
             // The same names the application publishes to, so the topology cannot
             // drift from where the jobs actually go.
             'queues' => [
@@ -301,7 +290,6 @@ return [
                 // queues as much as the others do.
                 env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
             ],
-
             // Attempts before Worker::process() writes the job to failed_jobs, and the
             // delay it releases with. Both are the defaults; a job's own $tries and
             // $backoff win over them.
@@ -309,7 +297,6 @@ return [
             'backoff' => (int) env('SCONCUR_RABBITMQ_BACKOFF', 0),
         ],
     ],
-
     /*
     |--------------------------------------------------------------------------
     | WebSocket pool
@@ -331,21 +318,16 @@ return [
     'ws' => [
         'app_key'    => env('SCONCUR_WS_APP_KEY', ''),
         'app_secret' => env('SCONCUR_WS_APP_SECRET', ''),
-
         // Echo connects to /app/{key}; this is the part before the key.
         'path_prefix' => env('SCONCUR_WS_PATH_PREFIX', '/app'),
-
         // Told to the client in the handshake: how long it may stay silent before it
         // should ping. The server's own keepalive is pingIntervalMs in the group above.
-        'activity_timeout_seconds' => (int) env('SCONCUR_WS_ACTIVITY_TIMEOUT_SECONDS', 120),
-
+        'activity_timeout_seconds'    => (int) env('SCONCUR_WS_ACTIVITY_TIMEOUT_SECONDS', 120),
         'max_channels_per_connection' => (int) env('SCONCUR_WS_MAX_CHANNELS_PER_CONNECTION', 100),
-
         // client-* events: one subscriber talking to the others with no application in
         // between. Off by default, as they are with Pusher.
         'client_events'            => (bool) env('SCONCUR_WS_CLIENT_EVENTS', false),
         'client_events_per_minute' => (int) env('SCONCUR_WS_CLIENT_EVENTS_PER_MINUTE', 60),
-
         /*
         | How a broadcast crosses the process boundary. It has to cross one: the event is
         | raised in an http worker, a queue consumer or a task, and the connections live
@@ -359,17 +341,14 @@ return [
             'driver'   => env('SCONCUR_WS_BUS_DRIVER', 'amqp'),
             'dsn'      => env('SCONCUR_WS_BUS_DSN', env('SCONCUR_RABBITMQ_DSN')),
             'exchange' => env('SCONCUR_WS_BUS_EXCHANGE', 'sconcur.ws'),
-
             // Not a network knob: this is the subscriber's heartbeat. The consumer only
             // hands control back on a delivery or on this timeout, and that is when a
             // worker gets to notice its last connection is gone and stand down — which is
             // what lets the server's graceful shutdown finish. It therefore also bounds
             // that shutdown, and must stay well below the master's shutdownTimeoutMs.
             'read_timeout_seconds' => (float) env('SCONCUR_WS_BUS_READ_TIMEOUT_SECONDS', 5.0),
-
-            'reopen_backoff_ms' => (int) env('SCONCUR_WS_BUS_REOPEN_BACKOFF_MS', 1000),
+            'reopen_backoff_ms'    => (int) env('SCONCUR_WS_BUS_REOPEN_BACKOFF_MS', 1000),
         ],
-
         /*
         | Where the member list of a presence channel lives. `auto` decides from the pool
         | size, which is the only thing that determines the right answer: one worker holds
@@ -385,7 +364,6 @@ return [
             'cache_prefix' => env('SCONCUR_WS_PRESENCE_CACHE_PREFIX', 'sconcur:ws:presence'),
         ],
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Periodic task pool
@@ -400,25 +378,21 @@ return [
     */
     'tasks' => [
         'control_key' => env('SCONCUR_TASKS_CONTROL_KEY', 'sconcur:tasks:control'),
-
         // flock, not a cache lock: the kernel releases it when the process dies, SIGKILL
         // included, so a second pool cannot start beside the first and there is no stale
         // lock to clean up.
         'lock_path'   => env('SCONCUR_TASKS_LOCK_PATH', storage_path('sconcur/runtime/tasks.lock')),
-
         // A leak anywhere in the process takes every task down with it, so the limit is
         // the pool's. Passing it is a graceful stop, and the supervisor starts a fresh one.
         // It is compared against the larger of the PHP heap and the process's RSS, so the
         // memory the extension holds counts too — and so does the process's own baseline,
         // about 60 MiB for an application with the extension loaded.
         'memory_mb'   => (int) env('SCONCUR_TASKS_MEMORY_MB', 256),
-
         // How finely a pause is cut, which is how fast the pool notices a signal: the
         // extension records it, and only PHP running on the controller's tick takes it —
         // a process whose coroutines are all parked in the extension runs no PHP. The
         // library's own servers poll on the same 250 ms.
         'sleep_chunk_ms' => (int) env('SCONCUR_TASKS_SLEEP_CHUNK_MS', 250),
-
         // Automatic coroutine switching. Off, as in the library: with it on, another
         // task runs between any two statements of a tick and overwrites the state PHP
         // keeps per process (json_last_error(), error_get_last(), output buffers). Off,
@@ -429,7 +403,6 @@ return [
         // A task holding a MySQL transaction on the shared PDO connection needs it off
         // too: preemption lets another task's query land inside that transaction.
         'preemption_quantum_ms' => (int) env('SCONCUR_TASKS_PREEMPTION_QUANTUM_MS', 0),
-
         // The tick counters that fill the panel's "In-flight / Handled / Refused"
         // columns for this pool, sent as the snapshot's `consumers` section — a tick is
         // to a task what a delivery is to a consumer. The catch is one level up: the
@@ -438,14 +411,12 @@ return [
         // real deliveries. Per-group numbers stay clean either way; turn this off to
         // keep the pool out of the master's totals.
         'report_ticks' => (bool) env('SCONCUR_TASKS_REPORT_TICKS', true),
-
         // How long a stop waits for the running ticks before the group is unwound. Must
         // stay below the master's shutdownTimeoutMs for the tasks group (30 s), or the
         // process is always killed before this can happen and the graceful path never
         // runs at all. The pool has no supervisor program of its own — the master forks
         // it — so supervisor's stopwaitsecs (40 s, on the master) only has to exceed that.
         'shutdown_timeout_seconds' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_SECONDS', 20),
-
         /*
         | The tasks themselves: a name to address them by, the class, and how long to
         | wait after each of the three tick outcomes — `idle` (no work), `busy` (work

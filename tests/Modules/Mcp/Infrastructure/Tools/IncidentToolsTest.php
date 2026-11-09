@@ -54,14 +54,14 @@ class IncidentToolsTest extends TestCase
             );
 
         $watchers
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with(4, true)
             ->willReturn(
                 $this->watcherWithServices(
-                    serviceIds: [
-                        7,
-                    ],
+                    serviceIds: [7],
                 )
             );
 
@@ -72,30 +72,38 @@ class IncidentToolsTest extends TestCase
                 mcpIncidentObjectTransport: new McpIncidentObjectTransport(),
             ),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([
-            'status' => 'opened',
-        ]));
+        ))->call(
+            new McpToolArguments([
+                'status' => 'opened',
+            ])
+        );
 
-        $this->assertTrue($result->data['has_more']);
+        $this->assertTrue(
+            $result->data['has_more']
+        );
 
-        $this->assertCount(2, $result->data['incidents']);
+        $this->assertCount(
+            2,
+            $result->data['incidents']
+        );
 
-        $this->assertSame([
-            'id'             => 'inc-1',
-            'status'         => 'opened',
-            'first_event_at' => '2026-09-28T10:00:00Z',
-            'last_event_at'  => '2026-09-28T11:00:00Z',
-            'events_count'   => 3,
-            'closed_at'      => null,
-            'watcher'        => [
-                'id'          => 4,
-                'name'        => 'buffer',
-                'type'        => 'bufferOverflow',
-                'service_ids' => [
-                    7,
+        $this->assertSame(
+            [
+                'id'             => 'inc-1',
+                'status'         => 'opened',
+                'first_event_at' => '2026-09-28T10:00:00Z',
+                'last_event_at'  => '2026-09-28T11:00:00Z',
+                'events_count'   => 3,
+                'closed_at'      => null,
+                'watcher'        => [
+                    'id'          => 4,
+                    'name'        => 'buffer',
+                    'type'        => 'bufferOverflow',
+                    'service_ids' => [7],
                 ],
             ],
-        ], $result->data['incidents'][0]);
+            $result->data['incidents'][0]
+        );
     }
 
     public function testStatusAndNextPageAreAskedFor(): void
@@ -105,15 +113,17 @@ class IncidentToolsTest extends TestCase
 
         $incidents
             ->method('handle')
-            ->willReturnCallback(static function (FindIncidentsParameters $parameters) use (&$calls) {
-                $calls[] = [
-                    $parameters->status,
-                    $parameters->page,
-                    $parameters->perPage,
-                ];
+            ->willReturnCallback(
+                static function (FindIncidentsParameters $parameters) use (&$calls) {
+                    $calls[] = [
+                        $parameters->status,
+                        $parameters->page,
+                        $parameters->perPage,
+                    ];
 
-                return [];
-            });
+                    return [];
+                }
+            );
 
         $result = (new GetIncidentsTool(
             findMcpIncidentsAction: new FindMcpIncidentsAction(
@@ -122,25 +132,32 @@ class IncidentToolsTest extends TestCase
                 mcpIncidentObjectTransport: new McpIncidentObjectTransport(),
             ),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([
-            'status' => 'closed',
-            'page'   => 2,
-        ]));
+        ))->call(
+            new McpToolArguments([
+                'status' => 'closed',
+                'page'   => 2,
+            ])
+        );
 
-        $this->assertFalse($result->data['has_more']);
+        $this->assertFalse(
+            $result->data['has_more']
+        );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                WatcherIncidentStatusEnum::Closed,
-                2,
-                50,
+                [
+                    WatcherIncidentStatusEnum::Closed,
+                    2,
+                    50,
+                ],
+                [
+                    WatcherIncidentStatusEnum::Closed,
+                    101,
+                    1,
+                ],
             ],
-            [
-                WatcherIncidentStatusEnum::Closed,
-                101,
-                1,
-            ],
-        ], $calls);
+            $calls
+        );
     }
 
     /** @return iterable<string, array{bool, bool}> */
@@ -163,22 +180,31 @@ class IncidentToolsTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('incidentEventCases')]
-    public function testIncidentEventsCarryNumbers(bool $hasWatcher, bool $hasEvents): void
-    {
+    public function testIncidentEventsCarryNumbers(
+        bool $hasWatcher,
+        bool $hasEvents
+    ): void {
         $incident = $this->createMock(FindIncidentAction::class);
         $watchers = $this->createMock(FindWatcherAction::class);
         $events   = $this->createMock(FindIncidentEventsAction::class);
 
-        $incident->method('handle')->willReturn($this->incident());
+        $incident->method('handle')->willReturn(
+            $this->incident()
+        );
 
-        $watchers->method('handle')->willReturn($hasWatcher ? $this->watcherWithServices() : null);
+        $watchers->method('handle')->willReturn(
+            $hasWatcher ? $this->watcherWithServices() : null
+        );
 
         $events
             ->method('handle')
             ->willReturnCallback(
-                fn(string $incidentId, $type, int $page, int $perPage) => $hasEvents && $perPage === 50 ? [
-                    $this->incidentEvent(),
-                ] : []
+                fn(
+                    string $incidentId,
+                    $type,
+                    int $page,
+                    int $perPage
+                ) => $hasEvents && $perPage === 50 ? [$this->incidentEvent()] : []
             );
 
         $result = (new GetIncidentEventsTool(
@@ -191,33 +217,47 @@ class IncidentToolsTest extends TestCase
                 mcpIncidentEventObjectTransport: new McpIncidentEventObjectTransport(),
             ),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([
-            'incident_id' => 'inc-1',
-        ]));
+        ))->call(
+            new McpToolArguments([
+                'incident_id' => 'inc-1',
+            ])
+        );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame('inc-1', $result->data['incident']['id']);
+        $this->assertSame(
+            'inc-1',
+            $result->data['incident']['id']
+        );
 
         if (!$hasWatcher) {
-            $this->assertNull($result->data['incident']['watcher']);
+            $this->assertNull(
+                $result->data['incident']['watcher']
+            );
         }
 
-        $this->assertSame($hasEvents ? [
-            [
-                'occurred_at' => '2026-09-08T19:20:03Z',
-                'numbers'     => [
-                    'settings' => [
-                        'threshold' => 1000,
-                    ],
-                    'measured' => [
-                        'buffer_count' => 12000,
+        $this->assertSame(
+            $hasEvents ? [
+                [
+                    'occurred_at' => '2026-09-08T19:20:03Z',
+                    'numbers'     => [
+                        'settings' => [
+                            'threshold' => 1000,
+                        ],
+                        'measured' => [
+                            'buffer_count' => 12000,
+                        ],
                     ],
                 ],
-            ],
-        ] : [], $result->data['events']);
+            ] : [],
+            $result->data['events']
+        );
 
-        $this->assertFalse($result->data['has_more']);
+        $this->assertFalse(
+            $result->data['has_more']
+        );
     }
 
     public function testUnknownIncidentIsAToolError(): void
@@ -236,12 +276,19 @@ class IncidentToolsTest extends TestCase
                 mcpIncidentEventObjectTransport: new McpIncidentEventObjectTransport(),
             ),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([
-            'incident_id' => 'nope',
-        ]));
+        ))->call(
+            new McpToolArguments([
+                'incident_id' => 'nope',
+            ])
+        );
 
-        $this->assertTrue($result->isError);
+        $this->assertTrue(
+            $result->isError
+        );
 
-        $this->assertSame('incident_not_found', $result->data['error']);
+        $this->assertSame(
+            'incident_not_found',
+            $result->data['error']
+        );
     }
 }

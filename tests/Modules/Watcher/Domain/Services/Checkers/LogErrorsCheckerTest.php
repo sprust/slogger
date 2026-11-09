@@ -20,17 +20,33 @@ class LogErrorsCheckerTest extends TestCase
 
     public function testErrorsAtTheThresholdAreReported(): void
     {
-        $this->assertNotNull($this->check(count: 3, threshold: 3));
+        $this->assertNotNull(
+            $this->check(
+                count: 3,
+                threshold: 3
+            )
+        );
     }
 
     public function testFewerErrorsThanTheThresholdSayNothing(): void
     {
-        $this->assertNull($this->check(count: 2, threshold: 3));
+        $this->assertNull(
+            $this->check(
+                count: 2,
+                threshold: 3
+            )
+        );
     }
 
     public function testNoErrorsSayNothing(): void
     {
-        $this->assertNull($this->check(count: 0, threshold: 1, lastMessage: null));
+        $this->assertNull(
+            $this->check(
+                count: 0,
+                threshold: 1,
+                lastMessage: null
+            )
+        );
     }
 
     public function testTheEventCarriesTheCountTheWindowAndTheLastMessage(): void
@@ -41,10 +57,22 @@ class LogErrorsCheckerTest extends TestCase
             lastMessage: 'connect: IO error'
         );
 
-        $this->assertInstanceOf(LogErrorsEventPayloadObject::class, $payload);
-        $this->assertSame(1, $payload->settings->threshold);
-        $this->assertSame(4, $payload->measured->errorCount);
-        $this->assertSame('2026-09-07 11:50:00', $payload->measured->since);
+        $this->assertInstanceOf(
+            LogErrorsEventPayloadObject::class,
+            $payload
+        );
+        $this->assertSame(
+            1,
+            $payload->settings->threshold
+        );
+        $this->assertSame(
+            4,
+            $payload->measured->errorCount
+        );
+        $this->assertSame(
+            '2026-09-07 11:50:00',
+            $payload->measured->since
+        );
         $this->assertSame(
             'connect: IO error',
             $payload->measured->lastMessage
@@ -59,28 +87,46 @@ class LogErrorsCheckerTest extends TestCase
             lastMessage: str_repeat('x', 2000)
         );
 
-        $this->assertInstanceOf(LogErrorsEventPayloadObject::class, $payload);
+        $this->assertInstanceOf(
+            LogErrorsEventPayloadObject::class,
+            $payload
+        );
         $this->assertSame(
             LogErrorsChecker::MAX_MESSAGE_LENGTH,
             mb_strwidth($payload->measured->lastMessage)
         );
-        $this->assertStringEndsWith('…', $payload->measured->lastMessage);
+        $this->assertStringEndsWith(
+            '…',
+            $payload->measured->lastMessage
+        );
     }
 
     public function testTheWindowRunsFromTheLastTriggerToNow(): void
     {
         $action = $this->createMock(FindLogErrorStatAction::class);
-        $action->expects($this->once())
+        $action
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with(
                 $this->callback(
-                    static fn(Carbon $since): bool => $since->toDateTimeString() === '2026-09-07 11:50:00'
+                    static fn(
+                        Carbon $since
+                    ): bool => $since->toDateTimeString() === '2026-09-07 11:50:00'
                 ),
                 $this->callback(
-                    static fn(Carbon $until): bool => $until->toDateTimeString() === '2026-09-07 12:00:00'
+                    static fn(
+                        Carbon $until
+                    ): bool => $until->toDateTimeString() === '2026-09-07 12:00:00'
                 )
             )
-            ->willReturn(new LogLevelStatObject(count: 0, lastMessage: null));
+            ->willReturn(
+                new LogLevelStatObject(
+                    count: 0,
+                    lastMessage: null
+                )
+            );
 
         new LogErrorsChecker($action, new WatcherCountWindow())->check(
             $this->watcher(
@@ -97,14 +143,21 @@ class LogErrorsCheckerTest extends TestCase
     private function check(int $count, int $threshold, ?string $lastMessage = 'error'): mixed
     {
         $action = $this->createMock(FindLogErrorStatAction::class);
-        $action->method('handle')->willReturn(
-            new LogLevelStatObject(count: $count, lastMessage: $lastMessage)
-        );
+        $action
+            ->method('handle')
+            ->willReturn(
+                new LogLevelStatObject(
+                    count: $count,
+                    lastMessage: $lastMessage
+                )
+            );
 
         return new LogErrorsChecker($action, new WatcherCountWindow())->check(
             $this->watcher(
                 WatcherTypeEnum::LogErrors,
-                new LogErrorsSettingsObject(threshold: $threshold),
+                new LogErrorsSettingsObject(
+                    threshold: $threshold
+                ),
                 lastTriggeredAt: Carbon::parse('2026-09-07 11:50:00')
             ),
             new WatcherCheckContextObject(Carbon::parse('2026-09-07 12:00:00'), null)

@@ -32,7 +32,10 @@ readonly class CleanLogsAction
         $keptFileIds  = [];
 
         foreach ($this->logFileFinder->findAll() as $file) {
-            if ($this->isExpired($file, $now) && $this->logFileRepository->delete($file->path)) {
+            if (
+                $this->isExpired($file, $now)
+                && $this->logFileRepository->delete($file->path)
+            ) {
                 $deletedFiles[] = $file->path;
 
                 continue;

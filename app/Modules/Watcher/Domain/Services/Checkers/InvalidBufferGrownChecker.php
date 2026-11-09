@@ -25,8 +25,10 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof InvalidBufferGrownSettingsObject) {
@@ -42,7 +44,9 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
         }
 
         return new InvalidBufferGrownEventPayloadObject(
-            settings: new InvalidBufferGrownEventSettingsObject(threshold: $settings->threshold),
+            settings: new InvalidBufferGrownEventSettingsObject(
+                threshold: $settings->threshold
+            ),
             measured: new InvalidBufferGrownEventMeasuredObject(
                 invalidCount: $count,
                 since: $since->toDateTimeString()

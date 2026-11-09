@@ -16,8 +16,9 @@ use Illuminate\Support\Carbon;
 class AuthenticationDatabaseTest extends BaseModuleTestCase
 {
     #[DataProvider('dataProvider')]
-    public function test(bool $validPassword): void
-    {
+    public function test(
+        bool $validPassword
+    ): void {
         $userTokenRepository = $this->appMake(UserTokenRepository::class);
         $loginByAdminUseCase = $this->appMake(LoginByAdminUseCase::class);
         $userFactory         = $this->appMake(UserFactory::class);
@@ -57,12 +58,8 @@ class AuthenticationDatabaseTest extends BaseModuleTestCase
     public static function dataProvider(): array
     {
         return [
-            'valid password creates a persisted session' => [
-                true,
-            ],
-            'invalid password is rejected' => [
-                false,
-            ],
+            'valid password creates a persisted session' => [true],
+            'invalid password is rejected'               => [false],
         ];
     }
 }

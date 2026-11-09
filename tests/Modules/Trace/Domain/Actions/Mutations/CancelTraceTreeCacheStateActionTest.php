@@ -25,12 +25,22 @@ class CancelTraceTreeCacheStateActionTest extends TestCase
 
         $states->method('updateStatus')->willReturn(true);
 
-        $states->method('findOneByRootTraceId')->willReturn($this->state());
+        $states->method('findOneByRootTraceId')->willReturn(
+            $this->state()
+        );
 
         $events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with($this->callback(static fn(TraceTreeCacheStateChangedEvent $event): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Canceled));
+            ->with(
+                $this->callback(
+                    static fn(
+                        TraceTreeCacheStateChangedEvent $event
+                    ): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Canceled
+                )
+            );
 
         $this->assertNotNull(
             (new CancelTraceTreeCacheStateAction(
@@ -47,7 +57,9 @@ class CancelTraceTreeCacheStateActionTest extends TestCase
 
         $states->method('updateStatus')->willReturn(false);
 
-        $events->expects($this->never())->method('event');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         $this->assertNull(
             (new CancelTraceTreeCacheStateAction(

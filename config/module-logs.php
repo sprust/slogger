@@ -5,7 +5,6 @@ use App\Modules\Setting\Enums\SettingKeyEnum;
 
 return [
     'nginx_keep_days' => (int) env('LOGS_NGINX_KEEP_DAYS', 14),
-
     // Where the Logs page looks for files. Each source is one folder read without
     // recursion (a subfolder is a source of its own), so sources must not overlap.
     //
@@ -23,10 +22,12 @@ return [
     //           LogTypeEnum::Receiver    — the receiver's slog: `Y-m-d H:i:s.v LEVEL message`,
     //                                      an entry runs until the next header (stack traces included),
     //                                      levels DEBUG, INFO, WARN, ERROR;
-    //           LogTypeEnum::SconcurAccess  — sconcur access lines: `Y-m-dTH:i:s.u METHOD path status 1.23ms group#slot pid=N`,
+    //           LogTypeEnum::SconcurAccess  — sconcur access lines:
+    //             `Y-m-dTH:i:s.u METHOD path status 1.23ms group#slot pid=N`,
     //                                      one line per entry at the end of its request, the status class
     //                                      (1xx…5xx) stands for the level; the workers container must run in UTC;
-    //           LogTypeEnum::SconcurJournal — the sconcur master journal: `[Y-m-d H:i:s.u] LEVEL [master: pid]: message {context}`,
+    //           LogTypeEnum::SconcurJournal — the sconcur master journal:
+    //             `[Y-m-d H:i:s.u] LEVEL [master: pid]: message {context}`,
     //                                      one line per entry, levels INFO, WARN, ERROR.
     //           A line a format cannot read is still an entry, without a level.
     // keep_days — optional: logs:clean, once a day, deletes the source's files not written
@@ -36,14 +37,14 @@ return [
     //           newest file of the source is never deleted: it is the one being written.
     'sources' => [
         [
-            'name'    => 'Laravel',
+            'name'      => 'Laravel',
             'folder'    => storage_path('logs'),
             'pattern'   => '*.log',
             'type'      => LogTypeEnum::Laravel,
             'deletable' => true,
         ],
         [
-            'name'    => 'Slogger',
+            'name'      => 'Slogger',
             'folder'    => storage_path('logs/slogger'),
             'pattern'   => '*.log',
             'type'      => LogTypeEnum::Laravel,
@@ -53,10 +54,10 @@ return [
         // day (access-Y-m-d.log) and a single error.log. On a host with its own nginx,
         // point LOGS_NGINX_PATH at that nginx's log folder.
         [
-            'name'    => 'Nginx',
-            'folder'  => env('LOGS_NGINX_PATH', storage_path('logs/nginx')),
-            'pattern'   => 'access*.log',
-            'type'      => LogTypeEnum::NginxAccess,
+            'name'              => 'Nginx',
+            'folder'            => env('LOGS_NGINX_PATH', storage_path('logs/nginx')),
+            'pattern'           => 'access*.log',
+            'type'              => LogTypeEnum::NginxAccess,
             'keep_days_setting' => SettingKeyEnum::LogsNginxKeepDays,
         ],
         [
@@ -86,12 +87,12 @@ return [
         [
             'name'      => 'Sconcur',
             'folder'    => storage_path('sconcur/logs'),
-            'pattern'   => env('SCONCUR_HTTP_NAME', 'sconcur-http-server') . '-[0-9]*.log',
+            'pattern'   => env('SCONCUR_HTTP_NAME', 'sconcur-http-server')
+                . '-[0-9]*.log',
             'type'      => LogTypeEnum::SconcurJournal,
             'keep_days' => (int) env('SCONCUR_HTTP_ROTATE_DAYS', 3),
         ],
     ],
-
     'index' => [
         // One folder per log file: meta.json, entries.idx and a level-<n>.idx per level.
         // Safe to delete: an index is built again on the next read.
@@ -100,7 +101,6 @@ return [
         // doubles the window up to 64 MiB; beyond that the entry is cut.
         'window_bytes' => (int) env('LOGS_INDEX_WINDOW_BYTES', 4 * 1024 * 1024),
     ],
-
     // One request to the entries endpoint, over however many files it names.
     'search' => [
         // Most files one request may name.
@@ -120,20 +120,17 @@ return [
         'per_page'        => (int) env('LOGS_SEARCH_PER_PAGE', 50),
         'max_per_page'    => 500,
     ],
-
     // The logErrors watcher counts ERROR and above in the Laravel sources through the same
     // indexes. When another process is extending an index, the count waits this long and
     // then reads the index as it is, a little behind the file.
     'errors' => [
         'wait_for_lock_sec' => (int) env('LOGS_ERRORS_WAIT_FOR_LOCK_SEC', 5),
     ],
-
     'reading' => [
         // The most of one entry the page receives and a search looks through; a longer
         // entry comes cut and marked as truncated.
         'max_entry_bytes' => (int) env('LOGS_MAX_ENTRY_BYTES', 1024 * 1024),
     ],
-
     'download' => [
         // The page saves a download through the browser's memory, so a bigger file is refused.
         'max_bytes' => (int) env('LOGS_DOWNLOAD_MAX_BYTES', 100 * 1024 * 1024),

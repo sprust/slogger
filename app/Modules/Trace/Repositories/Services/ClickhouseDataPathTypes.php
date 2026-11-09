@@ -84,7 +84,7 @@ class ClickhouseDataPathTypes
     {
         $rows = $this->client->select(
             sql: 'SELECT distinctJSONPathsAndTypes(dt) AS paths FROM '
-            . '(SELECT dt FROM traces WHERE lat >= now64(6) - INTERVAL 1 DAY LIMIT {sample:UInt32})',
+                . '(SELECT dt FROM traces WHERE lat >= now64(6) - INTERVAL 1 DAY LIMIT {sample:UInt32})',
             params: ['sample' => self::SAMPLE_ROWS],
             queryIdPrefix: 'trace-data-paths'
         );

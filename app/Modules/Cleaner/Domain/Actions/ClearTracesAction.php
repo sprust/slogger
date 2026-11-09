@@ -29,7 +29,7 @@ readonly class ClearTracesAction
     {
         if ($lifetimeHours <= 0) {
             throw new InvalidArgumentException(
-                'Lifetime hours must be greater than 0'
+                'Lifetime hours must be greater than 0',
             );
         }
 
@@ -44,9 +44,9 @@ readonly class ClearTracesAction
         );
 
         if (
-            $deletedTraces->exception === null &&
-            $deletedTraces->partitionsCount === 0 &&
-            $deletedTraces->tracesCount === 0
+            $deletedTraces->exception === null
+            && $deletedTraces->partitionsCount === 0
+            && $deletedTraces->tracesCount === 0
         ) {
             $this->processRepository->deleteByProcessId(
                 processId: $process->id
@@ -81,9 +81,13 @@ readonly class ClearTracesAction
             return;
         }
 
-        if ($process->createdAt->gt(Carbon::now()->subMinutes(self::STALE_PROCESS_MINUTES))) {
+        if (
+            $process->createdAt->gt(
+                Carbon::now()->subMinutes(self::STALE_PROCESS_MINUTES)
+            )
+        ) {
             throw new RuntimeException(
-                'Clearing process already active'
+                'Clearing process already active',
             );
         }
 

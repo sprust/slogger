@@ -11,8 +11,9 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 
 readonly class FindTraceTimestampsByAdminUseCase
 {
-    public function __construct(private FindTraceTimestampsAction $findTraceTimestampsAction)
-    {
+    public function __construct(
+        private FindTraceTimestampsAction $findTraceTimestampsAction
+    ) {
     }
 
     /**

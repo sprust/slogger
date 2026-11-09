@@ -212,8 +212,12 @@ class DeptracTest extends TestCase
     }
 
     #[DataProvider('dependencies')]
-    public function testDependency(string $config, string $source, string $target, bool $allowed): void
-    {
+    public function testDependency(
+        string $config,
+        string $source,
+        string $target,
+        bool $allowed
+    ): void {
         $root       = sys_get_temp_dir() . '/slogger-architecture-' . bin2hex(random_bytes(8));
         $filesystem = new Filesystem();
 
@@ -233,24 +237,15 @@ class DeptracTest extends TestCase
             targetFile: $root . '/code-analyse/' . $filename,
         );
 
-        $targetClass = 'App\Modules\\' . str_replace(
-            '/',
-            '\\',
-            $target,
-        );
+        $targetClass = 'App\Modules\\'
+            . str_replace('/', '\\', $target);
 
-        foreach (
-            [
-                $target,
-                $source,
-            ] as $path
-        ) {
-            $namespace = 'App\Modules\\' . str_replace(
-                '/',
-                '\\',
-                dirname($path),
-            );
-            $dependency = $path === $source ? "public function __construct(public \\{$targetClass} \$dependency) {}" : '';
+        foreach ([$target, $source] as $path) {
+            $namespace = 'App\Modules\\'
+                . str_replace('/', '\\', dirname($path));
+            $dependency = $path === $source
+                ? "public function __construct(public \\{$targetClass} \$dependency) {}"
+                : '';
 
             $filesystem->dumpFile(
                 filename: $root . '/app/Modules/' . $path . '.php',
@@ -279,7 +274,10 @@ class DeptracTest extends TestCase
             );
 
             if (!$allowed) {
-                self::assertStringContainsString('DependsOnDisallowedLayer', $process->getOutput());
+                self::assertStringContainsString(
+                    'DependsOnDisallowedLayer',
+                    $process->getOutput()
+                );
             }
         } finally {
             $filesystem->remove($root);

@@ -11,8 +11,10 @@ use App\Modules\Mcp\Transports\TraceObjectTransport;
 
 readonly class McpTraceTreeNodeFactory
 {
-    public function __construct(private FindTraceServicesAction $findTraceServicesAction, private TraceObjectTransport $traceObjectTransport)
-    {
+    public function __construct(
+        private FindTraceServicesAction $findTraceServicesAction,
+        private TraceObjectTransport $traceObjectTransport
+    ) {
     }
 
     /**
@@ -36,13 +38,19 @@ readonly class McpTraceTreeNodeFactory
         );
 
         return array_map(
-            function (TraceTreeNodeParameters $node) use ($services, $childrenCounts): McpTraceTreeNodeObject {
+            function (
+                TraceTreeNodeParameters $node
+            ) use ($services, $childrenCounts): McpTraceTreeNodeObject {
                 $service = $node->serviceId === null ? null : $services->getById($node->serviceId);
 
                 return new McpTraceTreeNodeObject(
                     node: $this->traceObjectTransport->fromTraceTreeNodeParameters($node),
-                    service: $service === null ? null : $this->traceObjectTransport->fromTraceServiceObject($service),
-                    childrenCount: $childrenCounts === null ? null : $childrenCounts[$node->traceId] ?? 0,
+                    service: $service === null
+                        ? null
+                        : $this->traceObjectTransport->fromTraceServiceObject($service),
+                    childrenCount: $childrenCounts === null
+                        ? null
+                        : $childrenCounts[$node->traceId] ?? 0,
                 );
             },
             $nodes

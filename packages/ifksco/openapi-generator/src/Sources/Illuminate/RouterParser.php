@@ -40,14 +40,19 @@ class RouterParser
     {
         $this->rulesParser = new OaRulesParser();
 
-        $controllerReflection = new ReflectionClass($this->route->getController());
+        $controllerReflection = new ReflectionClass(
+            $this->route->getController()
+        );
 
         $this->reflectionMethod = $controllerReflection->getMethod(
-            Str::parseCallback($this->route->getAction('uses'))[1]
+            Str::parseCallback(
+                $this->route->getAction('uses')
+            )[1]
         );
 
         $this->methodView = $this->reflectionMethod->getDeclaringClass()->getName()
-            . '::' . $this->reflectionMethod->getName();
+            . '::'
+            . $this->reflectionMethod->getName();
 
         $this->listItemTypeAttribute = OaAttributeHelper::getListItemTypeAttribute($this->reflectionMethod);
     }
@@ -59,7 +64,8 @@ class RouterParser
     {
         $parsedRoute = new PathObject();
 
-        $parsedRoute->summary        = OaAttributeHelper::getSummaryAttribute($this->reflectionMethod)?->get();
+        $parsedRoute->summary        = OaAttributeHelper::getSummaryAttribute($this->reflectionMethod)
+            ?->get();
         $parsedRoute->uri            = str_replace('?}', '}', $this->route->uri());
         $parsedRoute->methods        = $this->route->methods();
         $parsedRoute->isSecurity     = RouterConfigs::isSecurityRoute($this->route);
@@ -125,9 +131,7 @@ class RouterParser
         $rcReturnedType = $this->reflectionMethod->getReturnType();
 
         if ($rcReturnedType instanceof ReflectionNamedType) {
-            $returnedClassNames = [
-                $rcReturnedType->getName(),
-            ];
+            $returnedClassNames = [$rcReturnedType->getName()];
         } elseif ($rcReturnedType instanceof ReflectionUnionType) {
             $returnedClassNames = array_map(
                 fn(ReflectionNamedType $type) => $type->getName(),
@@ -162,7 +166,9 @@ class RouterParser
                     throw new RuntimeException("List endpoint must have one return type: $this->methodView");
                 }
 
-                $wrap ??= 'data';
+                if (!is_a($returnedClassName, JsonResource::class, true)) {
+                    $wrap = 'data';
+                }
 
                 $returnedClassName = $this->listItemTypeAttribute?->getClassName();
 
@@ -170,8 +176,8 @@ class RouterParser
 
                 if (!$returnedClassName || !RouterConfigs::isClassResource($returnedClassName)) {
                     throw new RuntimeException(
-                        "Method: $this->methodView" . PHP_EOL .
-                        "Returning class is not resource: $returnedClassName"
+                        "Method: $this->methodView" . PHP_EOL
+                            . "Returning class is not resource: $returnedClassName"
                     );
                 }
 
@@ -199,8 +205,9 @@ class RouterParser
 
                 if (!$customResponseInstance instanceof OaBaseCustomResponseInterface) {
                     throw new RuntimeException(
-                        "Method: $this->methodView" . PHP_EOL .
-                        "Custom response should be instance of: " . OaBaseCustomResponseInterface::class
+                        "Method: $this->methodView" . PHP_EOL
+                            . "Custom response should be instance of: "
+                            . OaBaseCustomResponseInterface::class
                     );
                 }
 

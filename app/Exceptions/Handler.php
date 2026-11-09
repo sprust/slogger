@@ -1,14 +1,15 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
 
 namespace App\Exceptions;
 
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerRegistry;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
+use App\Modules\Common\Infrastructure\Exceptions\ReportableException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -21,17 +22,56 @@ class Handler extends ExceptionHandler
 
     public function register(): void
     {
-        $this->reportable(function (Throwable $exception): bool {
-            return $this->container->make(ExceptionManagerRegistry::class)->map($exception) === null;
-        });
+        $this->renderable(
+            function (Throwable $exception, Request $request) {
+                $exceptionManagers = $this->container->make(ExceptionManagers::class);
+                $responseObject    = $exceptionManagers->makeJsonHttpResponse($exception);
 
-        $this->renderable(function (Throwable $exception, Request $request) {
-            $mapped = $this->container->make(ExceptionManagerRegistry::class)->map($exception);
+                if ($responseObject === null) {
+                    return null;
+                }
 
-            return $mapped instanceof HttpException ? $this->render(
-                request: $request,
-                e: $mapped,
-            ) : $mapped;
-        });
+                if (!$request->expectsJson() && $responseObject->messageField === 'message') {
+                    return $this->render(
+                        request: $request,
+                        e: new HttpException(
+                            statusCode: $responseObject->httpStatus,
+                            message: $responseObject->message,
+                            previous: $exception,
+                        ),
+                    );
+                }
+
+                $content = [
+                    $responseObject->messageField => $responseObject->message,
+                ];
+
+                if ($responseObject->errorCode !== null) {
+                    $content['error_code'] = $responseObject->errorCode;
+                }
+
+                return response()->json(
+                    data: $content,
+                    status: $responseObject->httpStatus,
+                );
+            }
+        );
+    }
+
+    public function report(Throwable $e): void
+    {
+        if ($e instanceof ReportableException) {
+            parent::report(
+                $e->getException()
+            );
+
+            return;
+        }
+
+        if (!$this->container->make(ExceptionManagers::class)->isReportable($e)) {
+            return;
+        }
+
+        parent::report($e);
     }
 }

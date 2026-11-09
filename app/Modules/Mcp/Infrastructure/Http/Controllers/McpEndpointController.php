@@ -21,14 +21,21 @@ use Throwable;
 
 readonly class McpEndpointController
 {
-    public function __construct(private DispatcherInterface $dispatcher, private McpMessageParser $messageParser, private McpHeaderValidator $headerValidator, private McpVersionValidator $versionValidator, private McpServer $server)
-    {
+    public function __construct(
+        private DispatcherInterface $dispatcher,
+        private McpMessageParser $messageParser,
+        private McpHeaderValidator $headerValidator,
+        private McpVersionValidator $versionValidator,
+        private McpServer $server
+    ) {
     }
 
     public function handle(Request $request): Response
     {
         try {
-            $message = $this->messageParser->parse($request->getContent());
+            $message = $this->messageParser->parse(
+                $request->getContent()
+            );
 
             if ($message instanceof McpNotificationMessage) {
                 return response()->noContent(Response::HTTP_ACCEPTED);
@@ -75,7 +82,9 @@ readonly class McpEndpointController
 
             return $this->error(
                 status: Response::HTTP_INTERNAL_SERVER_ERROR,
-                id: isset($message) && !$message instanceof McpNotificationMessage ? $message->id : null,
+                id: isset($message) && !$message instanceof McpNotificationMessage
+                    ? $message->id
+                    : null,
                 code: McpErrorCodeEnum::InternalError,
                 message: 'Internal error',
             );
@@ -85,8 +94,13 @@ readonly class McpEndpointController
     /**
      * @param array<string, mixed>|null $data
      */
-    private function error(int $status, int|string|null $id, McpErrorCodeEnum $code, string $message, ?array $data = null): JsonResponse
-    {
+    private function error(
+        int $status,
+        int|string|null $id,
+        McpErrorCodeEnum $code,
+        string $message,
+        ?array $data = null
+    ): JsonResponse {
         $error = [
             'code'    => $code->value,
             'message' => $message,

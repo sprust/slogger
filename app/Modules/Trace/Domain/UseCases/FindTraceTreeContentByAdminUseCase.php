@@ -11,8 +11,9 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 
 readonly class FindTraceTreeContentByAdminUseCase
 {
-    public function __construct(private FindTraceTreeContentAction $findTraceTreeContentAction)
-    {
+    public function __construct(
+        private FindTraceTreeContentAction $findTraceTreeContentAction
+    ) {
     }
 
     /**

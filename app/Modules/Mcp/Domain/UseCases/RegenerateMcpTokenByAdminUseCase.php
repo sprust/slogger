@@ -9,8 +9,9 @@ use App\Modules\Mcp\Domain\Actions\Mutations\RegenerateMcpTokenAction;
 
 readonly class RegenerateMcpTokenByAdminUseCase
 {
-    public function __construct(private RegenerateMcpTokenAction $regenerateMcpTokenAction)
-    {
+    public function __construct(
+        private RegenerateMcpTokenAction $regenerateMcpTokenAction
+    ) {
     }
 
     /**

@@ -10,8 +10,10 @@ use App\Modules\Mcp\Transports\TraceObjectTransport;
 
 readonly class FindMcpDataRangeAction
 {
-    public function __construct(private FindTraceDataRangeAction $findTraceDataRangeAction, private TraceObjectTransport $traceObjectTransport)
-    {
+    public function __construct(
+        private FindTraceDataRangeAction $findTraceDataRangeAction,
+        private TraceObjectTransport $traceObjectTransport
+    ) {
     }
 
     public function handle(): TraceDataRangeObject

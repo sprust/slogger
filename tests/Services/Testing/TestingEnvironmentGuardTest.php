@@ -13,8 +13,10 @@ use Tests\Support\TestingEnvironment;
 class TestingEnvironmentGuardTest extends BaseModuleTestCase
 {
     #[DataProvider('dataProvider')]
-    public function test(string $key, mixed $value): void
-    {
+    public function test(
+        string $key,
+        mixed $value
+    ): void {
         $configuration = clone $this->appMake(Repository::class);
         $configuration->set(
             key: $key,
@@ -24,7 +26,9 @@ class TestingEnvironmentGuardTest extends BaseModuleTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Unsafe test');
 
-        TestingEnvironment::assertIsolated($configuration);
+        TestingEnvironment::assertIsolated(
+            $configuration
+        );
     }
 
     /** @return array<string, array{string, mixed}> */

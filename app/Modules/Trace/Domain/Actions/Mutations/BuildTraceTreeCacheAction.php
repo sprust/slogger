@@ -14,12 +14,20 @@ use Throwable;
 
 readonly class BuildTraceTreeCacheAction
 {
-    public function __construct(private TraceTreeCacheBuilderService $traceTreeCacheBuilderService, private TraceTreeCacheStateRepository $traceTreeCacheStateRepository, private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction, private DispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        private TraceTreeCacheBuilderService $traceTreeCacheBuilderService,
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
+        private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
+        private DispatcherInterface $dispatcher
+    ) {
     }
 
-    public function handle(string $rootTraceId, string $version, int $depth = 0, ?string $afterId = null): void
-    {
+    public function handle(
+        string $rootTraceId,
+        string $version,
+        int $depth = 0,
+        ?string $afterId = null
+    ): void {
         // Announced outside build(), and outside its catch: markFailed() filters by
         // version alone, so anything thrown while announcing a finished build would be
         // caught there and record that build as failed.
@@ -117,6 +125,8 @@ readonly class BuildTraceTreeCacheAction
             return;
         }
 
-        $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
+        $this->dispatcher->event(
+            new TraceTreeCacheStateChangedEvent($state)
+        );
     }
 }

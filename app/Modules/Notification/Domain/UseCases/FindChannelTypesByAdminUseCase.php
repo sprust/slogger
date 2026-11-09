@@ -9,8 +9,9 @@ use App\Modules\Notification\Domain\Actions\Queries\FindChannelTypesAction;
 
 readonly class FindChannelTypesByAdminUseCase
 {
-    public function __construct(private FindChannelTypesAction $findChannelTypesAction)
-    {
+    public function __construct(
+        private FindChannelTypesAction $findChannelTypesAction
+    ) {
     }
 
     /**

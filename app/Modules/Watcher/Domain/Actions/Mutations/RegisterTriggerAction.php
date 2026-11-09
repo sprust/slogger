@@ -21,8 +21,13 @@ use App\Modules\Common\Domain\Services\DispatcherInterface;
  */
 readonly class RegisterTriggerAction
 {
-    public function __construct(private WatcherRepository $watcherRepository, private WatcherIncidentRepository $incidentRepository, private WatcherIncidentEventRepository $eventRepository, private WatcherTypeRegistry $types, private DispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        private WatcherRepository $watcherRepository,
+        private WatcherIncidentRepository $incidentRepository,
+        private WatcherIncidentEventRepository $eventRepository,
+        private WatcherTypeRegistry $types,
+        private DispatcherInterface $dispatcher
+    ) {
     }
 
     public function handle(RegisterTriggerParameters $parameters): void
@@ -35,7 +40,8 @@ readonly class RegisterTriggerAction
         // that a problem is noticed promptly; this is what keeps a problem that lasts an
         // hour from filling the incident with sixty identical events.
         if (
-            !is_null($watcher->lastTriggeredAt) && $watcher->lastTriggeredAt->diffInSeconds(
+            !is_null($watcher->lastTriggeredAt)
+            && $watcher->lastTriggeredAt->diffInSeconds(
                 date: $occurredAt,
                 absolute: true,
             ) < $watcher->cooldownSeconds
@@ -43,10 +49,11 @@ readonly class RegisterTriggerAction
             return;
         }
 
-        $incident = $this->incidentRepository->findLastOpenByWatcherId($watcher->id) ?? $this->incidentRepository->create(
-            watcherId: $watcher->id,
-            occurredAt: $occurredAt,
-        );
+        $incident = $this->incidentRepository->findLastOpenByWatcherId($watcher->id)
+            ?? $this->incidentRepository->create(
+                watcherId: $watcher->id,
+                occurredAt: $occurredAt,
+            );
 
         $this->eventRepository->create(
             incidentId: $incident->id,
@@ -68,6 +75,8 @@ readonly class RegisterTriggerAction
         // database, and whoever listens is shown the row as it now stands.
         $changed = $this->incidentRepository->findById($incident->id) ?? $incident;
 
-        $this->dispatcher->event(new WatcherIncidentChangedEvent($changed));
+        $this->dispatcher->event(
+            new WatcherIncidentChangedEvent($changed)
+        );
     }
 }

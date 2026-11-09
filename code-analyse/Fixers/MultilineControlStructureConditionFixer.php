@@ -15,10 +15,8 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Tokens;
 use SplFileInfo;
-
 use const T_ELSEIF;
 use const T_FOR;
-use const T_FOREACH;
 use const T_IF;
 use const T_SWITCH;
 use const T_WHILE;
@@ -32,14 +30,16 @@ use const T_WHILE;
  *               php-cs-fixer marks its tokenizer and base fixer classes as @internal,
  *               yet they are the only API a custom fixer can be built on
  */
-class MultilineControlStructureConditionFixer extends AbstractFixer implements ConfigurableFixerInterface, WhitespacesAwareFixerInterface
+class MultilineControlStructureConditionFixer extends AbstractFixer implements
+    ConfigurableFixerInterface,
+    WhitespacesAwareFixerInterface
 {
     /** @use ConfigurableFixerTrait<_Config, _Config> */
     use ConfigurableFixerTrait;
     use ExcludedPathsTrait;
     use MultilineBlockTrait;
 
-    private const array CONTROL_STRUCTURES = [T_IF, T_ELSEIF, T_WHILE, T_SWITCH, T_FOR, T_FOREACH];
+    private const array CONTROL_STRUCTURES = [T_IF, T_ELSEIF, T_WHILE, T_SWITCH, T_FOR];
 
     public function getName(): string
     {
@@ -49,10 +49,13 @@ class MultilineControlStructureConditionFixer extends AbstractFixer implements C
     public function getDefinition(): FixerDefinitionInterface
     {
         return new FixerDefinition(
-            'A control structure condition spanning several lines MUST start on its own line and have its closing parenthesis on a line of its own.',
+            ('A control structure condition spanning several lines MUST start '
+                . 'on its own line and have its closing parenthesis on a line of '
+                . 'its own.'),
             [
                 new CodeSample(
-                    "<?php\nif (!preg_match(\n    '~^/video/~',\n    \$path,\n    \$matches\n)) {\n    return null;\n}\n",
+                    ("<?php\nif (!preg_match(\n    '~^/video/~',\n    \$path,\n    "
+                        . "\$matches\n)) {\n    return null;\n}\n"),
                 ),
             ],
         );
@@ -74,9 +77,7 @@ class MultilineControlStructureConditionFixer extends AbstractFixer implements C
 
     protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([
-            $this->excludedPathsOption(),
-        ]);
+        return new FixerConfigurationResolver([$this->excludedPathsOption()]);
     }
 
     protected function applyFix(SplFileInfo $file, Tokens $tokens): void

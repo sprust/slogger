@@ -13,8 +13,13 @@ use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 
 readonly class EnqueueIncidentNotificationsAction
 {
-    public function __construct(private FindWatcherAction $findWatcherAction, private FindIncidentEventsAction $findIncidentEventsAction, private WatcherTypeRegistry $watcherTypeRegistry, private IncidentParametersTransport $incidentParametersTransport, private EnqueueNotificationsAction $enqueueNotificationsAction)
-    {
+    public function __construct(
+        private FindWatcherAction $findWatcherAction,
+        private FindIncidentEventsAction $findIncidentEventsAction,
+        private WatcherTypeRegistry $watcherTypeRegistry,
+        private IncidentParametersTransport $incidentParametersTransport,
+        private EnqueueNotificationsAction $enqueueNotificationsAction
+    ) {
     }
 
     public function handle(IncidentSnapshotParameters $parameters): void
@@ -34,9 +39,11 @@ readonly class EnqueueIncidentNotificationsAction
             perPage: 1,
         )[0] ?? null;
         $watcherType = $this->watcherTypeRegistry->for($watcher->type);
-        $document    = $parameters->status !== IncidentStatusEnum::Closed && $event?->payload !== null ? $watcherType
+        $document    = $parameters->status !== IncidentStatusEnum::Closed && $event?->payload !== null
+            ? $watcherType
             ->eventPayloadMapper()
-            ->toDocument($event->payload) : null;
+            ->toDocument($event->payload)
+            : null;
 
         $this->enqueueNotificationsAction->handle(
             watcher: $this->incidentParametersTransport->watcher(

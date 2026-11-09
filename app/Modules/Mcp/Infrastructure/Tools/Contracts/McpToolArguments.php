@@ -16,7 +16,8 @@ readonly class McpToolArguments
 
     public function has(string $name): bool
     {
-        return array_key_exists($name, $this->values) && !is_null($this->values[$name]);
+        return array_key_exists($name, $this->values)
+            && !is_null($this->values[$name]);
     }
 
     public function string(string $name): string
@@ -48,9 +49,7 @@ readonly class McpToolArguments
             return [];
         }
 
-        return array_values(
-            array_map(static fn(mixed $value) => (string) $value, $this->values[$name])
-        );
+        return array_values(array_map(static fn(mixed $value) => (string) $value, $this->values[$name]));
     }
 
     /**
@@ -62,8 +61,6 @@ readonly class McpToolArguments
             return [];
         }
 
-        return array_values(
-            array_map(static fn(mixed $value) => (int) $value, $this->values[$name])
-        );
+        return array_values(array_map(static fn(mixed $value) => (int) $value, $this->values[$name]));
     }
 }

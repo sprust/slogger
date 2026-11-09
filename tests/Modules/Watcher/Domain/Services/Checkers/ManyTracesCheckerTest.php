@@ -25,18 +25,33 @@ class ManyTracesCheckerTest extends TestCase
 
     public function testTheLimitIsInclusive(): void
     {
-        $this->assertNotNull($this->check(windowCounts: [400, 600], threshold: 1000));
+        $this->assertNotNull(
+            $this->check(
+                windowCounts: [400, 600],
+                threshold: 1000
+            )
+        );
     }
 
     public function testOneShortOfTheLimitSaysNothing(): void
     {
-        $this->assertNull($this->check(windowCounts: [400, 599], threshold: 1000));
+        $this->assertNull(
+            $this->check(
+                windowCounts: [400, 599],
+                threshold: 1000
+            )
+        );
     }
 
     /** Every bucket in the window counts, not the busiest one. */
     public function testTheWholeWindowIsAddedUp(): void
     {
-        $this->assertNotNull($this->check(windowCounts: [100, 100, 100], threshold: 300));
+        $this->assertNotNull(
+            $this->check(
+                windowCounts: [100, 100, 100],
+                threshold: 300
+            )
+        );
     }
 
     /** Traffic before the window is somebody else's business. */
@@ -69,12 +84,26 @@ class ManyTracesCheckerTest extends TestCase
 
     public function testTheEventSaysWhatItSaw(): void
     {
-        $trigger = $this->check(windowCounts: [700, 500], threshold: 1000);
+        $trigger = $this->check(
+            windowCounts: [700, 500],
+            threshold: 1000
+        );
 
-        $this->assertNotNull($trigger);
-        $this->assertSame(1200, $trigger->measured->windowCount);
-        $this->assertSame(1000, $trigger->settings->threshold);
-        $this->assertSame(5, $trigger->settings->windowMinutes);
+        $this->assertNotNull(
+            $trigger
+        );
+        $this->assertSame(
+            1200,
+            $trigger->measured->windowCount
+        );
+        $this->assertSame(
+            1000,
+            $trigger->settings->threshold
+        );
+        $this->assertSame(
+            5,
+            $trigger->settings->windowMinutes
+        );
     }
 
     /** The shapes behind the count, so the event says which traffic it was. */
@@ -84,18 +113,53 @@ class ManyTracesCheckerTest extends TestCase
             windowCounts: [1000],
             threshold: 1000,
             groups: [
-                new WatcherTimelineGroupObject(1, 'http', ['api'], 400, 0, 0, 0, null, null),
-                new WatcherTimelineGroupObject(2, 'job', [], 600, 0, 0, 0, null, null),
+                new WatcherTimelineGroupObject(
+                    1,
+                    'http',
+                    ['api'],
+                    400,
+                    0,
+                    0,
+                    0,
+                    null,
+                    null
+                ),
+                new WatcherTimelineGroupObject(
+                    2,
+                    'job',
+                    [],
+                    600,
+                    0,
+                    0,
+                    0,
+                    null,
+                    null
+                ),
             ]
         );
 
-        $this->assertNotNull($trigger);
-        $this->assertCount(2, $trigger->groups);
+        $this->assertNotNull(
+            $trigger
+        );
+        $this->assertCount(
+            2,
+            $trigger->groups
+        );
         // Busiest first, and nothing timed: this watcher counts.
-        $this->assertSame('job', $trigger->groups[0]->type);
-        $this->assertSame(600, $trigger->groups[0]->count);
-        $this->assertNull($trigger->groups[0]->durationMax);
-        $this->assertNull($trigger->groups[0]->slowestTraceId);
+        $this->assertSame(
+            'job',
+            $trigger->groups[0]->type
+        );
+        $this->assertSame(
+            600,
+            $trigger->groups[0]->count
+        );
+        $this->assertNull(
+            $trigger->groups[0]->durationMax
+        );
+        $this->assertNull(
+            $trigger->groups[0]->slowestTraceId
+        );
     }
 
     /**
@@ -109,7 +173,10 @@ class ManyTracesCheckerTest extends TestCase
         array $groups = [],
         ?Carbon $collectSince = null,
     ): ?ManyTracesEventPayloadObject {
-        $settings = new ManyTracesSettingsObject(windowMinutes: 5, threshold: $threshold);
+        $settings = new ManyTracesSettingsObject(
+            windowMinutes: 5,
+            threshold: $threshold
+        );
 
         $now = Carbon::parse(self::NOW);
 
@@ -133,7 +200,11 @@ class ManyTracesCheckerTest extends TestCase
         }
 
         $repository = $this->createMock(WatcherTimelineRepository::class);
-        $repository->method('find')->willReturn(new WatcherTimelineObject(1, $buckets));
+        $repository
+            ->method('find')
+            ->willReturn(
+                new WatcherTimelineObject(1, $buckets)
+            );
 
         return new ManyTracesChecker($repository, $analyzer)->check(
             $this->manyTracesWatcher(
@@ -144,8 +215,10 @@ class ManyTracesCheckerTest extends TestCase
         );
     }
 
-    private function manyTracesWatcher(ManyTracesSettingsObject $settings, ?Carbon $collectSince): WatcherObject
-    {
+    private function manyTracesWatcher(
+        ManyTracesSettingsObject $settings,
+        ?Carbon $collectSince
+    ): WatcherObject {
         return $this->watcher(
             WatcherTypeEnum::ManyTraces,
             $settings,

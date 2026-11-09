@@ -28,7 +28,8 @@ readonly class FindTraceDetailAction
         }
 
         $service = $trace->serviceId
-            ? $this->findTraceServicesAction->handle([$trace->serviceId])
+            ? $this->findTraceServicesAction
+                ->handle([$trace->serviceId])
                 ->getById($trace->serviceId)
             : null;
 

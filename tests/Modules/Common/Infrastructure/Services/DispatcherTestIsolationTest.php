@@ -27,7 +27,9 @@ class DispatcherTestIsolationTest extends BaseModuleTestCase
         $event      = new stdClass();
 
         $dispatcher->event($event);
-        $dispatcher->dispatch($this->appMake(ClearTracesJob::class));
+        $dispatcher->dispatch(
+            $this->appMake(ClearTracesJob::class)
+        );
 
         Event::assertDispatched(
             event: stdClass::class,

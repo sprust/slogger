@@ -20,8 +20,10 @@ use Illuminate\Support\Carbon;
  */
 readonly class CloseIncidentAction
 {
-    public function __construct(private WatcherIncidentRepository $incidentRepository, private DispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        private WatcherIncidentRepository $incidentRepository,
+        private DispatcherInterface $dispatcher
+    ) {
     }
 
     /**
@@ -51,7 +53,9 @@ readonly class CloseIncidentAction
         $changed = $this->incidentRepository->findById($incidentId);
 
         if (!is_null($changed)) {
-            $this->dispatcher->event(new WatcherIncidentChangedEvent($changed));
+            $this->dispatcher->event(
+                new WatcherIncidentChangedEvent($changed)
+            );
         }
     }
 }

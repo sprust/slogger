@@ -16,6 +16,8 @@ class DispatchNotificationListener
 
     public function handle(NotificationEnqueuedEvent $event): void
     {
-        $this->dispatcher->dispatch(new SendNotificationJob($event->notificationId));
+        $this->dispatcher->dispatch(
+            new SendNotificationJob($event->notificationId)
+        );
     }
 }

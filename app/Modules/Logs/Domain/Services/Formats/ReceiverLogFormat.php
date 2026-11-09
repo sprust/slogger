@@ -53,7 +53,8 @@ readonly class ReceiverLogFormat implements LogFormatInterface
 
     public function parseEntry(string $text): LogEntryDetailsObject
     {
-        $body = preg_match(self::ENTRY_HEADER_PATTERN, $text, $match) === 1
+        $body =
+            preg_match(self::ENTRY_HEADER_PATTERN, $text, $match) === 1
             ? substr($text, strlen($match[0]))
             : $text;
 
@@ -71,7 +72,10 @@ readonly class ReceiverLogFormat implements LogFormatInterface
         $names = [];
 
         foreach (ReceiverLogLevelEnum::cases() as $case) {
-            $names[] = new LogLevelNameObject(level: $case->value, name: strtoupper($case->name));
+            $names[] = new LogLevelNameObject(
+                level: $case->value,
+                name: strtoupper($case->name)
+            );
         }
 
         return $names;

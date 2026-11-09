@@ -25,7 +25,18 @@ class TraceTreeResponseTest extends TestCase
 {
     public function testANodeIsWrittenExactlyAsTheResourceDescribesIt(): void
     {
-        foreach ([$this->node(serviceId: 7, withMetrics: true), $this->node(serviceId: null, withMetrics: false)] as $node) {
+        $nodes = [
+            $this->node(
+                serviceId: 7,
+                withMetrics: true
+            ),
+            $this->node(
+                serviceId: null,
+                withMetrics: false
+            ),
+        ];
+
+        foreach ($nodes as $node) {
             self::assertSame(
                 new TraceTreeResource($node)->toArray(),
                 TraceTreeResponse::node($node)
@@ -50,7 +61,11 @@ class TraceTreeResponseTest extends TestCase
                 );
             }
 
-            $decoded = json_decode($this->body($nodes), true, flags: JSON_THROW_ON_ERROR);
+            $decoded = json_decode(
+                $this->body($nodes),
+                true,
+                flags: JSON_THROW_ON_ERROR
+            );
 
             self::assertCount(
                 $count,
@@ -84,23 +99,44 @@ class TraceTreeResponseTest extends TestCase
             );
         }
 
-        $chunksFactory = StreamedChunks::of($this->response($nodes));
+        $chunksFactory = StreamedChunks::of(
+            $this->response($nodes)
+        );
 
-        self::assertNotNull($chunksFactory);
+        self::assertNotNull(
+            $chunksFactory
+        );
 
         $chunks = [...$chunksFactory()];
 
-        self::assertGreaterThan(3, count($chunks));
-        self::assertSame($this->body($nodes), implode('', $chunks));
+        self::assertGreaterThan(
+            3,
+            count($chunks)
+        );
+        self::assertSame(
+            $this->body($nodes),
+            implode('', $chunks)
+        );
     }
 
     public function testATreeStillBeingBuiltHasNoItems(): void
     {
-        $response = new TraceTreeResponse(new TraceTreeResultObject(state: $this->state(), items: null));
+        $response = new TraceTreeResponse(
+            new TraceTreeResultObject(
+                state: $this->state(),
+                items: null
+            )
+        );
 
-        $decoded = json_decode($this->send($response), true, flags: JSON_THROW_ON_ERROR);
+        $decoded = json_decode(
+            $this->send($response),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
 
-        self::assertNull($decoded['data']['items']);
+        self::assertNull(
+            $decoded['data']['items']
+        );
     }
 
     /**
@@ -108,7 +144,9 @@ class TraceTreeResponseTest extends TestCase
      */
     private function body(array $nodes): string
     {
-        return $this->send($this->response($nodes));
+        return $this->send(
+            $this->response($nodes)
+        );
     }
 
     /**
@@ -120,11 +158,13 @@ class TraceTreeResponseTest extends TestCase
     {
         $body = '';
 
-        ob_start(static function (string $buffer) use (&$body): string {
-            $body .= $buffer;
+        ob_start(
+            static function (string $buffer) use (&$body): string {
+                $body .= $buffer;
 
-            return '';
-        });
+                return '';
+            }
+        );
 
         $response->sendContent();
 
@@ -149,8 +189,11 @@ class TraceTreeResponseTest extends TestCase
         );
     }
 
-    private function node(?int $serviceId, bool $withMetrics, string $traceId = 'trace'): TraceTreeRawObject
-    {
+    private function node(
+        ?int $serviceId,
+        bool $withMetrics,
+        string $traceId = 'trace'
+    ): TraceTreeRawObject {
         return new TraceTreeRawObject(
             serviceId: $serviceId,
             traceId: $traceId,

@@ -13,8 +13,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class BufferOverflowIncidentEventController extends AbstractIncidentEventController
 {
     #[OaListItemTypeAttribute(BufferOverflowIncidentEventResource::class)]
-    public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
-    {
+    public function index(
+        string $id,
+        IndexIncidentEventsRequest $request
+    ): AnonymousResourceCollection {
         return BufferOverflowIncidentEventResource::collection(
             $this->incidentEvents(
                 WatcherTypeEnum::BufferOverflow,

@@ -11,8 +11,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class ProcessController
 {
-    public function __construct(private FindProcessesByAdminUseCase $findProcessesByAdminUseCase)
-    {
+    public function __construct(
+        private FindProcessesByAdminUseCase $findProcessesByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(ProcessResource::class)]

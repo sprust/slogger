@@ -30,8 +30,10 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof NoNewTracesSettingsObject) {
@@ -61,7 +63,9 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
         }
 
         return new NoNewTracesEventPayloadObject(
-            settings: new NoNewTracesEventSettingsObject(periodMinutes: $settings->periodMinutes),
+            settings: new NoNewTracesEventSettingsObject(
+                periodMinutes: $settings->periodMinutes
+            ),
             measured: new NoNewTracesEventMeasuredObject(
                 windowFrom: $from->toDateTimeString(),
                 windowTo: $to->toDateTimeString()

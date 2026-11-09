@@ -17,32 +17,63 @@ class ChannelFactoryTest extends TestCase
 
     public function testTheStoredTypeDecidesHowTheSettingsAreRead(): void
     {
-        $channel = $this->factory()->make(
-            $this->dto(
-                settings: ['bot_token' => '123:abc', 'chat_id' => '@ops']
-            )
-        );
+        $channel = $this
+            ->factory()
+            ->make(
+                $this->dto(
+                    settings: ['bot_token' => '123:abc', 'chat_id' => '@ops']
+                )
+            );
 
         $this->assertSame(
             NotificationChannelTypeEnum::Telegram,
             $channel->type
         );
-        $this->assertInstanceOf(TelegramSettingsObject::class, $channel->settings);
-        $this->assertSame('123:abc', $channel->settings->botToken);
-        $this->assertSame('@ops', $channel->settings->chatId);
+        $this->assertInstanceOf(
+            TelegramSettingsObject::class,
+            $channel->settings
+        );
+        $this->assertSame(
+            '123:abc',
+            $channel->settings->botToken
+        );
+        $this->assertSame(
+            '@ops',
+            $channel->settings->chatId
+        );
     }
 
     public function testARowOfAnUnknownTypeIsSkippedRatherThanFatal(): void
     {
-        $this->assertNull($this->factory()->make($this->dto(type: 'carrierPigeon')));
+        $this->assertNull(
+            $this
+                ->factory()
+                ->make(
+                    $this->dto(
+                        type: 'carrierPigeon'
+                    )
+                )
+        );
     }
 
     public function testAnEmptyColumnLoadsOnDefaults(): void
     {
-        $channel = $this->factory()->make($this->dto(settings: []));
+        $channel = $this
+            ->factory()
+            ->make(
+                $this->dto(
+                    settings: []
+                )
+            );
 
-        $this->assertInstanceOf(TelegramSettingsObject::class, $channel->settings);
-        $this->assertSame('', $channel->settings->botToken);
+        $this->assertInstanceOf(
+            TelegramSettingsObject::class,
+            $channel->settings
+        );
+        $this->assertSame(
+            '',
+            $channel->settings->botToken
+        );
     }
 
     /**

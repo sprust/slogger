@@ -38,7 +38,9 @@ class OaIntegerProperty extends BaseOaProperty
                 $data,
                 'enum',
                 array_map(
-                    fn(mixed $value) => is_string($value) ? intval(trim($value, ' "')) : intval($value),
+                    fn(
+                        mixed $value
+                    ) => is_string($value) ? intval(trim($value, ' "')) : intval($value),
                     $this->enum
                 )
             );

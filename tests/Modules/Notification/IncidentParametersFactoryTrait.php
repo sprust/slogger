@@ -27,8 +27,9 @@ trait IncidentParametersFactoryTrait
         );
     }
 
-    private function notificationIncident(WatcherIncidentObject $incident): IncidentSnapshotParameters
-    {
+    private function notificationIncident(
+        WatcherIncidentObject $incident
+    ): IncidentSnapshotParameters {
         return new IncidentSnapshotParameters(
             id: $incident->id,
             watcherId: $incident->watcherId,
@@ -41,8 +42,10 @@ trait IncidentParametersFactoryTrait
         );
     }
 
-    private function notificationEvent(?WatcherIncidentEventObject $event, WatcherTypeEnum $type): ?IncidentEventParameters
-    {
+    private function notificationEvent(
+        ?WatcherIncidentEventObject $event,
+        WatcherTypeEnum $type
+    ): ?IncidentEventParameters {
         $document = $event?->payload === null ? null : $this
             ->watcherTypeRegistry()
             ->for($type)

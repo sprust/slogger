@@ -36,19 +36,23 @@ use App\Modules\Mcp\Parameters\TraceTreeNodeParameters;
 
 readonly class TraceObjectTransport
 {
-    public function fromTraceDataRangeObject(SourceTraceDataRangeObject $sourceTraceDataRangeObject): TraceDataRangeObject
-    {
+    public function fromTraceDataRangeObject(
+        SourceTraceDataRangeObject $sourceTraceDataRangeObject
+    ): TraceDataRangeObject {
         return new TraceDataRangeObject(
             firstHour: $sourceTraceDataRangeObject->firstHour,
             lastHour: $sourceTraceDataRangeObject->lastHour,
         );
     }
 
-    public function fromTraceDetailObject(SourceTraceDetailObject $sourceTraceDetailObject): TraceDetailObject
-    {
+    public function fromTraceDetailObject(
+        SourceTraceDetailObject $sourceTraceDetailObject
+    ): TraceDetailObject {
         return new TraceDetailObject(
             id: $sourceTraceDetailObject->id,
-            service: $sourceTraceDetailObject->service === null ? null : $this->fromTraceServiceObject($sourceTraceDetailObject->service),
+            service: $sourceTraceDetailObject->service === null
+                ? null
+                : $this->fromTraceServiceObject($sourceTraceDetailObject->service),
             traceId: $sourceTraceDetailObject->traceId,
             parentTraceId: $sourceTraceDetailObject->parentTraceId,
             type: $sourceTraceDetailObject->type,
@@ -65,60 +69,79 @@ readonly class TraceObjectTransport
         );
     }
 
-    public function fromTraceServiceObject(SourceTraceServiceObject $sourceTraceServiceObject): TraceServiceObject
-    {
+    public function fromTraceServiceObject(
+        SourceTraceServiceObject $sourceTraceServiceObject
+    ): TraceServiceObject {
         return new TraceServiceObject(
             id: $sourceTraceServiceObject->id,
             name: $sourceTraceServiceObject->name,
         );
     }
 
-    public function fromTraceStringFieldObject(SourceTraceStringFieldObject $sourceTraceStringFieldObject): TraceStringFieldObject
-    {
+    public function fromTraceStringFieldObject(
+        SourceTraceStringFieldObject $sourceTraceStringFieldObject
+    ): TraceStringFieldObject {
         return new TraceStringFieldObject(
             name: $sourceTraceStringFieldObject->name,
             count: $sourceTraceStringFieldObject->count,
         );
     }
 
-    public function fromTraceDataObject(SourceTraceDataObject $sourceTraceDataObject): TraceDataObject
-    {
+    public function fromTraceDataObject(
+        SourceTraceDataObject $sourceTraceDataObject
+    ): TraceDataObject {
         return new TraceDataObject(
             key: $sourceTraceDataObject->key,
             value: $sourceTraceDataObject->value,
-            children: $sourceTraceDataObject->children === null ? null : array_map(fn(SourceTraceDataObject $sourceTraceDataObject): TraceDataObject => $this->fromTraceDataObject($sourceTraceDataObject), $sourceTraceDataObject->children),
+            children: $sourceTraceDataObject->children === null ? null : array_map(
+                fn(
+                    SourceTraceDataObject $sourceTraceDataObject
+                ): TraceDataObject => $this->fromTraceDataObject($sourceTraceDataObject),
+                $sourceTraceDataObject->children
+            ),
             filterKey: $sourceTraceDataObject->filterKey,
             canBeFiltered: $sourceTraceDataObject->canBeFiltered,
         );
     }
 
-    public function fromTraceDataAdditionalFieldObject(SourceTraceDataAdditionalFieldObject $sourceTraceDataAdditionalFieldObject): TraceDataAdditionalFieldObject
-    {
+    public function fromTraceDataAdditionalFieldObject(
+        SourceTraceDataAdditionalFieldObject $sourceTraceDataAdditionalFieldObject
+    ): TraceDataAdditionalFieldObject {
         return new TraceDataAdditionalFieldObject(
             key: $sourceTraceDataAdditionalFieldObject->key,
             values: $sourceTraceDataAdditionalFieldObject->values,
         );
     }
 
-    public function fromTraceItemObjects(SourceTraceItemObjects $sourceTraceItemObjects): TraceItemObjects
-    {
+    public function fromTraceItemObjects(
+        SourceTraceItemObjects $sourceTraceItemObjects
+    ): TraceItemObjects {
         return new TraceItemObjects(
-            items: array_map(fn(SourceTraceItemObject $sourceTraceItemObject): TraceItemObject => $this->fromTraceItemObject($sourceTraceItemObject), $sourceTraceItemObjects->items),
+            items: array_map(
+                fn(
+                    SourceTraceItemObject $sourceTraceItemObject
+                ): TraceItemObject => $this->fromTraceItemObject($sourceTraceItemObject),
+                $sourceTraceItemObjects->items
+            ),
             paginationInfo: $sourceTraceItemObjects->paginationInfo,
         );
     }
 
-    public function fromTraceItemObject(SourceTraceItemObject $sourceTraceItemObject): TraceItemObject
-    {
+    public function fromTraceItemObject(
+        SourceTraceItemObject $sourceTraceItemObject
+    ): TraceItemObject {
         return new TraceItemObject(
             trace: $this->fromTraceItemTraceObject($sourceTraceItemObject->trace),
         );
     }
 
-    public function fromTraceItemTraceObject(SourceTraceItemTraceObject $sourceTraceItemTraceObject): TraceItemTraceObject
-    {
+    public function fromTraceItemTraceObject(
+        SourceTraceItemTraceObject $sourceTraceItemTraceObject
+    ): TraceItemTraceObject {
         return new TraceItemTraceObject(
-            service: $sourceTraceItemTraceObject->service === null ? null : $this->fromTraceServiceObject($sourceTraceItemTraceObject->service),
+            service: $sourceTraceItemTraceObject->service === null
+                ? null
+                : $this->fromTraceServiceObject($sourceTraceItemTraceObject->service),
             traceId: $sourceTraceItemTraceObject->traceId,
             parentTraceId: $sourceTraceItemTraceObject->parentTraceId,
             type: $sourceTraceItemTraceObject->type,
@@ -128,23 +151,37 @@ readonly class TraceObjectTransport
             memory: $sourceTraceItemTraceObject->memory,
             cpu: $sourceTraceItemTraceObject->cpu,
             pid: $sourceTraceItemTraceObject->pid,
-            additionalFields: array_map(fn(SourceTraceDataAdditionalFieldObject $sourceTraceDataAdditionalFieldObject): TraceDataAdditionalFieldObject => $this->fromTraceDataAdditionalFieldObject($sourceTraceDataAdditionalFieldObject), $sourceTraceItemTraceObject->additionalFields),
+            additionalFields: array_map(
+                fn(
+                    SourceTraceDataAdditionalFieldObject $sourceTraceDataAdditionalFieldObject
+                ): TraceDataAdditionalFieldObject => $this->fromTraceDataAdditionalFieldObject(
+                    $sourceTraceDataAdditionalFieldObject
+                ),
+                $sourceTraceItemTraceObject->additionalFields
+            ),
             loggedAt: $sourceTraceItemTraceObject->loggedAt,
             createdAt: $sourceTraceItemTraceObject->createdAt,
             updatedAt: $sourceTraceItemTraceObject->updatedAt,
         );
     }
 
-    public function fromTraceGroupsObject(SourceTraceGroupsObject $sourceTraceGroupsObject): TraceGroupsObject
-    {
+    public function fromTraceGroupsObject(
+        SourceTraceGroupsObject $sourceTraceGroupsObject
+    ): TraceGroupsObject {
         return new TraceGroupsObject(
-            items: array_map(fn(SourceTraceGroupObject $sourceTraceGroupObject): TraceGroupObject => $this->fromTraceGroupObject($sourceTraceGroupObject), $sourceTraceGroupsObject->items),
+            items: array_map(
+                fn(
+                    SourceTraceGroupObject $sourceTraceGroupObject
+                ): TraceGroupObject => $this->fromTraceGroupObject($sourceTraceGroupObject),
+                $sourceTraceGroupsObject->items
+            ),
             truncated: $sourceTraceGroupsObject->truncated,
         );
     }
 
-    public function fromTraceGroupObject(SourceTraceGroupObject $sourceTraceGroupObject): TraceGroupObject
-    {
+    public function fromTraceGroupObject(
+        SourceTraceGroupObject $sourceTraceGroupObject
+    ): TraceGroupObject {
         return new TraceGroupObject(
             serviceId: $sourceTraceGroupObject->serviceId,
             type: $sourceTraceGroupObject->type,
@@ -158,18 +195,27 @@ readonly class TraceObjectTransport
         );
     }
 
-    public function fromTraceGroupComparisonObject(SourceTraceGroupComparisonObject $sourceTraceGroupComparisonObject): TraceGroupComparisonObject
-    {
+    public function fromTraceGroupComparisonObject(
+        SourceTraceGroupComparisonObject $sourceTraceGroupComparisonObject
+    ): TraceGroupComparisonObject {
         return new TraceGroupComparisonObject(
             groupATotal: $sourceTraceGroupComparisonObject->groupATotal,
             groupBTotal: $sourceTraceGroupComparisonObject->groupBTotal,
-            rows: array_map(fn(SourceTraceGroupComparisonRowObject $sourceTraceGroupComparisonRowObject): TraceGroupComparisonRowObject => $this->fromTraceGroupComparisonRowObject($sourceTraceGroupComparisonRowObject), $sourceTraceGroupComparisonObject->rows),
+            rows: array_map(
+                fn(
+                    SourceTraceGroupComparisonRowObject $sourceTraceGroupComparisonRowObject
+                ): TraceGroupComparisonRowObject => $this->fromTraceGroupComparisonRowObject(
+                    $sourceTraceGroupComparisonRowObject
+                ),
+                $sourceTraceGroupComparisonObject->rows
+            ),
             truncated: $sourceTraceGroupComparisonObject->truncated,
         );
     }
 
-    public function fromTraceGroupComparisonRowObject(SourceTraceGroupComparisonRowObject $sourceTraceGroupComparisonRowObject): TraceGroupComparisonRowObject
-    {
+    public function fromTraceGroupComparisonRowObject(
+        SourceTraceGroupComparisonRowObject $sourceTraceGroupComparisonRowObject
+    ): TraceGroupComparisonRowObject {
         return new TraceGroupComparisonRowObject(
             value: $sourceTraceGroupComparisonRowObject->value,
             groupACount: $sourceTraceGroupComparisonRowObject->groupACount,
@@ -179,8 +225,9 @@ readonly class TraceObjectTransport
         );
     }
 
-    public function toTraceTreeNodeParameters(SourceTraceTreeRawObject $sourceTraceTreeRawObject): TraceTreeNodeParameters
-    {
+    public function toTraceTreeNodeParameters(
+        SourceTraceTreeRawObject $sourceTraceTreeRawObject
+    ): TraceTreeNodeParameters {
         return new TraceTreeNodeParameters(
             serviceId: $sourceTraceTreeRawObject->serviceId,
             traceId: $sourceTraceTreeRawObject->traceId,
@@ -196,8 +243,9 @@ readonly class TraceObjectTransport
         );
     }
 
-    public function fromTraceTreeNodeParameters(TraceTreeNodeParameters $traceTreeNodeParameters): TraceTreeRawObject
-    {
+    public function fromTraceTreeNodeParameters(
+        TraceTreeNodeParameters $traceTreeNodeParameters
+    ): TraceTreeRawObject {
         return new TraceTreeRawObject(
             serviceId: $traceTreeNodeParameters->serviceId,
             traceId: $traceTreeNodeParameters->traceId,

@@ -52,8 +52,12 @@ class WsKeysGenerateCommandTest extends TestCase
 
     public function testAnEmptyAssignmentDoesNotCountAsFilled(): void
     {
-        $this->assertFalse($this->isFilled("SCONCUR_WS_APP_KEY=\n", 'SCONCUR_WS_APP_KEY'));
-        $this->assertTrue($this->isFilled("SCONCUR_WS_APP_KEY=abc\n", 'SCONCUR_WS_APP_KEY'));
+        $this->assertFalse(
+            $this->isFilled("SCONCUR_WS_APP_KEY=\n", 'SCONCUR_WS_APP_KEY')
+        );
+        $this->assertTrue(
+            $this->isFilled("SCONCUR_WS_APP_KEY=abc\n", 'SCONCUR_WS_APP_KEY')
+        );
     }
 
     public function testAnAssignmentOnlyMentionedInAValueDoesNotCountAsFilled(): void
@@ -74,7 +78,9 @@ class WsKeysGenerateCommandTest extends TestCase
 
         $env = $this->set($env, 'SCONCUR_WS_KEY', 'the-key');
 
-        $this->assertFalse($this->isFilled($env, 'VITE_SCONCUR_WS_KEY'));
+        $this->assertFalse(
+            $this->isFilled($env, 'VITE_SCONCUR_WS_KEY')
+        );
 
         $env = $this->set($env, 'VITE_SCONCUR_WS_KEY', '${SCONCUR_WS_KEY}');
 

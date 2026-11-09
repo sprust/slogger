@@ -52,17 +52,30 @@ class McpTraceDataFilterParserTest extends TestCase
     }
 
     #[DataProvider('numericConditions')]
-    public function testNumeric(string $condition, TraceDataFilterCompNumericTypeEnum $comp, int|float $value): void
-    {
+    public function testNumeric(
+        string $condition,
+        TraceDataFilterCompNumericTypeEnum $comp,
+        int|float $value
+    ): void {
         $item = $this->parseOne($condition);
 
-        $this->assertSame($comp, $item->numeric?->comp);
+        $this->assertSame(
+            $comp,
+            $item->numeric?->comp
+        );
 
-        $this->assertSame($value, $item->numeric->value);
+        $this->assertSame(
+            $value,
+            $item->numeric->value
+        );
 
-        $this->assertNull($item->string);
+        $this->assertNull(
+            $item->string
+        );
 
-        $this->assertNull($item->boolean);
+        $this->assertNull(
+            $item->boolean
+        );
     }
 
     public function testKeyGetsDataPrefix(): void
@@ -72,7 +85,10 @@ class McpTraceDataFilterParserTest extends TestCase
             $this->parseOne('response.status >= 500')->field
         );
 
-        $this->assertSame('dt.dt.x', $this->parseOne('dt.x exists')->field);
+        $this->assertSame(
+            'dt.dt.x',
+            $this->parseOne('dt.x exists')->field
+        );
     }
 
     /**
@@ -101,8 +117,10 @@ class McpTraceDataFilterParserTest extends TestCase
     }
 
     #[DataProvider('booleanConditions')]
-    public function testBoolean(string $condition, bool $value): void
-    {
+    public function testBoolean(
+        string $condition,
+        bool $value
+    ): void {
         $this->assertSame(
             $value,
             $this->parseOne($condition)->boolean?->value
@@ -149,13 +167,22 @@ class McpTraceDataFilterParserTest extends TestCase
     }
 
     #[DataProvider('stringConditions')]
-    public function testString(string $condition, TraceDataFilterCompStringTypeEnum $comp, string $value): void
-    {
+    public function testString(
+        string $condition,
+        TraceDataFilterCompStringTypeEnum $comp,
+        string $value
+    ): void {
         $item = $this->parseOne($condition);
 
-        $this->assertSame($comp, $item->string?->comp);
+        $this->assertSame(
+            $comp,
+            $item->string?->comp
+        );
 
-        $this->assertSame($value, $item->string->value);
+        $this->assertSame(
+            $value,
+            $item->string->value
+        );
     }
 
     /**
@@ -188,13 +215,22 @@ class McpTraceDataFilterParserTest extends TestCase
     }
 
     #[DataProvider('presenceConditions')]
-    public function testPresence(string $condition, ?bool $exists, ?bool $null): void
-    {
+    public function testPresence(
+        string $condition,
+        ?bool $exists,
+        ?bool $null
+    ): void {
         $item = $this->parseOne($condition);
 
-        $this->assertSame($exists, $item->exists);
+        $this->assertSame(
+            $exists,
+            $item->exists
+        );
 
-        $this->assertSame($null, $item->null);
+        $this->assertSame(
+            $null,
+            $item->null
+        );
     }
 
     /**
@@ -203,68 +239,50 @@ class McpTraceDataFilterParserTest extends TestCase
     public static function invalidConditions(): array
     {
         return [
-            'unknown operator' => [
-                'status ~ 5',
-            ],
-            'unquoted string' => [
-                'method = GET',
-            ],
-            'string comparison' => [
-                'method > "GET"',
-            ],
-            'boolean comparison' => [
-                'cache.hit > true',
-            ],
-            'no value' => [
-                'status >=',
-            ],
-            'no key' => [
-                '>= 500',
-            ],
-            'dash in the key' => [
-                'user-agent exists',
-            ],
-            'quote in the key' => [
-                "a'b exists",
-            ],
-            'empty key segment' => [
-                'a..b exists',
-            ],
-            'line break in key' => [
-                "a\nb exists",
-            ],
-            'infinite number' => [
-                'size > 1' . str_repeat(
-                    '0',
-                    400,
-                ) . '.5',
+            'unknown operator'   => ['status ~ 5'],
+            'unquoted string'    => ['method = GET'],
+            'string comparison'  => ['method > "GET"'],
+            'boolean comparison' => ['cache.hit > true'],
+            'no value'           => ['status >='],
+            'no key'             => ['>= 500'],
+            'dash in the key'    => ['user-agent exists'],
+            'quote in the key'   => ["a'b exists"],
+            'empty key segment'  => ['a..b exists'],
+            'line break in key'  => ["a\nb exists"],
+            'infinite number'    => [
+                'size > 1'
+                    . str_repeat('0', 400)
+                    . '.5',
             ],
         ];
     }
 
     #[DataProvider('invalidConditions')]
-    public function testInvalid(string $condition): void
-    {
+    public function testInvalid(
+        string $condition
+    ): void {
         try {
-            (new McpTraceDataFilterParser())->parse([
-                $condition,
-            ]);
+            (new McpTraceDataFilterParser())->parse([$condition]);
 
             $this->fail(
                 message: 'No exception thrown',
             );
         } catch (McpTraceDataFilterInvalidException $exception) {
-            $this->assertSame($condition, $exception->condition);
+            $this->assertSame(
+                $condition,
+                $exception->condition
+            );
         }
     }
 
     private function parseOne(string $condition): TraceDataFilterItemParameters
     {
-        $items = (new McpTraceDataFilterParser())->parse([
-            $condition,
-        ]);
+        $items = (new McpTraceDataFilterParser())->parse([$condition]);
 
-        $this->assertCount(1, $items);
+        $this->assertCount(
+            1,
+            $items
+        );
 
         return $items[0];
     }

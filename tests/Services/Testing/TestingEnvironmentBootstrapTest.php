@@ -53,7 +53,8 @@ class TestingEnvironmentBootstrapTest extends TestCase
                 'test-clickhouse',
                 'test-redis',
                 null,
-                dirname(__DIR__, 3) . '/storage/framework/testing/config.php',
+                dirname(__DIR__, 3)
+                    . '/storage/framework/testing/config.php',
             ],
             actual: json_decode(
                 json: $process->getOutput(),

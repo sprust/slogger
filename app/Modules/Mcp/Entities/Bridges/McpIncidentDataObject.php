@@ -9,7 +9,15 @@ use Illuminate\Support\Carbon;
 
 readonly class McpIncidentDataObject
 {
-    public function __construct(public string $id, public int $watcherId, public McpIncidentStatusEnum $status, public Carbon $firstEventAt, public Carbon $lastEventAt, public int $eventsCount, public ?Carbon $closedAt, public ?int $closedByUserId)
-    {
+    public function __construct(
+        public string $id,
+        public int $watcherId,
+        public McpIncidentStatusEnum $status,
+        public Carbon $firstEventAt,
+        public Carbon $lastEventAt,
+        public int $eventsCount,
+        public ?Carbon $closedAt,
+        public ?int $closedByUserId
+    ) {
     }
 }

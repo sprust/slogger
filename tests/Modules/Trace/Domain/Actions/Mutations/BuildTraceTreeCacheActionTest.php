@@ -33,12 +33,24 @@ class BuildTraceTreeCacheActionTest extends TestCase
 
         $states->method('markFinished')->willReturn(true);
 
-        $states->method('findOneByRootTraceId')->willReturn($this->state(TraceTreeCacheStateStatusEnum::Finished));
+        $states
+            ->method('findOneByRootTraceId')
+            ->willReturn(
+                $this->state(TraceTreeCacheStateStatusEnum::Finished)
+            );
 
         $events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with($this->callback(static fn(TraceTreeCacheStateChangedEvent $event): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Finished));
+            ->with(
+                $this->callback(
+                    static fn(
+                        TraceTreeCacheStateChangedEvent $event
+                    ): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Finished
+                )
+            );
 
         $this
             ->action(
@@ -61,12 +73,22 @@ class BuildTraceTreeCacheActionTest extends TestCase
         $states = $this->createMock(TraceTreeCacheStateRepository::class);
         $events = $this->createMock(Dispatcher::class);
 
-        $states->expects($this->never())->method('markFinished');
+        $states->expects(
+            $this->never()
+        )->method('markFinished');
 
         $events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with($this->callback(static fn(TraceTreeCacheBuildRequestedEvent $event): bool => $event->depth === 2 && $event->afterId === 'cursor-1'));
+            ->with(
+                $this->callback(
+                    static fn(
+                        TraceTreeCacheBuildRequestedEvent $event
+                    ): bool => $event->depth === 2 && $event->afterId === 'cursor-1'
+                )
+            );
 
         $this
             ->action(
@@ -92,9 +114,13 @@ class BuildTraceTreeCacheActionTest extends TestCase
         $states = $this->createMock(TraceTreeCacheStateRepository::class);
         $events = $this->createMock(Dispatcher::class);
 
-        $states->expects($this->never())->method('markFinished');
+        $states->expects(
+            $this->never()
+        )->method('markFinished');
 
-        $events->expects($this->never())->method('event');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         $this
             ->action(
@@ -118,14 +144,28 @@ class BuildTraceTreeCacheActionTest extends TestCase
         $states = $this->createMock(TraceTreeCacheStateRepository::class);
         $events = $this->createMock(Dispatcher::class);
 
-        $states->expects($this->once())->method('markFailed')->willReturn(true);
+        $states->expects(
+            $this->once()
+        )->method('markFailed')->willReturn(true);
 
-        $states->method('findOneByRootTraceId')->willReturn($this->state(TraceTreeCacheStateStatusEnum::Failed));
+        $states
+            ->method('findOneByRootTraceId')
+            ->willReturn(
+                $this->state(TraceTreeCacheStateStatusEnum::Failed)
+            );
 
         $events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with($this->callback(static fn(TraceTreeCacheStateChangedEvent $event): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Failed));
+            ->with(
+                $this->callback(
+                    static fn(
+                        TraceTreeCacheStateChangedEvent $event
+                    ): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Failed
+                )
+            );
 
         $this
             ->action(
@@ -150,9 +190,13 @@ class BuildTraceTreeCacheActionTest extends TestCase
         // state now stored belongs to somebody else's build.
         $states->method('markFinished')->willReturn(false);
 
-        $states->expects($this->never())->method('findOneByRootTraceId');
+        $states->expects(
+            $this->never()
+        )->method('findOneByRootTraceId');
 
-        $events->expects($this->never())->method('event');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         $this
             ->action(
@@ -172,9 +216,13 @@ class BuildTraceTreeCacheActionTest extends TestCase
         $events = $this->createMock(Dispatcher::class);
 
         // The builder gave up half way — cancelled, or superseded. Nothing was marked.
-        $states->expects($this->never())->method('markFinished');
+        $states->expects(
+            $this->never()
+        )->method('markFinished');
 
-        $events->expects($this->never())->method('event');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         $this
             ->action(
@@ -200,7 +248,11 @@ class BuildTraceTreeCacheActionTest extends TestCase
 
         $states->method('markFinished')->willReturn(true);
 
-        $states->method('findOneByRootTraceId')->willReturn($this->state(TraceTreeCacheStateStatusEnum::Finished));
+        $states
+            ->method('findOneByRootTraceId')
+            ->willReturn(
+                $this->state(TraceTreeCacheStateStatusEnum::Finished)
+            );
 
         // A bus that is down. ShouldRescue keeps this from happening at all in practice,
         // but markFailed() filters by version alone: were the announcement inside the
@@ -213,7 +265,9 @@ class BuildTraceTreeCacheActionTest extends TestCase
                 )
             );
 
-        $states->expects($this->never())->method('markFailed');
+        $states->expects(
+            $this->never()
+        )->method('markFailed');
 
         $this->expectException(RuntimeException::class);
 
@@ -244,8 +298,11 @@ class BuildTraceTreeCacheActionTest extends TestCase
      * @param MockObject&Dispatcher                      $events
      * @param TraceTreeCacheSliceObject|RuntimeException $builderResult what the slice does
      */
-    private function action(MockObject $states, MockObject $events, TraceTreeCacheSliceObject|RuntimeException $builderResult): BuildTraceTreeCacheAction
-    {
+    private function action(
+        MockObject $states,
+        MockObject $events,
+        TraceTreeCacheSliceObject|RuntimeException $builderResult
+    ): BuildTraceTreeCacheAction {
         $builder = $this->createMock(TraceTreeCacheBuilderService::class);
 
         if ($builderResult instanceof RuntimeException) {

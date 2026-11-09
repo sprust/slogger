@@ -21,14 +21,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
  */
 readonly class WatcherController
 {
-    public function __construct(private FindWatchersByAdminUseCase $findWatchersByAdminUseCase, private FindWatcherTypesByAdminUseCase $findWatcherTypesByAdminUseCase, private DeleteWatcherByAdminUseCase $deleteWatcherByAdminUseCase)
-    {
+    public function __construct(
+        private FindWatchersByAdminUseCase $findWatchersByAdminUseCase,
+        private FindWatcherTypesByAdminUseCase $findWatcherTypesByAdminUseCase,
+        private DeleteWatcherByAdminUseCase $deleteWatcherByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(WatcherResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return WatcherResource::collection($this->findWatchersByAdminUseCase->handle());
+        return WatcherResource::collection(
+            $this->findWatchersByAdminUseCase->handle()
+        );
     }
 
     /**
@@ -38,7 +43,9 @@ readonly class WatcherController
     #[OaListItemTypeAttribute(WatcherTypeResource::class)]
     public function types(): AnonymousResourceCollection
     {
-        return WatcherTypeResource::collection($this->findWatcherTypesByAdminUseCase->handle());
+        return WatcherTypeResource::collection(
+            $this->findWatcherTypesByAdminUseCase->handle()
+        );
     }
 
     public function delete(int $id): void

@@ -23,8 +23,13 @@ class BuildTraceTreeCacheJob implements ShouldQueue
         private readonly int $depth = 0,
         private readonly ?string $afterId = null,
     ) {
-        $this->onConnection(config('module-trace.queue.connection'))
-            ->onQueue(config('module-trace.queue.name'));
+        $this
+            ->onConnection(
+                config('module-trace.queue.connection')
+            )
+            ->onQueue(
+                config('module-trace.queue.name')
+            );
     }
 
     public function handle(

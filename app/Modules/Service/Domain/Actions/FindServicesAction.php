@@ -21,6 +21,8 @@ readonly class FindServicesAction
      */
     public function handle(?array $ids = null): array
     {
-        return $this->serviceRepository->find(ids: $ids);
+        return $this->serviceRepository->find(
+            ids: $ids
+        );
     }
 }

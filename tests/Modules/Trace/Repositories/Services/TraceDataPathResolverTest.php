@@ -16,17 +16,37 @@ class TraceDataPathResolverTest extends TestCase
     {
         $path = $this->resolver()->resolve('dt.x');
 
-        self::assertSame(['dt', 'x'], $path->segments);
-        self::assertSame('dt.`dt`.`x`', $path->objectExpression);
-        self::assertNull($path->arrayExpression);
-        self::assertSame([], $path->arraySegments);
+        self::assertSame(
+            ['dt', 'x'],
+            $path->segments
+        );
+        self::assertSame(
+            'dt.`dt`.`x`',
+            $path->objectExpression
+        );
+        self::assertNull(
+            $path->arrayExpression
+        );
+        self::assertSame(
+            [],
+            $path->arraySegments
+        );
     }
 
     public function testFieldLosesOnlyItsOwnPrefix(): void
     {
-        self::assertSame(['dt', 'x'], $this->resolver()->resolveField('dt.dt.x')->segments);
-        self::assertSame(['dtx'], $this->resolver()->resolveField('dt.dtx')->segments);
-        self::assertSame(['request', 'uri'], $this->resolver()->resolveField('dt.request.uri')->segments);
+        self::assertSame(
+            ['dt', 'x'],
+            $this->resolver()->resolveField('dt.dt.x')->segments
+        );
+        self::assertSame(
+            ['dtx'],
+            $this->resolver()->resolveField('dt.dtx')->segments
+        );
+        self::assertSame(
+            ['request', 'uri'],
+            $this->resolver()->resolveField('dt.request.uri')->segments
+        );
     }
 
     public function testFieldWithoutPrefixIsRefused(): void
@@ -38,11 +58,22 @@ class TraceDataPathResolverTest extends TestCase
 
     public function testPathThroughAnArrayOfObjects(): void
     {
-        $path = $this->resolver(['order.items'])->resolve('order.items.price');
+        $path = $this
+            ->resolver(['order.items'])
+            ->resolve('order.items.price');
 
-        self::assertSame(['order', 'items'], $path->arraySegments);
-        self::assertSame('dt.`order`.`items`[].`price`', $path->arrayExpression);
-        self::assertSame('dt.`order`.`items`.`price`', $path->objectExpression);
+        self::assertSame(
+            ['order', 'items'],
+            $path->arraySegments
+        );
+        self::assertSame(
+            'dt.`order`.`items`[].`price`',
+            $path->arrayExpression
+        );
+        self::assertSame(
+            'dt.`order`.`items`.`price`',
+            $path->objectExpression
+        );
     }
 
     /**
@@ -60,8 +91,9 @@ class TraceDataPathResolverTest extends TestCase
     }
 
     #[DataProvider('invalidPathProvider')]
-    public function testInvalidPathIsRefused(string $path): void
-    {
+    public function testInvalidPathIsRefused(
+        string $path
+    ): void {
         $this->expectException(InvalidArgumentException::class);
 
         $this->resolver()->resolve($path);

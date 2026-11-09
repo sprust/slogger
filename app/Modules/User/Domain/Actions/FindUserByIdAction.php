@@ -16,6 +16,8 @@ readonly class FindUserByIdAction
 
     public function handle(int $id): ?UserDetailObject
     {
-        return $this->userRepository->findById(id: $id);
+        return $this->userRepository->findById(
+            id: $id
+        );
     }
 }

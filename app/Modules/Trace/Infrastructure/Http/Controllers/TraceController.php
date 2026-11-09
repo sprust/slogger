@@ -16,8 +16,11 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceController
 {
-    public function __construct(private FindTracesByAdminUseCase $findTracesByAdminUseCase, private FindTraceDetailByAdminUseCase $findTraceDetailByAdminUseCase, private DataFilterParameterTransport $dataFilterParameterTransport)
-    {
+    public function __construct(
+        private FindTracesByAdminUseCase $findTracesByAdminUseCase,
+        private FindTraceDetailByAdminUseCase $findTraceDetailByAdminUseCase,
+        private DataFilterParameterTransport $dataFilterParameterTransport
+    ) {
     }
 
     /**

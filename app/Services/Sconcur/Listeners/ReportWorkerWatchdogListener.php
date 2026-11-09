@@ -24,7 +24,10 @@ class ReportWorkerWatchdogListener
                     $watchdogEvent->pid,
                     $watchdogEvent->group,
                     $watchdogEvent->slot,
-                    $watchdogEvent->ageSeconds === null ? 'unknown' : sprintf('%.1f s', $watchdogEvent->ageSeconds),
+                    $watchdogEvent->ageSeconds === null ? 'unknown' : sprintf(
+                        '%.1f s',
+                        $watchdogEvent->ageSeconds
+                    ),
                     $watchdogEvent->watchdogTimeoutMs,
                 )
             )

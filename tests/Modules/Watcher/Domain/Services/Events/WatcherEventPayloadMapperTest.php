@@ -48,7 +48,9 @@ class WatcherEventPayloadMapperTest extends TestCase
 
             $this->assertEquals(
                 $payload,
-                $mapper->read($mapper->toDocument($payload)),
+                $mapper->read(
+                    $mapper->toDocument($payload)
+                ),
                 "$type->value did not survive the round trip"
             );
         }
@@ -61,84 +63,141 @@ class WatcherEventPayloadMapperTest extends TestCase
      */
     public function testAPayloadMissingANumberReadsAsNothing(): void
     {
-        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::SlowTraces)->eventPayloadMapper();
+        $mapper = $this
+            ->watcherTypeRegistry()
+            ->for(WatcherTypeEnum::SlowTraces)
+            ->eventPayloadMapper();
 
-        $document = $mapper->toDocument($this->payloadOf(WatcherTypeEnum::SlowTraces));
+        $document = $mapper->toDocument(
+            $this->payloadOf(WatcherTypeEnum::SlowTraces)
+        );
 
         unset($document['settings']['window_minutes']);
 
-        $this->assertNull($mapper->read($document));
+        $this->assertNull(
+            $mapper->read($document)
+        );
     }
 
     public function testAPayloadOfAnotherTypeIsRefused(): void
     {
-        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::BufferOverflow)->eventPayloadMapper();
+        $mapper = $this
+            ->watcherTypeRegistry()
+            ->for(WatcherTypeEnum::BufferOverflow)
+            ->eventPayloadMapper();
 
         $this->expectException(LogicException::class);
 
-        $mapper->toDocument($this->payloadOf(WatcherTypeEnum::SlowTraces));
+        $mapper->toDocument(
+            $this->payloadOf(WatcherTypeEnum::SlowTraces)
+        );
     }
 
     public function testAGroupStoredBeforeItsTraceWasDatedReadsWithoutADate(): void
     {
-        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::SlowTraces)->eventPayloadMapper();
+        $mapper = $this
+            ->watcherTypeRegistry()
+            ->for(WatcherTypeEnum::SlowTraces)
+            ->eventPayloadMapper();
 
-        $document = $mapper->toDocument($this->payloadOf(WatcherTypeEnum::SlowTraces));
+        $document = $mapper->toDocument(
+            $this->payloadOf(WatcherTypeEnum::SlowTraces)
+        );
 
         unset($document['groups'][0]['trace_logged_at']);
 
         $read = $mapper->read($document);
 
-        $this->assertInstanceOf(SlowTracesEventPayloadObject::class, $read);
-        $this->assertSame('abc123', $read->groups[0]->slowestTraceId);
-        $this->assertNull($read->groups[0]->slowestTraceLoggedAt);
+        $this->assertInstanceOf(
+            SlowTracesEventPayloadObject::class,
+            $read
+        );
+        $this->assertSame(
+            'abc123',
+            $read->groups[0]->slowestTraceId
+        );
+        $this->assertNull(
+            $read->groups[0]->slowestTraceLoggedAt
+        );
     }
 
     /** A group nobody can read costs a line in the breakdown, not the whole event. */
     public function testAGroupMissingWhatAGroupIsMadeOfIsDropped(): void
     {
-        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::ManyTraces)->eventPayloadMapper();
+        $mapper = $this
+            ->watcherTypeRegistry()
+            ->for(WatcherTypeEnum::ManyTraces)
+            ->eventPayloadMapper();
 
-        $document = $mapper->toDocument($this->payloadOf(WatcherTypeEnum::ManyTraces));
+        $document = $mapper->toDocument(
+            $this->payloadOf(WatcherTypeEnum::ManyTraces)
+        );
 
         $document['groups'][] = ['type' => 'job', 'tags' => [], 'count' => 4];
 
         $read = $mapper->read($document);
 
-        $this->assertInstanceOf(ManyTracesEventPayloadObject::class, $read);
-        $this->assertCount(1, $read->groups);
-        $this->assertSame('http', $read->groups[0]->type);
+        $this->assertInstanceOf(
+            ManyTracesEventPayloadObject::class,
+            $read
+        );
+        $this->assertCount(
+            1,
+            $read->groups
+        );
+        $this->assertSame(
+            'http',
+            $read->groups[0]->type
+        );
     }
 
     private function payloadOf(WatcherTypeEnum $type): WatcherEventPayloadInterface
     {
         return match ($type) {
             WatcherTypeEnum::BufferOverflow => new BufferOverflowEventPayloadObject(
-                settings: new BufferOverflowEventSettingsObject(threshold: 1000),
-                measured: new BufferOverflowEventMeasuredObject(bufferCount: 12000)
+                settings: new BufferOverflowEventSettingsObject(
+                    threshold: 1000
+                ),
+                measured: new BufferOverflowEventMeasuredObject(
+                    bufferCount: 12000
+                )
             ),
             WatcherTypeEnum::InvalidBufferGrown => new InvalidBufferGrownEventPayloadObject(
-                settings: new InvalidBufferGrownEventSettingsObject(threshold: 1),
+                settings: new InvalidBufferGrownEventSettingsObject(
+                    threshold: 1
+                ),
                 measured: new InvalidBufferGrownEventMeasuredObject(
                     invalidCount: 7,
                     since: '2026-09-08 19:00:00'
                 )
             ),
             WatcherTypeEnum::NoNewTraces => new NoNewTracesEventPayloadObject(
-                settings: new NoNewTracesEventSettingsObject(periodMinutes: 10),
+                settings: new NoNewTracesEventSettingsObject(
+                    periodMinutes: 10
+                ),
                 measured: new NoNewTracesEventMeasuredObject(
                     windowFrom: '2026-09-08 19:00:00',
                     windowTo: '2026-09-08 19:10:00'
                 )
             ),
             WatcherTypeEnum::ManyTraces => new ManyTracesEventPayloadObject(
-                settings: new ManyTracesEventSettingsObject(windowMinutes: 5, threshold: 1000),
-                measured: new ManyTracesEventMeasuredObject(windowCount: 1200),
+                settings: new ManyTracesEventSettingsObject(
+                    windowMinutes: 5,
+                    threshold: 1000
+                ),
+                measured: new ManyTracesEventMeasuredObject(
+                    windowCount: 1200
+                ),
                 groups: [$this->group()]
             ),
             WatcherTypeEnum::SlowTraces => new SlowTracesEventPayloadObject(
-                settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
-                measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
+                settings: new SlowTracesEventSettingsObject(
+                    duration: 10.0,
+                    windowMinutes: 5
+                ),
+                measured: new SlowTracesEventMeasuredObject(
+                    slowest: 41.2
+                ),
                 groups: [
                     $this->group(
                         durationMax: 41.2,
@@ -148,7 +207,9 @@ class WatcherEventPayloadMapperTest extends TestCase
                 ]
             ),
             WatcherTypeEnum::LogErrors => new LogErrorsEventPayloadObject(
-                settings: new LogErrorsEventSettingsObject(threshold: 1),
+                settings: new LogErrorsEventSettingsObject(
+                    threshold: 1
+                ),
                 measured: new LogErrorsEventMeasuredObject(
                     errorCount: 3,
                     since: '2026-09-08 19:00:00',
@@ -156,7 +217,9 @@ class WatcherEventPayloadMapperTest extends TestCase
                 )
             ),
             WatcherTypeEnum::ReceiverErrors => new LogErrorsEventPayloadObject(
-                settings: new LogErrorsEventSettingsObject(threshold: 2),
+                settings: new LogErrorsEventSettingsObject(
+                    threshold: 2
+                ),
                 measured: new LogErrorsEventMeasuredObject(
                     errorCount: 5,
                     since: '2026-09-25 07:00:00',

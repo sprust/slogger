@@ -13,7 +13,11 @@ class McpToolSchemaCompilerTest extends TestCase
     public function testCompilesJsonSchema(): void
     {
         $schema = json_decode(
-            (string) json_encode(new McpToolSchemaCompiler()->toJsonSchema($this->schema())),
+            (string) json_encode(
+                new McpToolSchemaCompiler()->toJsonSchema(
+                    $this->schema()
+                )
+            ),
             true
         );
 
@@ -21,11 +25,26 @@ class McpToolSchemaCompilerTest extends TestCase
             [
                 'type'                 => 'object',
                 'properties'           => [
-                    'trace_id' => ['type' => 'string', 'description' => 'Trace id', 'minLength' => 1, 'maxLength' => 100],
-                    'status'   => ['type' => 'string', 'description' => 'Status', 'enum' => ['opened', 'closed'], 'minLength' => 1],
+                    'trace_id' => [
+                        'type'        => 'string',
+                        'description' => 'Trace id',
+                        'minLength'   => 1,
+                        'maxLength'   => 100,
+                    ],
+                    'status'   => [
+                        'type'        => 'string',
+                        'description' => 'Status',
+                        'enum'        => ['opened', 'closed'],
+                        'minLength'   => 1,
+                    ],
                     'page'     => ['type' => 'integer', 'description' => 'Page', 'minimum' => 1],
                     'duration' => ['type' => 'number', 'description' => 'Duration', 'minimum' => 0],
-                    'types'    => ['type' => 'array', 'description' => 'Types', 'items' => ['type' => 'string'], 'maxItems' => 5],
+                    'types'    => [
+                        'type'        => 'array',
+                        'description' => 'Types',
+                        'items'       => ['type' => 'string'],
+                        'maxItems'    => 5,
+                    ],
                 ],
                 'additionalProperties' => false,
                 'required'             => ['trace_id'],
@@ -38,7 +57,11 @@ class McpToolSchemaCompilerTest extends TestCase
     {
         $this->assertSame(
             '{"type":"object","properties":{},"additionalProperties":false}',
-            json_encode(new McpToolSchemaCompiler()->toJsonSchema(new McpToolSchema()))
+            json_encode(
+                new McpToolSchemaCompiler()->toJsonSchema(
+                    new McpToolSchema()
+                )
+            )
         );
     }
 
@@ -53,7 +76,9 @@ class McpToolSchemaCompilerTest extends TestCase
                 'types'    => ['sometimes', 'array', 'list', 'max:5'],
                 'types.*'  => ['required', 'string', 'min:1'],
             ],
-            new McpToolSchemaCompiler()->toRules($this->schema())
+            new McpToolSchemaCompiler()->toRules(
+                $this->schema()
+            )
         );
     }
 

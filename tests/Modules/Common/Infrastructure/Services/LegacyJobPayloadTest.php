@@ -17,24 +17,23 @@ class LegacyJobPayloadTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function cases(): iterable
     {
-        foreach (
-            [
-                BuildTraceTreeCacheJob::class,
-                DeleteTraceTreeCacheJob::class,
-                ClearTracesJob::class,
-                RefreshDatabaseStatCacheJob::class,
-                SendNotificationJob::class,
-            ] as $class
-        ) {
-            yield $class => [
-                $class,
-            ];
+        $jobClasses = [
+            BuildTraceTreeCacheJob::class,
+            DeleteTraceTreeCacheJob::class,
+            ClearTracesJob::class,
+            RefreshDatabaseStatCacheJob::class,
+            SendNotificationJob::class,
+        ];
+
+        foreach ($jobClasses as $class) {
+            yield $class => [$class];
         }
     }
 
     #[DataProvider('cases')]
-    public function test(string $class): void
-    {
+    public function test(
+        string $class
+    ): void {
         config(
             key: [
                 'module-trace.queue.connection' => 'sync',
@@ -54,9 +53,7 @@ class LegacyJobPayloadTest extends TestCase
         $restored = unserialize(
             $payloads[$class],
             [
-                'allowed_classes' => [
-                    $class,
-                ],
+                'allowed_classes' => [$class],
             ],
         );
         $current = match ($class) {
@@ -75,10 +72,19 @@ class LegacyJobPayloadTest extends TestCase
             SendNotificationJob::class         => new SendNotificationJob('incident-notification'),
         };
 
-        $this->assertSame($class, $restored::class);
+        $this->assertSame(
+            $class,
+            $restored::class
+        );
 
-        $this->assertEquals($current, $restored);
+        $this->assertEquals(
+            $current,
+            $restored
+        );
 
-        $this->assertSame($payloads[$class], serialize($current));
+        $this->assertSame(
+            $payloads[$class],
+            serialize($current)
+        );
     }
 }

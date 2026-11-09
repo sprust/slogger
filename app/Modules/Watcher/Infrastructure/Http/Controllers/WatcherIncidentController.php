@@ -24,13 +24,17 @@ use Illuminate\Http\Request;
  */
 readonly class WatcherIncidentController
 {
-    public function __construct(private FindIncidentsByAdminUseCase $findIncidentsByAdminUseCase, private FindIncidentStatByAdminUseCase $findIncidentStatByAdminUseCase, private CloseIncidentByAdminUseCase $closeIncidentByAdminUseCase)
-    {
+    public function __construct(
+        private FindIncidentsByAdminUseCase $findIncidentsByAdminUseCase,
+        private FindIncidentStatByAdminUseCase $findIncidentStatByAdminUseCase,
+        private CloseIncidentByAdminUseCase $closeIncidentByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(WatcherIncidentResource::class)]
-    public function index(IndexIncidentsRequest $request): AnonymousResourceCollection
-    {
+    public function index(
+        IndexIncidentsRequest $request
+    ): AnonymousResourceCollection {
         $validated = $request->validated();
         $status    = ArrayValueGetter::stringNull(
             data: $validated,
@@ -63,7 +67,9 @@ readonly class WatcherIncidentController
      */
     public function stat(): WatcherIncidentStatResource
     {
-        return new WatcherIncidentStatResource($this->findIncidentStatByAdminUseCase->handle());
+        return new WatcherIncidentStatResource(
+            $this->findIncidentStatByAdminUseCase->handle()
+        );
     }
 
     public function close(string $id, Request $request): void

@@ -44,7 +44,14 @@ class LogFileStreamTest extends TestCase
             $level = self::LEVELS[$entryNo % 4];
             $word  = $entryNo % 100 === 0 ? 'Привет' : 'hello';
 
-            $text = sprintf("[%s] local.%s: %s %d {\"n\":%d} \n", gmdate('Y-m-d H:i:s', $time), $level, $word, $entryNo, $entryNo);
+            $text = sprintf(
+                "[%s] local.%s: %s %d {\"n\":%d} \n",
+                gmdate('Y-m-d H:i:s', $time),
+                $level,
+                $word,
+                $entryNo,
+                $entryNo
+            );
 
             if ($entryNo % 250 === 0) {
                 $text .= "[stacktrace]\n#0 {main}\n";
@@ -72,10 +79,18 @@ class LogFileStreamTest extends TestCase
 
     public function testAllEntriesComeNewestFirst(): void
     {
-        $stream = $this->makeStream(new LogEntriesFilterParameters());
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters()
+        );
 
-        $this->assertSame(self::ENTRIES, $stream->getTotal());
-        $this->assertSame(self::ENTRIES - 1, $stream->getPosition());
+        $this->assertSame(
+            self::ENTRIES,
+            $stream->getTotal()
+        );
+        $this->assertSame(
+            self::ENTRIES - 1,
+            $stream->getPosition()
+        );
 
         $entries = $this->drain($stream, 7);
 
@@ -87,9 +102,16 @@ class LogFileStreamTest extends TestCase
             $this->expected[5]['text'],
             $this->findEntry($entries, 5)->text
         );
-        $this->assertTrue($stream->isExhausted());
-        $this->assertNull($stream->getPosition());
-        $this->assertSame(self::ENTRIES, $stream->getScannedRecords());
+        $this->assertTrue(
+            $stream->isExhausted()
+        );
+        $this->assertNull(
+            $stream->getPosition()
+        );
+        $this->assertSame(
+            self::ENTRIES,
+            $stream->getScannedRecords()
+        );
     }
 
     public function testNewerEntriesComeOldestFirstFromThePosition(): void
@@ -102,17 +124,24 @@ class LogFileStreamTest extends TestCase
 
         $this->assertSame(
             range(1290, 1299),
-            $this->entryNos($this->drain($stream, 3))
+            $this->entryNos(
+                $this->drain($stream, 3)
+            )
         );
     }
 
     public function testOlderEntriesStartAtThePositionInclusive(): void
     {
-        $stream = $this->makeStream(new LogEntriesFilterParameters(), position: 4);
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(),
+            position: 4
+        );
 
         $this->assertSame(
             [4, 3, 2, 1, 0],
-            $this->entryNos($this->drain($stream, 2))
+            $this->entryNos(
+                $this->drain($stream, 2)
+            )
         );
     }
 
@@ -120,12 +149,21 @@ class LogFileStreamTest extends TestCase
     {
         $error = LaravelLogLevelEnum::Error->value;
 
-        $stream = $this->makeStream(new LogEntriesFilterParameters(levels: [$error]));
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(
+                levels: [$error]
+            )
+        );
 
-        $this->assertSame(self::ENTRIES / 4, $stream->getTotal());
+        $this->assertSame(
+            self::ENTRIES / 4,
+            $stream->getTotal()
+        );
         $this->assertSame(
             $this->expectedEntryNos(static fn(array $entry): bool => $entry['level'] === $error),
-            $this->entryNos($this->drain($stream, 11))
+            $this->entryNos(
+                $this->drain($stream, 11)
+            )
         );
     }
 
@@ -134,14 +172,26 @@ class LogFileStreamTest extends TestCase
         $levels = [LaravelLogLevelEnum::Warning->value, LaravelLogLevelEnum::Debug->value];
 
         $stream = $this->makeStream(
-            new LogEntriesFilterParameters(levels: $levels),
+            new LogEntriesFilterParameters(
+                levels: $levels
+            ),
             position: 1000
         );
 
-        $this->assertSame(self::ENTRIES / 2, $stream->getTotal());
         $this->assertSame(
-            $this->expectedEntryNos(static fn(array $entry): bool => in_array($entry['level'], $levels, true) && $entry['entryNo'] <= 1000),
-            $this->entryNos($this->drain($stream, 13))
+            self::ENTRIES / 2,
+            $stream->getTotal()
+        );
+        $this->assertSame(
+            $this->expectedEntryNos(
+                static fn(
+                    array $entry
+                ): bool => in_array($entry['level'], $levels, true)
+                    && $entry['entryNo'] <= 1000
+            ),
+            $this->entryNos(
+                $this->drain($stream, 13)
+            )
         );
     }
 
@@ -150,26 +200,47 @@ class LogFileStreamTest extends TestCase
         $levels = [LaravelLogLevelEnum::Warning->value, LaravelLogLevelEnum::Info->value];
 
         $stream = $this->makeStream(
-            new LogEntriesFilterParameters(levels: $levels),
+            new LogEntriesFilterParameters(
+                levels: $levels
+            ),
             LogCursorDirectionEnum::Newer,
             position: 600
         );
 
         $this->assertSame(
             array_reverse(
-                $this->expectedEntryNos(static fn(array $entry): bool => in_array($entry['level'], $levels, true) && $entry['entryNo'] >= 600)
+                $this->expectedEntryNos(
+                    static fn(
+                        array $entry
+                    ): bool => in_array($entry['level'], $levels, true)
+                        && $entry['entryNo'] >= 600
+                )
             ),
-            $this->entryNos($this->drain($stream, 500))
+            $this->entryNos(
+                $this->drain($stream, 500)
+            )
         );
     }
 
     public function testALevelNotInTheFileGivesNothing(): void
     {
-        $stream = $this->makeStream(new LogEntriesFilterParameters(levels: [LaravelLogLevelEnum::Emergency->value]));
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(
+                levels: [LaravelLogLevelEnum::Emergency->value]
+            )
+        );
 
-        $this->assertSame(0, $stream->getTotal());
-        $this->assertTrue($stream->isExhausted());
-        $this->assertSame([], $stream->next());
+        $this->assertSame(
+            0,
+            $stream->getTotal()
+        );
+        $this->assertTrue(
+            $stream->isExhausted()
+        );
+        $this->assertSame(
+            [],
+            $stream->next()
+        );
     }
 
     public function testATimeRangeBoundsTheEntries(): void
@@ -187,13 +258,22 @@ class LogFileStreamTest extends TestCase
 
         $expected = $this->expectedEntryNos(
             static fn(array $entry): bool => $entry['entryNo'] >= 100 && $entry['entryNo'] <= 700
-                && in_array($entry['level'], [LaravelLogLevelEnum::Error->value, LaravelLogLevelEnum::Info->value], true)
+                && in_array(
+                    $entry['level'],
+                    [LaravelLogLevelEnum::Error->value, LaravelLogLevelEnum::Info->value],
+                    true
+                )
         );
 
-        $this->assertSame(count($expected), $stream->getTotal());
+        $this->assertSame(
+            count($expected),
+            $stream->getTotal()
+        );
         $this->assertSame(
             $expected,
-            $this->entryNos($this->drain($stream, 500))
+            $this->entryNos(
+                $this->drain($stream, 500)
+            )
         );
     }
 
@@ -217,21 +297,39 @@ class LogFileStreamTest extends TestCase
         $this->file = $this->writeLogFile('skewed.log', $contents);
 
         $entries = $this->drain(
-            $this->makeStream(new LogEntriesFilterParameters(fromTime: $base, toTime: $base + 25)),
+            $this->makeStream(
+                new LogEntriesFilterParameters(
+                    fromTime: $base,
+                    toTime: $base + 25
+                )
+            ),
             10
         );
 
         foreach ($entries as $entry) {
-            $this->assertGreaterThanOrEqual($base, $entry->loggedAt);
-            $this->assertLessThanOrEqual($base + 25, $entry->loggedAt);
+            $this->assertGreaterThanOrEqual(
+                $base,
+                $entry->loggedAt
+            );
+            $this->assertLessThanOrEqual(
+                $base + 25,
+                $entry->loggedAt
+            );
         }
 
-        $this->assertNotContains(0, $this->entryNos($entries));
+        $this->assertNotContains(
+            0,
+            $this->entryNos($entries)
+        );
     }
 
     public function testSearchIsCaseInsensitiveForAnyAlphabet(): void
     {
-        $stream = $this->makeStream(new LogEntriesFilterParameters(searchQuery: 'пРИВЕТ'));
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(
+                searchQuery: 'пРИВЕТ'
+            )
+        );
 
         $entries = $this->drain($stream, 500);
 
@@ -239,25 +337,55 @@ class LogFileStreamTest extends TestCase
             [1200, 1100, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0],
             $this->entryNos($entries)
         );
-        $this->assertSame(self::ENTRIES, $stream->getTotal());
-        $this->assertSame(self::ENTRIES, $stream->getScannedRecords());
-        $this->assertGreaterThan(0, $stream->getScannedBytes());
+        $this->assertSame(
+            self::ENTRIES,
+            $stream->getTotal()
+        );
+        $this->assertSame(
+            self::ENTRIES,
+            $stream->getScannedRecords()
+        );
+        $this->assertGreaterThan(
+            0,
+            $stream->getScannedBytes()
+        );
 
-        $stream = $this->makeStream(new LogEntriesFilterParameters(searchQuery: 'STACKTRACE'));
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(
+                searchQuery: 'STACKTRACE'
+            )
+        );
 
         $this->assertSame(
             [1250, 1000, 750, 500, 250, 0],
-            $this->entryNos($this->drain($stream, 500))
+            $this->entryNos(
+                $this->drain($stream, 500)
+            )
         );
     }
 
     public function testSearchStopsAfterTheExaminedRecords(): void
     {
-        $stream = $this->makeStream(new LogEntriesFilterParameters(searchQuery: 'hello 1298'));
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(
+                searchQuery: 'hello 1298'
+            )
+        );
 
-        $this->assertSame([1298], $this->entryNos($stream->next(10)));
-        $this->assertSame(10, $stream->getScannedRecords());
-        $this->assertSame(1289, $stream->getPosition());
+        $this->assertSame(
+            [1298],
+            $this->entryNos(
+                $stream->next(10)
+            )
+        );
+        $this->assertSame(
+            10,
+            $stream->getScannedRecords()
+        );
+        $this->assertSame(
+            1289,
+            $stream->getPosition()
+        );
         $this->assertSame(
             $this->expected[1290]['time'],
             $stream->getLastTime()
@@ -272,13 +400,17 @@ class LogFileStreamTest extends TestCase
     {
         config()->set('module-logs.reading.max_entry_bytes', 20);
 
-        $entry = $this->makeStream(new LogEntriesFilterParameters())->next(1)[0];
+        $entry = $this->makeStream(
+            new LogEntriesFilterParameters()
+        )->next(1)[0];
 
         $this->assertSame(
             substr($this->expected[1299]['text'], 0, 20),
             $entry->text
         );
-        $this->assertTrue($entry->truncated);
+        $this->assertTrue(
+            $entry->truncated
+        );
     }
 
     private function makeStream(
@@ -288,13 +420,15 @@ class LogFileStreamTest extends TestCase
     ): LogFileStream {
         $meta = $this->app->make(LogIndexer::class)->ensureFresh($this->file);
 
-        return $this->app->make(LogFileStreamFactory::class)->make(
-            file: $this->file,
-            meta: $meta,
-            filter: $filter,
-            direction: $direction,
-            position: $position
-        );
+        return $this->app
+            ->make(LogFileStreamFactory::class)
+            ->make(
+                file: $this->file,
+                meta: $meta,
+                filter: $filter,
+                direction: $direction,
+                position: $position
+            );
     }
 
     /**

@@ -43,7 +43,13 @@ readonly class LogEntriesMerger
                 break;
             }
 
-            usort($heads, fn(LogMergeHeadObject $left, LogMergeHeadObject $right): int => $this->compare($left, $right, $direction));
+            usort(
+                $heads,
+                fn(
+                    LogMergeHeadObject $left,
+                    LogMergeHeadObject $right
+                ): int => $this->compare($left, $right, $direction)
+            );
 
             if ($heads[0]->isPending) {
                 $slot = $slots[$heads[0]->slotIndex];
@@ -55,14 +61,20 @@ readonly class LogEntriesMerger
                 continue;
             }
 
-            if ($hasAdvanced && $this->isBudgetSpent($streams, $startedAt, $timeBudgetMs, $bytesBudget)) {
+            if (
+                $hasAdvanced
+                && $this->isBudgetSpent($streams, $startedAt, $timeBudgetMs, $bytesBudget)
+            ) {
                 break;
             }
 
             $toAdvance = [];
 
             foreach ($heads as $head) {
-                if ($head->isPending || count($toAdvance) >= max(1, $concurrency)) {
+                if (
+                    $head->isPending
+                    || count($toAdvance) >= max(1, $concurrency)
+                ) {
                     break;
                 }
 
@@ -88,7 +100,10 @@ readonly class LogEntriesMerger
             );
         }
 
-        return new LogMergeResultObject(entries: $page, positions: $positions);
+        return new LogMergeResultObject(
+            entries: $page,
+            positions: $positions
+        );
     }
 
     /**
@@ -125,8 +140,11 @@ readonly class LogEntriesMerger
         return $heads;
     }
 
-    private function compare(LogMergeHeadObject $left, LogMergeHeadObject $right, LogCursorDirectionEnum $direction): int
-    {
+    private function compare(
+        LogMergeHeadObject $left,
+        LogMergeHeadObject $right,
+        LogCursorDirectionEnum $direction
+    ): int {
         if ($left->time !== $right->time) {
             return $direction === LogCursorDirectionEnum::Older
                 ? $right->time <=> $left->time
@@ -141,8 +159,12 @@ readonly class LogEntriesMerger
     /**
      * @param list<LogFileStream> $streams
      */
-    private function isBudgetSpent(array $streams, int $startedAt, int $timeBudgetMs, int $bytesBudget): bool
-    {
+    private function isBudgetSpent(
+        array $streams,
+        int $startedAt,
+        int $timeBudgetMs,
+        int $bytesBudget
+    ): bool {
         if ($timeBudgetMs > 0 && (hrtime(true) - $startedAt) / 1_000_000 >= $timeBudgetMs) {
             return true;
         }

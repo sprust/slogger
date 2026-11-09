@@ -39,7 +39,9 @@ class RegisterTriggerActionTest extends TestCase
         $incidents->method('findLastOpenByWatcherId')->willReturn(null);
 
         $incidents
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('create')
             ->willReturn(
                 $this->incident(
@@ -57,7 +59,9 @@ class RegisterTriggerActionTest extends TestCase
 
         $events = $this->createMock(WatcherIncidentEventRepository::class);
 
-        $events->expects($this->once())->method('create')->with(7);
+        $events->expects(
+            $this->once()
+        )->method('create')->with(7);
 
         $this->register(
             incidents: $incidents,
@@ -78,9 +82,13 @@ class RegisterTriggerActionTest extends TestCase
                 )
             );
 
-        $incidents->expects($this->never())->method('create');
+        $incidents->expects(
+            $this->never()
+        )->method('create');
 
-        $incidents->expects($this->once())->method('incrementEventsCount')->with(7);
+        $incidents->expects(
+            $this->once()
+        )->method('incrementEventsCount')->with(7);
 
         $incidents
             ->method('findById')
@@ -92,7 +100,9 @@ class RegisterTriggerActionTest extends TestCase
 
         $events = $this->createMock(WatcherIncidentEventRepository::class);
 
-        $events->expects($this->once())->method('create')->with(7);
+        $events->expects(
+            $this->once()
+        )->method('create')->with(7);
 
         $this->register(
             incidents: $incidents,
@@ -108,20 +118,27 @@ class RegisterTriggerActionTest extends TestCase
     {
         $incidents = $this->createMock(WatcherIncidentRepository::class);
 
-        $incidents->expects($this->never())->method('findLastOpenByWatcherId');
+        $incidents->expects(
+            $this->never()
+        )->method('findLastOpenByWatcherId');
 
-        $incidents->expects($this->never())->method('create');
+        $incidents->expects(
+            $this->never()
+        )->method('create');
 
         $events = $this->createMock(WatcherIncidentEventRepository::class);
 
-        $events->expects($this->never())->method('create');
+        $events->expects(
+            $this->never()
+        )->method('create');
 
         $this->register(
             incidents: $incidents,
             events: $events,
             lastTriggeredAt: Carbon::parse(
                 time: self::NOW,
-            )->subSeconds(299),
+            )
+                ->subSeconds(299),
         );
     }
 
@@ -147,14 +164,17 @@ class RegisterTriggerActionTest extends TestCase
 
         $events = $this->createMock(WatcherIncidentEventRepository::class);
 
-        $events->expects($this->once())->method('create');
+        $events->expects(
+            $this->once()
+        )->method('create');
 
         $this->register(
             incidents: $incidents,
             events: $events,
             lastTriggeredAt: Carbon::parse(
                 time: self::NOW,
-            )->subSeconds(300),
+            )
+                ->subSeconds(300),
         );
     }
 
@@ -168,7 +188,9 @@ class RegisterTriggerActionTest extends TestCase
         $incidents->method('findLastOpenByWatcherId')->willReturn(null);
 
         $incidents
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('create')
             ->willReturn(
                 $this->incident(
@@ -186,7 +208,9 @@ class RegisterTriggerActionTest extends TestCase
 
         $events = $this->createMock(WatcherIncidentEventRepository::class);
 
-        $events->expects($this->once())->method('create')->with(8);
+        $events->expects(
+            $this->once()
+        )->method('create')->with(8);
 
         $this->register(
             incidents: $incidents,
@@ -218,13 +242,17 @@ class RegisterTriggerActionTest extends TestCase
         $dispatcher = $this->createMock(Dispatcher::class);
 
         $dispatcher
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
             ->with(
                 $this->callback(
                     // The row as it now stands, counter and all: the counter was incremented
                     // by the database, so a copy patched in memory would be a guess.
-                    static fn(WatcherIncidentChangedEvent $event): bool => $event->incident->eventsCount === 4
+                    static fn(
+                        WatcherIncidentChangedEvent $event
+                    ): bool => $event->incident->eventsCount === 4
                 )
             );
 
@@ -235,8 +263,12 @@ class RegisterTriggerActionTest extends TestCase
         );
     }
 
-    private function register(WatcherIncidentRepository $incidents, WatcherIncidentEventRepository $events, ?Carbon $lastTriggeredAt = null, ?Dispatcher $dispatcher = null): void
-    {
+    private function register(
+        WatcherIncidentRepository $incidents,
+        WatcherIncidentEventRepository $events,
+        ?Carbon $lastTriggeredAt = null,
+        ?Dispatcher $dispatcher = null
+    ): void {
         $now = Carbon::parse(
             time: self::NOW,
         );

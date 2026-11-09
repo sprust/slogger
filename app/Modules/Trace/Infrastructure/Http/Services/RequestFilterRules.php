@@ -55,13 +55,11 @@ class RequestFilterRules
             'logging_from_preset' => [
                 'sometimes',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(PeriodPresetEnum $enum) => $enum->value,
-                        PeriodPresetEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(fn(PeriodPresetEnum $enum) => $enum->value, PeriodPresetEnum::cases())
+                    ),
             ],
             'logging_from'        => [
                 'sometimes',
@@ -200,13 +198,14 @@ class RequestFilterRules
             'data.filter.*.numeric.comp'  => [
                 'sometimes',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceDataFilterCompNumericTypeEnum $enum) => $enum->value,
-                        TraceDataFilterCompNumericTypeEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(
+                            fn(TraceDataFilterCompNumericTypeEnum $enum) => $enum->value,
+                            TraceDataFilterCompNumericTypeEnum::cases()
+                        )
+                    ),
             ],
             'data.filter.*.string'        => [
                 'sometimes',
@@ -219,13 +218,14 @@ class RequestFilterRules
             'data.filter.*.string.comp'   => [
                 'sometimes',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceDataFilterCompStringTypeEnum $enum) => $enum->value,
-                        TraceDataFilterCompStringTypeEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(
+                            fn(TraceDataFilterCompStringTypeEnum $enum) => $enum->value,
+                            TraceDataFilterCompStringTypeEnum::cases()
+                        )
+                    ),
             ],
             'data.filter.*.boolean'       => [
                 'sometimes',

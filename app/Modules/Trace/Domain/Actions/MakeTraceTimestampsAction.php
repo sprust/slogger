@@ -10,8 +10,9 @@ use Illuminate\Support\Carbon;
 
 readonly class MakeTraceTimestampsAction
 {
-    public function __construct(private TraceTimestampMetricsFactory $traceTimestampMetricsFactory)
-    {
+    public function __construct(
+        private TraceTimestampMetricsFactory $traceTimestampMetricsFactory
+    ) {
     }
 
     /**

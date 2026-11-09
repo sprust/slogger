@@ -36,7 +36,14 @@ class LogLevelKeysTest extends TestCase
 
     public function testKeysAreParsedByTypeAndUnknownOnesAreSkipped(): void
     {
-        $keys = ['laravel.ERROR', 'laravel.none', 'nginx_access.5xx', 'laravel.TRACE', 'bogus.ERROR', 'nodot'];
+        $keys = [
+            'laravel.ERROR',
+            'laravel.none',
+            'nginx_access.5xx',
+            'laravel.TRACE',
+            'bogus.ERROR',
+            'nodot',
+        ];
 
         $levelKeys = $this->app->make(LogLevelKeys::class);
 

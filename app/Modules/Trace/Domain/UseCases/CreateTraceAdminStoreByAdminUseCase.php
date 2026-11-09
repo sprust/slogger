@@ -9,12 +9,17 @@ use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
 
 readonly class CreateTraceAdminStoreByAdminUseCase
 {
-    public function __construct(private CreateTraceAdminStoreAction $createTraceAdminStoreAction)
-    {
+    public function __construct(
+        private CreateTraceAdminStoreAction $createTraceAdminStoreAction
+    ) {
     }
 
-    public function handle(string $title, int $storeVersion, string $storeData, bool $auto): TraceAdminStoreObject
-    {
+    public function handle(
+        string $title,
+        int $storeVersion,
+        string $storeData,
+        bool $auto
+    ): TraceAdminStoreObject {
         return $this->createTraceAdminStoreAction->handle(
             title: $title,
             storeVersion: $storeVersion,

@@ -14,7 +14,12 @@ use App\Modules\Mcp\Parameters\Data\TraceDataFilterStringParameters;
 
 readonly class McpTraceDataFilterParser
 {
-    public const string FORMAT = '<key> <operator> <value>: "= != > >= < <=" with a number, ' . '"= !=" with true or false, "= != contains starts ends" with a "double-quoted" string, ' . 'or "exists", "missing", "is null", "is not null" without a value. ' . '<key> is names of letters, digits and _ joined by dots; on an array, of objects or of ' . 'values, a condition holds when any element matches. ' . 'Examples: response.status >= 500, request.uri contains "/api", user.id exists.';
+    public const string FORMAT = '<key> <operator> <value>: "= != > >= < <=" with a number, '
+        . '"= !=" with true or false, "= != contains starts ends" with a "double-quoted" string, '
+        . 'or "exists", "missing", "is null", "is not null" without a value. '
+        . '<key> is names of letters, digits and _ joined by dots; on an array, of objects or of '
+        . 'values, a condition holds when any element matches. '
+        . 'Examples: response.status >= 500, request.uri contains "/api", user.id exists.';
 
     // a data path is written into the query, so it is names joined by dots and nothing else
     private const string KEY = '(?<key>[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)';
@@ -39,11 +44,7 @@ readonly class McpTraceDataFilterParser
         $value = trim($condition);
 
         if (
-            preg_match(
-                '/^' . self::KEY . '\s+(?<presence>exists|missing|is null|is not null)\z/',
-                $value,
-                $matches,
-            )
+            preg_match('/^' . self::KEY . '\s+(?<presence>exists|missing|is null|is not null)\z/', $value, $matches)
         ) {
             return new TraceDataFilterItemParameters(
                 field: $this->field($matches['key']),
@@ -63,32 +64,23 @@ readonly class McpTraceDataFilterParser
             );
         }
 
-        if (
-            preg_match(
-                '/^' . self::KEY . '\s*(?<op>=|!=)\s*(?<value>true|false)\z/',
-                $value,
-                $matches,
-            )
-        ) {
+        if (preg_match('/^' . self::KEY . '\s*(?<op>=|!=)\s*(?<value>true|false)\z/', $value, $matches)) {
             $isTrue = $matches['value'] === 'true';
 
             return $this->item(
                 key: $matches['key'],
-                boolean: new TraceDataFilterBooleanParameters($matches['op'] === '=' ? $isTrue : !$isTrue),
+                boolean: new TraceDataFilterBooleanParameters(
+                    $matches['op'] === '='
+                        ? $isTrue
+                        : !$isTrue
+                ),
             );
         }
 
         if (
-            preg_match(
-                '/^' . self::KEY . '\s*(?<op>>=|<=|!=|=|>|<)\s*(?<value>-?\d+(\.\d+)?)\z/',
-                $value,
-                $matches,
-            )
+            preg_match('/^' . self::KEY . '\s*(?<op>>=|<=|!=|=|>|<)\s*(?<value>-?\d+(\.\d+)?)\z/', $value, $matches)
         ) {
-            $number = str_contains(
-                $matches['value'],
-                '.',
-            ) ? (float) $matches['value'] : (int) $matches['value'];
+            $number = str_contains($matches['value'], '.') ? (float) $matches['value'] : (int) $matches['value'];
 
             // a number too long for a float reads as infinity, which no query takes
             if (!is_finite((float) $number)) {
@@ -105,11 +97,7 @@ readonly class McpTraceDataFilterParser
         }
 
         if (
-            preg_match(
-                '/^' . self::KEY . '\s*(?<op>!=|=|contains|starts|ends)\s*"(?<value>.*)"\z/',
-                $value,
-                $matches,
-            )
+            preg_match('/^' . self::KEY . '\s*(?<op>!=|=|contains|starts|ends)\s*"(?<value>.*)"\z/', $value, $matches)
         ) {
             return $this->item(
                 key: $matches['key'],
@@ -129,8 +117,12 @@ readonly class McpTraceDataFilterParser
         throw new McpTraceDataFilterInvalidException($condition);
     }
 
-    private function item(string $key, ?TraceDataFilterNumericParameters $numeric = null, ?TraceDataFilterStringParameters $string = null, ?TraceDataFilterBooleanParameters $boolean = null): TraceDataFilterItemParameters
-    {
+    private function item(
+        string $key,
+        ?TraceDataFilterNumericParameters $numeric = null,
+        ?TraceDataFilterStringParameters $string = null,
+        ?TraceDataFilterBooleanParameters $boolean = null
+    ): TraceDataFilterItemParameters {
         return new TraceDataFilterItemParameters(
             field: $this->field($key),
             null: null,

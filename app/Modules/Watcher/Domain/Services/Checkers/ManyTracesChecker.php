@@ -37,8 +37,10 @@ readonly class ManyTracesChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof ManyTracesSettingsObject) {
@@ -84,13 +86,18 @@ readonly class ManyTracesChecker implements WatcherCheckerInterface
 
         usort(
             $groups,
-            static fn(WatcherTimelineGroupObject $a, WatcherTimelineGroupObject $b): int => $b->count <=> $a->count
+            static fn(
+                WatcherTimelineGroupObject $a,
+                WatcherTimelineGroupObject $b
+            ): int => $b->count <=> $a->count
         );
 
         return array_map(
             // Nothing timed here: this watcher counts, and the line's durations belong to
             // the watcher that is about them.
-            static fn(WatcherTimelineGroupObject $group): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
+            static fn(
+                WatcherTimelineGroupObject $group
+            ): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
                 serviceId: $group->serviceId,
                 type: $group->type,
                 tags: $group->tags,

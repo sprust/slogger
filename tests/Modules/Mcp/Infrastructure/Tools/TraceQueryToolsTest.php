@@ -45,11 +45,9 @@ class TraceQueryToolsTest extends TestCase
     use McpTraceQueryTestTrait;
 
     private const array SCOPE = [
-        'service_ids' => [
-            2,
-        ],
-        'from' => '2026-09-28T10:20:00Z',
-        'to'   => '2026-09-28T12:05:00Z',
+        'service_ids' => [2],
+        'from'        => '2026-09-28T10:20:00Z',
+        'to'          => '2026-09-28T12:05:00Z',
     ];
 
     private ?TraceFindParameters $captured = null;
@@ -60,107 +58,138 @@ class TraceQueryToolsTest extends TestCase
     {
         $result = $this
             ->facetsTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'statuses' => ['failed'],
+                ])
+            );
+
+        $this->assertFalse(
+            $result->isError
+        );
+
+        $this->assertSame(
+            [
+                'from'  => '2026-09-28T10:20:00Z',
+                'to'    => '2026-09-28T12:05:00Z',
+                'types' => [
+                    [
+                        'value' => 'request',
+                        'count' => 30,
+                    ],
+                    [
+                        'value' => 'job',
+                        'count' => 4,
+                    ],
+                ],
                 'statuses' => [
-                    'failed',
+                    [
+                        'value' => 'failed',
+                        'count' => 3,
+                    ],
                 ],
-            ]));
-
-        $this->assertFalse($result->isError);
-
-        $this->assertSame([
-            'from'  => '2026-09-28T10:20:00Z',
-            'to'    => '2026-09-28T12:05:00Z',
-            'types' => [
-                [
-                    'value' => 'request',
-                    'count' => 30,
-                ],
-                [
-                    'value' => 'job',
-                    'count' => 4,
+                'tags'      => [],
+                'truncated' => [
+                    'types'    => false,
+                    'statuses' => false,
+                    'tags'     => false,
                 ],
             ],
-            'statuses' => [
-                [
-                    'value' => 'failed',
-                    'count' => 3,
-                ],
-            ],
-            'tags'      => [],
-            'truncated' => [
-                'types'    => false,
-                'statuses' => false,
-                'tags'     => false,
-            ],
-        ], $result->data);
+            $result->data
+        );
     }
 
     public function testSearchTraces(): void
     {
         $result = $this
             ->findTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'statuses' => [
-                    'failed',
-                ],
-                'data_filter' => [
-                    'response.status >= 500',
-                ],
-                'data_fields' => [
-                    'request.uri',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'statuses'    => ['failed'],
+                    'data_filter' => ['response.status >= 500'],
+                    'data_fields' => ['request.uri'],
+                ])
+            );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame(1, $result->data['page']);
+        $this->assertSame(
+            1,
+            $result->data['page']
+        );
 
-        $this->assertFalse($result->data['has_more']);
+        $this->assertFalse(
+            $result->data['has_more']
+        );
 
         $trace = $result->data['traces'][0];
 
-        $this->assertSame([
-            'trace_id',
-            'parent_trace_id',
-            'type',
-            'status',
-            'tags',
-            'duration',
-            'memory',
-            'cpu',
-            'pid',
-            'logged_at',
-            'data',
-        ], array_keys($trace));
+        $this->assertSame(
+            [
+                'trace_id',
+                'parent_trace_id',
+                'type',
+                'status',
+                'tags',
+                'duration',
+                'memory',
+                'cpu',
+                'pid',
+                'logged_at',
+                'data',
+            ],
+            array_keys($trace)
+        );
 
-        $this->assertSame('t1', $trace['trace_id']);
+        $this->assertSame(
+            't1',
+            $trace['trace_id']
+        );
 
-        $this->assertSame(4321, $trace['pid']);
+        $this->assertSame(
+            4321,
+            $trace['pid']
+        );
 
-        $this->assertSame('2026-09-28T12:30:00Z', $trace['logged_at']);
+        $this->assertSame(
+            '2026-09-28T12:30:00Z',
+            $trace['logged_at']
+        );
 
         $this->assertSame(
             '{"request.uri":"\/api\/pay"}',
             json_encode($trace['data'])
         );
 
-        $this->assertSame([
-            'failed',
-        ], $this->captured?->statuses);
+        $this->assertSame(
+            ['failed'],
+            $this->captured?->statuses
+        );
     }
 
     public function testThePeriodIsTakenExactly(): void
     {
-        $result = $this->findTool()->call(new McpToolArguments(self::SCOPE));
+        $result = $this->findTool()->call(
+            new McpToolArguments(self::SCOPE)
+        );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame('2026-09-28T10:20:00Z', $result->data['from']);
+        $this->assertSame(
+            '2026-09-28T10:20:00Z',
+            $result->data['from']
+        );
 
-        $this->assertSame('2026-09-28T12:05:00Z', $result->data['to']);
+        $this->assertSame(
+            '2026-09-28T12:05:00Z',
+            $result->data['to']
+        );
 
         $this->assertSame(
             '2026-09-28 10:20:00.000000',
@@ -177,21 +206,22 @@ class TraceQueryToolsTest extends TestCase
     {
         $result = $this
             ->findTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'tags' => [
-                    'api',
-                ],
-                'data_filter' => [
-                    'response.status >= 500',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'tags'        => ['api'],
+                    'data_filter' => ['response.status >= 500'],
+                ])
+            );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame([
-            'api',
-        ], $this->captured?->tags);
+        $this->assertSame(
+            ['api'],
+            $this->captured?->tags
+        );
 
         $this->assertSame(
             'dt.response.status',
@@ -205,122 +235,177 @@ class TraceQueryToolsTest extends TestCase
 
         unset($arguments['service_ids']);
 
-        $result = $this->findTool()->call(new McpToolArguments($arguments));
+        $result = $this->findTool()->call(
+            new McpToolArguments($arguments)
+        );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame([], $this->captured?->serviceIds);
+        $this->assertSame(
+            [],
+            $this->captured?->serviceIds
+        );
     }
 
     public function testSeveralServices(): void
     {
         $this
             ->findTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'service_ids' => [
-                    2,
-                    3,
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'service_ids' => [
+                        2,
+                        3,
+                    ],
+                ])
+            );
 
-        $this->assertSame([
-            2,
-            3,
-        ], $this->captured?->serviceIds);
+        $this->assertSame(
+            [
+                2,
+                3,
+            ],
+            $this->captured?->serviceIds
+        );
     }
 
     public function testFullPageHasMore(): void
     {
         $result = $this
             ->findTool(
-                traceIds: array_map(
-                    static fn(int $i) => "t{$i}",
-                    range(
-                        1,
-                        FindMcpTracesAction::PER_PAGE,
-                    )
-                ),
+                traceIds: array_map(static fn(int $i) => "t{$i}", range(1, FindMcpTracesAction::PER_PAGE)),
             )
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'page' => 2,
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'page' => 2,
+                ])
+            );
 
-        $this->assertTrue($result->data['has_more']);
+        $this->assertTrue(
+            $result->data['has_more']
+        );
 
-        $this->assertSame(2, $result->data['page']);
+        $this->assertSame(
+            2,
+            $result->data['page']
+        );
 
-        $this->assertSame(2, $this->captured?->page);
+        $this->assertSame(
+            2,
+            $this->captured?->page
+        );
     }
 
     public function testSearchTracesErrors(): void
     {
-        $this->assertToolError('invalid_data_filter', $this->findTool(), [
-            ...self::SCOPE,
-            'data_filter' => [
-                'status ~ 5',
+        $this->assertToolError(
+            'invalid_data_filter',
+            $this->findTool(),
+            [
+                ...self::SCOPE,
+                'data_filter' => ['status ~ 5'],
             ],
-        ], 'status ~ 5');
+            'status ~ 5'
+        );
 
-        $this->assertNull($this->captured);
+        $this->assertNull(
+            $this->captured
+        );
     }
 
     public function testPeriodRuleErrors(): void
     {
-        $this->assertToolError('invalid_time', $this->findTool(), [
-            ...self::SCOPE,
-            'from' => 'yesterday',
-        ], '"from"');
-
-        $this->assertToolError('invalid_time', $this->findTool(), [
-            ...self::SCOPE,
-            'to' => '2026-09-28',
-        ], '"to"');
-
-        $this->assertToolError('service_not_found', $this->findTool(), [
-            ...self::SCOPE,
-            'service_ids' => [
-                2,
-                999,
+        $this->assertToolError(
+            'invalid_time',
+            $this->findTool(),
+            [
+                ...self::SCOPE,
+                'from' => 'yesterday',
             ],
-        ], '999');
+            '"from"'
+        );
 
-        $this->assertNull($this->captured);
+        $this->assertToolError(
+            'invalid_time',
+            $this->findTool(),
+            [
+                ...self::SCOPE,
+                'to' => '2026-09-28',
+            ],
+            '"to"'
+        );
+
+        $this->assertToolError(
+            'service_not_found',
+            $this->findTool(),
+            [
+                ...self::SCOPE,
+                'service_ids' => [
+                    2,
+                    999,
+                ],
+            ],
+            '999'
+        );
+
+        $this->assertNull(
+            $this->captured
+        );
     }
 
     public function testFromLaterThanToIsInvalid(): void
     {
-        $this->assertToolError('invalid_period', $this->findTool(), [
-            ...self::SCOPE,
-            'from' => '2026-09-28T13:00:00Z',
-        ]);
+        $this->assertToolError(
+            'invalid_period',
+            $this->findTool(),
+            [
+                ...self::SCOPE,
+                'from' => '2026-09-28T13:00:00Z',
+            ]
+        );
 
-        $this->assertNull($this->captured);
+        $this->assertNull(
+            $this->captured
+        );
     }
 
     public function testEmptyPeriodIsInvalid(): void
     {
-        $this->assertToolError('invalid_period', $this->findTool(), [
-            ...self::SCOPE,
-            'from' => '2026-09-28T12:05:00Z',
-            'to'   => '2026-09-28T12:05:00Z',
-        ]);
+        $this->assertToolError(
+            'invalid_period',
+            $this->findTool(),
+            [
+                ...self::SCOPE,
+                'from' => '2026-09-28T12:05:00Z',
+                'to'   => '2026-09-28T12:05:00Z',
+            ]
+        );
 
-        $this->assertNull($this->captured);
+        $this->assertNull(
+            $this->captured
+        );
     }
 
     public function testPeriodLongerThanRetentionIsTooWide(): void
     {
-        $this->assertToolError('period_too_wide', $this->facetsTool(), [
-            'service_ids' => [
-                2,
+        $this->assertToolError(
+            'period_too_wide',
+            $this->facetsTool(),
+            [
+                'service_ids' => [2],
+                'from'        => '2026-09-25T00:00:00Z',
+                'to'          => '2026-09-28T08:00:00Z',
             ],
-            'from' => '2026-09-25T00:00:00Z',
-            'to'   => '2026-09-28T08:00:00Z',
-        ], '72 hours');
+            '72 hours'
+        );
 
-        $this->assertFalse($this->facetsQueried);
+        $this->assertFalse(
+            $this->facetsQueried
+        );
     }
 
     public function testPeriodDescriptionNamesRetention(): void
@@ -332,46 +417,69 @@ class TraceQueryToolsTest extends TestCase
             )
         );
 
-        $this->assertStringContainsString('at most 72 hours', $to[0]->description);
+        $this->assertStringContainsString(
+            'at most 72 hours',
+            $to[0]->description
+        );
     }
 
     public function testDataFields(): void
     {
         $result = $this
             ->dataFieldsTool()
-            ->call(new McpToolArguments([
-                ...self::SCOPE,
-                'type' => 'request',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    ...self::SCOPE,
+                    'type' => 'request',
+                ])
+            );
 
-        $this->assertSame([
-            'from'         => '2026-09-28T10:20:00Z',
-            'to'           => '2026-09-28T12:05:00Z',
-            'type'         => 'request',
-            'traces_count' => 1,
-            'fields'       => [
-                [
-                    'key'     => 'request.uri',
-                    'example' => '/api/pay',
+        $this->assertSame(
+            [
+                'from'         => '2026-09-28T10:20:00Z',
+                'to'           => '2026-09-28T12:05:00Z',
+                'type'         => 'request',
+                'traces_count' => 1,
+                'fields'       => [
+                    [
+                        'key'     => 'request.uri',
+                        'example' => '/api/pay',
+                    ],
                 ],
             ],
-        ], $result->data);
+            $result->data
+        );
     }
 
     /**
      * @param array<string, mixed> $arguments
      */
-    private function assertToolError(string $error, object $tool, array $arguments, ?string $hintPart = null): void
-    {
+    private function assertToolError(
+        string $error,
+        object $tool,
+        array $arguments,
+        ?string $hintPart = null
+    ): void {
         /** @var SearchTracesTool|GetTraceFacetsTool $tool */
-        $result = $tool->call(new McpToolArguments($arguments));
+        $result = $tool->call(
+            new McpToolArguments($arguments)
+        );
 
-        $this->assertTrue($result->isError, $error);
+        $this->assertTrue(
+            $result->isError,
+            $error
+        );
 
-        $this->assertSame($error, $result->data['error']);
+        $this->assertSame(
+            $error,
+            $result->data['error']
+        );
 
         if (!is_null($hintPart)) {
-            $this->assertStringContainsString($hintPart, $result->data['hint']);
+            $this->assertStringContainsString(
+                $hintPart,
+                $result->data['hint']
+            );
         }
     }
 
@@ -381,20 +489,22 @@ class TraceQueryToolsTest extends TestCase
 
         $types
             ->method('handle')
-            ->willReturnCallback(function (): array {
-                $this->facetsQueried = true;
+            ->willReturnCallback(
+                function (): array {
+                    $this->facetsQueried = true;
 
-                return [
-                    new TraceStringFieldObject(
-                        name: 'job',
-                        count: 4,
-                    ),
-                    new TraceStringFieldObject(
-                        name: 'request',
-                        count: 30,
-                    ),
-                ];
-            });
+                    return [
+                        new TraceStringFieldObject(
+                            name: 'job',
+                            count: 4,
+                        ),
+                        new TraceStringFieldObject(
+                            name: 'request',
+                            count: 30,
+                        ),
+                    ];
+                }
+            );
 
         $statuses = $this->createMock(FindStatusesAction::class);
 
@@ -449,29 +559,28 @@ class TraceQueryToolsTest extends TestCase
     /**
      * @param string[] $traceIds
      */
-    private function findTool(array $traceIds = [
-        't1',
-    ]): SearchTracesTool
-    {
+    private function findTool(
+        array $traceIds = ['t1']
+    ): SearchTracesTool {
         $search = $this->createMock(FindTracesAction::class);
 
         $search
             ->method('handle')
-            ->willReturnCallback(function (TraceFindParameters $parameters) use ($traceIds) {
-                $this->captured = $parameters;
+            ->willReturnCallback(
+                function (TraceFindParameters $parameters) use ($traceIds) {
+                    $this->captured = $parameters;
 
-                return $this->traceItems(
-                    traceIds: $traceIds,
-                    additionalFields: [
-                        new TraceDataAdditionalFieldObject(
-                            key: 'request.uri',
-                            values: [
-                                '/api/pay',
-                            ],
-                        ),
-                    ],
-                );
-            });
+                    return $this->traceItems(
+                        traceIds: $traceIds,
+                        additionalFields: [
+                            new TraceDataAdditionalFieldObject(
+                                key: 'request.uri',
+                                values: ['/api/pay'],
+                            ),
+                        ],
+                    );
+                }
+            );
 
         return new SearchTracesTool(
             findMcpTracesAction: new FindMcpTracesAction(
@@ -494,9 +603,7 @@ class TraceQueryToolsTest extends TestCase
             ->method('handle')
             ->willReturn(
                 $this->traceItems(
-                    traceIds: [
-                        't1',
-                    ],
+                    traceIds: ['t1'],
                 )
             );
 
@@ -567,7 +674,9 @@ class TraceQueryToolsTest extends TestCase
             ),
             periodResolver: new McpTracePeriodResolver(),
             formatter: new McpToolFormatter(),
-            findMcpTraceLifetimeAction: new FindMcpTraceLifetimeAction($this->findSettingValueAction()),
+            findMcpTraceLifetimeAction: new FindMcpTraceLifetimeAction(
+                $this->findSettingValueAction()
+            ),
         );
     }
 

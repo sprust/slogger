@@ -20,8 +20,13 @@ readonly class McpToolTraceScopeReader
 
     private const int MAX_SERVICES = 20;
 
-    public function __construct(private McpToolTimeParser $timeParser, private McpToolServiceFinder $serviceFinder, private McpTracePeriodResolver $periodResolver, private McpToolFormatter $formatter, private FindMcpTraceLifetimeAction $findMcpTraceLifetimeAction)
-    {
+    public function __construct(
+        private McpToolTimeParser $timeParser,
+        private McpToolServiceFinder $serviceFinder,
+        private McpTracePeriodResolver $periodResolver,
+        private McpToolFormatter $formatter,
+        private FindMcpTraceLifetimeAction $findMcpTraceLifetimeAction
+    ) {
     }
 
     /**
@@ -46,7 +51,10 @@ readonly class McpToolTraceScopeReader
             new McpToolProperty(
                 name: 'to',
                 type: McpToolPropertyTypeEnum::String,
-                description: sprintf('End of the period, ISO 8601, exclusive; at most %d hours after "from" (the time traces are kept).', $this->findMaxHours()),
+                description: sprintf(
+                    'End of the period, ISO 8601, exclusive; at most %d hours after "from" (the time traces are kept).',
+                    $this->findMaxHours()
+                ),
                 required: true,
                 max: 64,
             ),
@@ -55,13 +63,17 @@ readonly class McpToolTraceScopeReader
 
     public function read(McpToolArguments $arguments): McpToolTraceScopeObject|McpToolResult
     {
-        $from = $this->timeParser->parse($arguments->string('from'));
+        $from = $this->timeParser->parse(
+            $arguments->string('from')
+        );
 
         if (is_null($from)) {
             return $this->formatter->invalidTime('from');
         }
 
-        $to = $this->timeParser->parse($arguments->string('to'));
+        $to = $this->timeParser->parse(
+            $arguments->string('to')
+        );
 
         if (is_null($to)) {
             return $this->formatter->invalidTime('to');
@@ -88,7 +100,12 @@ readonly class McpToolTraceScopeReader
         } catch (McpTracePeriodTooWideException $exception) {
             return $this->formatter->error(
                 error: 'period_too_wide',
-                hint: sprintf('The period is longer than %d hours, the time traces are kept for: older traces are gone. ' . 'Narrow it to at most %d hours.', $exception->maxHours, $exception->maxHours),
+                hint: sprintf(
+                    'The period is longer than %d hours, the time traces are kept for: older traces are gone. '
+                        . 'Narrow it to at most %d hours.',
+                    $exception->maxHours,
+                    $exception->maxHours
+                ),
             );
         }
 

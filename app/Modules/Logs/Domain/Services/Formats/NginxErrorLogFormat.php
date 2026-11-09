@@ -22,7 +22,11 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         $line = rtrim($text, "\r\n");
 
         if (preg_match(self::ENTRY_PATTERN, $line, $match) !== 1) {
-            return new LogEntryDetailsObject(message: $line, context: null, fields: []);
+            return new LogEntryDetailsObject(
+                message: $line,
+                context: null,
+                fields: []
+            );
         }
 
         $rest = $match[4];
@@ -30,7 +34,9 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         $message = $rest;
         $values  = [];
 
-        if (preg_match_all(self::DETAIL_PATTERN, $rest, $details, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) > 0) {
+        if (
+            preg_match_all(self::DETAIL_PATTERN, $rest, $details, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) > 0
+        ) {
             $message = substr($rest, 0, $details[0][0][1]);
 
             foreach ($details as $detail) {
@@ -39,8 +45,14 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         }
 
         $fields = [
-            new LogEntryFieldObject(key: 'pid', value: $match[1]),
-            new LogEntryFieldObject(key: 'tid', value: $match[2]),
+            new LogEntryFieldObject(
+                key: 'pid',
+                value: $match[1]
+            ),
+            new LogEntryFieldObject(
+                key: 'tid',
+                value: $match[2]
+            ),
             new LogEntryFieldObject(
                 key: 'connection',
                 value: $match[3] === '' ? null : $match[3]
@@ -48,10 +60,17 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         ];
 
         foreach (self::DETAIL_KEYS as $key) {
-            $fields[] = new LogEntryFieldObject(key: $key, value: $values[$key] ?? null);
+            $fields[] = new LogEntryFieldObject(
+                key: $key,
+                value: $values[$key] ?? null
+            );
         }
 
-        return new LogEntryDetailsObject(message: $message, context: null, fields: $fields);
+        return new LogEntryDetailsObject(
+            message: $message,
+            context: null,
+            fields: $fields
+        );
     }
 
     public function getLevelNames(): array
@@ -59,7 +78,10 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         $names = [];
 
         foreach (NginxErrorLogLevelEnum::cases() as $case) {
-            $names[] = new LogLevelNameObject(level: $case->value, name: strtolower($case->name));
+            $names[] = new LogLevelNameObject(
+                level: $case->value,
+                name: strtolower($case->name)
+            );
         }
 
         return $names;

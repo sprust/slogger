@@ -9,8 +9,9 @@ use App\Modules\Auth\Parameters\TokenParameters;
 
 readonly class TouchUserTokenAction
 {
-    public function __construct(private UserTouchUserTokenAction $userTouchUserTokenAction)
-    {
+    public function __construct(
+        private UserTouchUserTokenAction $userTouchUserTokenAction
+    ) {
     }
 
     public function handle(TokenParameters $parameters): void

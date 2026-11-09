@@ -13,8 +13,11 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceSearchScopeAction
 {
-    public function __construct(private TraceRepository $traceRepository, private TraceTreeRepository $traceTreeRepository, private TraceTreeCacheRepository $traceTreeCacheRepository)
-    {
+    public function __construct(
+        private TraceRepository $traceRepository,
+        private TraceTreeRepository $traceTreeRepository,
+        private TraceTreeCacheRepository $traceTreeCacheRepository
+    ) {
     }
 
     /** @throws ClickhouseQueryException */
@@ -35,9 +38,7 @@ readonly class FindTraceSearchScopeAction
             }
 
             if (!$parameters->allTracesInTree) {
-                $traceIds = [
-                    $parameters->traceId,
-                ];
+                $traceIds = [$parameters->traceId];
             } else {
                 $parentTraceId = $this->traceTreeRepository->findParentTraceId($traceDto->traceId);
 
@@ -45,9 +46,7 @@ readonly class FindTraceSearchScopeAction
                     $traceIds = [];
                 } elseif ($this->traceTreeCacheRepository->existsByRootTraceId($parentTraceId)) {
                     $treeRootTraceId = $parentTraceId;
-                    $traceIds        = [
-                        $parentTraceId,
-                    ];
+                    $traceIds        = [$parentTraceId];
                 } else {
                     $traceIds[]   = $parentTraceId;
                     $treeTraceIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(

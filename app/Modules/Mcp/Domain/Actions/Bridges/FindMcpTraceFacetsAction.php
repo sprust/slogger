@@ -20,8 +20,13 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTraceFacetsAction
 {
-    public function __construct(private FindTypesAction $findTypesAction, private FindStatusesAction $findStatusesAction, private FindTagsAction $findTagsAction, private McpTracePeriodTransport $mcpTracePeriodTransport, private TraceObjectTransport $traceObjectTransport)
-    {
+    public function __construct(
+        private FindTypesAction $findTypesAction,
+        private FindStatusesAction $findStatusesAction,
+        private FindTagsAction $findTagsAction,
+        private McpTracePeriodTransport $mcpTracePeriodTransport,
+        private TraceObjectTransport $traceObjectTransport
+    ) {
     }
 
     /**
@@ -88,12 +93,10 @@ readonly class FindMcpTraceFacetsAction
 
         return new McpTraceFacetListObject(
             items: array_map(
-                fn(TraceStringFieldObject $traceStringFieldObject) => $this->traceObjectTransport->fromTraceStringFieldObject($traceStringFieldObject),
-                array_slice(
-                    $items,
-                    0,
-                    $limit,
-                )
+                fn(
+                    TraceStringFieldObject $traceStringFieldObject
+                ) => $this->traceObjectTransport->fromTraceStringFieldObject($traceStringFieldObject),
+                array_slice($items, 0, $limit)
             ),
             truncated: count($items) > $limit,
         );

@@ -26,7 +26,9 @@ class DashboardProvider extends BaseServiceProvider
         $schedule
             ->call(
                 callback: static function (DispatcherInterface $dispatcher): void {
-                    $dispatcher->dispatch(new RefreshDatabaseStatCacheJob());
+                    $dispatcher->dispatch(
+                        new RefreshDatabaseStatCacheJob()
+                    );
                 },
             )
             ->name(RefreshDatabaseStatCacheJob::class)
@@ -35,9 +37,7 @@ class DashboardProvider extends BaseServiceProvider
 
     protected function getJobs(): array
     {
-        return [
-            RefreshDatabaseStatCacheJob::class,
-        ];
+        return [RefreshDatabaseStatCacheJob::class];
     }
 
     protected function getContracts(): array

@@ -11,13 +11,16 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class TraceTimestampPeriodsController
 {
-    public function __construct(private MakeTraceTimestampPeriodsByAdminUseCase $makeTraceTimestampPeriodsByAdminUseCase)
-    {
+    public function __construct(
+        private MakeTraceTimestampPeriodsByAdminUseCase $makeTraceTimestampPeriodsByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(TraceTimestampPeriodResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return TraceTimestampPeriodResource::collection($this->makeTraceTimestampPeriodsByAdminUseCase->handle());
+        return TraceTimestampPeriodResource::collection(
+            $this->makeTraceTimestampPeriodsByAdminUseCase->handle()
+        );
     }
 }

@@ -4,25 +4,42 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Infrastructure\Exceptions;
 
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerInterface;
 use App\Modules\Dashboard\Domain\Exceptions\DatabaseStatCacheNotFoundException;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
 use Throwable;
 
-readonly class DashboardExceptionManager implements ExceptionManagerInterface
+class DashboardExceptionManager extends BaseExceptionManager
 {
-    public function map(Throwable $exception): Response|HttpException|null
+    public function makeJsonHttpResponse(Throwable $exception): ?JsonHttpExceptionResponseObject
     {
-        return match (true) {
-            $exception instanceof DatabaseStatCacheNotFoundException => new JsonResponse(
-                data: [
-                    'error' => 'No data yet. Please wait for the first cache refresh.',
-                ],
-                status: 503,
-            ),
-            default => null,
-        };
+        $exception = $this->detectException($exception);
+
+        if (!$this->isHandlingException($exception)) {
+            return null;
+        }
+
+        $httpStatus = 503;
+
+        return new JsonHttpExceptionResponseObject(
+            message: $this->onMakeMessage($exception),
+            httpStatus: $httpStatus,
+            messageField: 'error',
+        );
+    }
+
+    protected function isHandlingException(Throwable $exception): bool
+    {
+        return $exception instanceof DatabaseStatCacheNotFoundException;
+    }
+
+    protected function getDontReport(): array
+    {
+        return [DatabaseStatCacheNotFoundException::class];
+    }
+
+    protected function onMakeMessage(Throwable $exception): string
+    {
+        return 'No data yet. Please wait for the first cache refresh.';
     }
 }

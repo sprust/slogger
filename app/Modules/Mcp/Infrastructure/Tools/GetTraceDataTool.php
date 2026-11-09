@@ -15,8 +15,10 @@ use App\Modules\Mcp\Entities\Trace\Data\TraceDataObject;
 
 readonly class GetTraceDataTool implements McpToolInterface
 {
-    public function __construct(private FindMcpTraceAction $findMcpTraceAction, private McpToolFormatter $formatter)
-    {
+    public function __construct(
+        private FindMcpTraceAction $findMcpTraceAction,
+        private McpToolFormatter $formatter
+    ) {
     }
 
     public function name(): string
@@ -31,7 +33,8 @@ readonly class GetTraceDataTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'The full payload (data) of one trace, exactly as the SLogger UI shows it: a tree of ' . 'key, value and children, not truncated. Call it only for traces you examine.';
+        return 'The full payload (data) of one trace, exactly as the SLogger UI shows it: a tree of '
+            . 'key, value and children, not truncated. Call it only for traces you examine.';
     }
 
     public function schema(): McpToolSchema
@@ -75,7 +78,10 @@ readonly class GetTraceDataTool implements McpToolInterface
         return [
             'key'             => $traceDataObject->key,
             'value'           => $traceDataObject->value,
-            'children'        => $traceDataObject->children === null ? null : array_map(fn(TraceDataObject $child): array => $this->data($child), $traceDataObject->children),
+            'children'        => $traceDataObject->children === null ? null : array_map(
+                fn(TraceDataObject $child): array => $this->data($child),
+                $traceDataObject->children
+            ),
             'filter_key'      => $traceDataObject->filterKey,
             'can_be_filtered' => $traceDataObject->canBeFiltered,
         ];

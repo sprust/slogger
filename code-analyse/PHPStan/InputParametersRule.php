@@ -27,7 +27,11 @@ class InputParametersRule implements Rule
         $class = $node->getClassReflection()->getName();
         $owner = ModuleTypes::module($class);
 
-        if ($owner === null || !preg_match('/\\\\Domain\\\\(Actions|UseCases)\\\\/', $class) || $node->getMethodReflection()->getName() !== 'handle') {
+        if (
+            $owner === null
+            || !preg_match('/\\\\Domain\\\\(Actions|UseCases)\\\\/', $class)
+            || $node->getMethodReflection()->getName() !== 'handle'
+        ) {
             return [];
         }
         $errors = [];
@@ -35,8 +39,13 @@ class InputParametersRule implements Rule
         foreach ($node->getMethodReflection()->getVariants() as $variant) {
             foreach ($variant->getParameters() as $parameter) {
                 foreach ($this->types->foreignParameters($parameter->getType(), $owner) as $foreign) {
-                    $errors[] = RuleErrorBuilder::message("Input \${$parameter->getName()} exposes foreign Parameters $foreign; map local parameters inside Domain.")
-                        ->identifier('architecture.foreignParameters')->build();
+                    $errors[] =
+                        RuleErrorBuilder::message(
+                            "Input \${$parameter->getName()} exposes foreign Parameters $foreign; "
+                            . "map local parameters inside Domain."
+                        )
+                            ->identifier('architecture.foreignParameters')
+                            ->build();
                 }
             }
         }

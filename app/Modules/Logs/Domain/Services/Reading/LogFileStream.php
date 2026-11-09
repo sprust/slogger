@@ -110,7 +110,11 @@ class LogFileStream
         $records = array_values(
             array_filter(
                 $records,
-                fn(LogIndexRecordObject $record): bool => ($this->fromTime === null || $record->loggedAt >= $this->fromTime)
+                fn(
+                    LogIndexRecordObject $record
+                ): bool => (
+                    $this->fromTime === null || $record->loggedAt >= $this->fromTime
+                )
                     && ($this->toTime === null || $record->loggedAt <= $this->toTime)
             )
         );
@@ -128,7 +132,10 @@ class LogFileStream
 
             $this->scannedBytes += strlen($text);
 
-            if ($this->searchQuery !== null && !$this->matches($text, $this->searchQuery)) {
+            if (
+                $this->searchQuery !== null
+                && !$this->matches($text, $this->searchQuery)
+            ) {
                 continue;
             }
 
@@ -219,7 +226,12 @@ class LogFileStream
 
         $count = min(self::BLOCK_RECORDS, $lane->high - $lane->next + 1);
 
-        $lane->buffer = $this->logIndexRepository->readRecords($this->file->id, $lane->level, $lane->next, $count);
+        $lane->buffer = $this->logIndexRepository->readRecords(
+            $this->file->id,
+            $lane->level,
+            $lane->next,
+            $count
+        );
 
         $lane->next += $count;
     }

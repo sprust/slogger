@@ -28,8 +28,10 @@ readonly class DatabaseStatRepository
      */
     private const int LIST_COLLECTIONS_BATCH_SIZE = 10000;
 
-    public function __construct(private MongoConnectionFactory $connections, private ClickhouseClient $clickhouse)
-    {
+    public function __construct(
+        private MongoConnectionFactory $connections,
+        private ClickhouseClient $clickhouse
+    ) {
     }
 
     /**
@@ -101,11 +103,14 @@ readonly class DatabaseStatRepository
     public function findClickhouse(): DatabaseStatObject
     {
         $tables = $this->clickhouse->select(
-            sql: 'SELECT table, sum(rows) AS rows, sum(bytes_on_disk) AS total, ' . 'sum(data_compressed_bytes) AS data, sum(secondary_indices_compressed_bytes) AS indexes ' . 'FROM system.parts WHERE database = currentDatabase() AND active GROUP BY table ORDER BY table',
+            sql: 'SELECT table, sum(rows) AS rows, sum(bytes_on_disk) AS total, '
+                . 'sum(data_compressed_bytes) AS data, sum(secondary_indices_compressed_bytes) AS indexes '
+                . 'FROM system.parts WHERE database = currentDatabase() AND active GROUP BY table ORDER BY table',
             queryIdPrefix: 'dashboard-database',
         );
         $indexes = $this->clickhouse->select(
-            sql: 'SELECT table, name, data_compressed_bytes AS size FROM system.data_skipping_indices ' . 'WHERE database = currentDatabase() ORDER BY table, name',
+            sql: 'SELECT table, name, data_compressed_bytes AS size FROM system.data_skipping_indices '
+                . 'WHERE database = currentDatabase() ORDER BY table, name',
             queryIdPrefix: 'dashboard-database',
         );
         $memory = $this->clickhouse->select(
@@ -142,8 +147,12 @@ readonly class DatabaseStatRepository
 
         return new DatabaseStatObject(
             name: 'clickhouse',
-            size: $this->bitesToMb(array_sum(array_map(static fn(array $table) => (int) $table['total'], $tables))),
-            totalDocumentsCount: array_sum(array_map(static fn(array $table) => (int) $table['rows'], $tables)),
+            size: $this->bitesToMb(
+                array_sum(array_map(static fn(array $table) => (int) $table['total'], $tables))
+            ),
+            totalDocumentsCount: array_sum(
+                array_map(static fn(array $table) => (int) $table['rows'], $tables)
+            ),
             memoryUsage: $this->bitesToMb((int) ($memory[0]['value'] ?? 0)),
             collections: $collections,
         );
@@ -219,8 +228,10 @@ readonly class DatabaseStatRepository
     /**
      * Null when the collection is gone since it was listed: the hourly trace cleaning drops them.
      */
-    private function collectionStat(Database $database, string $collectionName): ?DatabaseCollectionStatObject
-    {
+    private function collectionStat(
+        Database $database,
+        string $collectionName
+    ): ?DatabaseCollectionStatObject {
         $collection = $database->selectCollection($collectionName);
 
         try {
@@ -272,7 +283,10 @@ readonly class DatabaseStatRepository
             indexes: array_values(
                 Arr::map(
                     array: (array) $storageStats['indexSizes'],
-                    callback: fn(Int64|int|float $indexSize, string $indexName) => new DatabaseCollectionIndexStatObject(
+                    callback: fn(
+                        Int64|int|float $indexSize,
+                        string $indexName
+                    ) => new DatabaseCollectionIndexStatObject(
                         name: $indexName,
                         size: $this->bitesToMb($indexSize),
                         // $indexStats does not always cover what indexSizes lists — an
@@ -300,10 +314,7 @@ readonly class DatabaseStatRepository
 
     private function bitesToMb(Int64|int|float $bites): float
     {
-        return round(
-            $this->number($bites) / 1024 / 1024,
-            3,
-        );
+        return round($this->number($bites) / 1024 / 1024, 3);
     }
 
     /**

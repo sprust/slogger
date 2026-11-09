@@ -110,7 +110,9 @@ readonly class WatcherTimelineReader
         return new WatcherTimelineGroupObject(
             serviceId: ArrayValueGetter::intNull($group, 'sid') ?? 0,
             type: ArrayValueGetter::stringNull($group, 'tp') ?? '',
-            tags: array_values(ArrayValueGetter::arrayStringNull($group, 'tgs') ?? []),
+            tags: array_values(
+                ArrayValueGetter::arrayStringNull($group, 'tgs') ?? []
+            ),
             count: ArrayValueGetter::intNull($group, 'c') ?? 0,
             durationCount: ArrayValueGetter::intNull($group, 'dc') ?? 0,
             durationSum: ArrayValueGetter::floatNull($group, 'dSum') ?? 0,
@@ -178,7 +180,8 @@ readonly class WatcherTimelineReader
 
         sort($tags);
 
-        return $group->serviceId . "\0" . $group->type . "\0" . implode("\0", $tags);
+        return $group->serviceId . "\0" . $group->type . "\0"
+            . implode("\0", $tags);
     }
 
     /**

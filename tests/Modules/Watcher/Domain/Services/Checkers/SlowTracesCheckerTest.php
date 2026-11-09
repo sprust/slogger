@@ -25,25 +25,44 @@ class SlowTracesCheckerTest extends TestCase
 
     public function testATraceOverTheThresholdIsReported(): void
     {
-        $trigger = $this->check(durations: [12.5]);
+        $trigger = $this->check(
+            durations: [12.5]
+        );
 
-        $this->assertNotNull($trigger);
-        $this->assertSame(12.5, $trigger->measured->slowest);
+        $this->assertNotNull(
+            $trigger
+        );
+        $this->assertSame(
+            12.5,
+            $trigger->measured->slowest
+        );
     }
 
     public function testTheThresholdIsInclusive(): void
     {
-        $this->assertNotNull($this->check(durations: [10.0]));
+        $this->assertNotNull(
+            $this->check(
+                durations: [10.0]
+            )
+        );
     }
 
     public function testTracesUnderTheThresholdSayNothing(): void
     {
-        $this->assertNull($this->check(durations: [9.999, 1.0]));
+        $this->assertNull(
+            $this->check(
+                durations: [9.999, 1.0]
+            )
+        );
     }
 
     public function testNothingSlowMeansNothingToSay(): void
     {
-        $this->assertNull($this->check(durations: []));
+        $this->assertNull(
+            $this->check(
+                durations: []
+            )
+        );
     }
 
     /**
@@ -52,19 +71,36 @@ class SlowTracesCheckerTest extends TestCase
      */
     public function testTheEventNamesTheSlowestTrace(): void
     {
-        $trigger = $this->check(durations: [11.0, 30.0, 15.0]);
+        $trigger = $this->check(
+            durations: [11.0, 30.0, 15.0]
+        );
 
-        $this->assertNotNull($trigger);
-        $this->assertSame(30.0, $trigger->groups[0]->durationMax);
-        $this->assertSame('trace-30', $trigger->groups[0]->slowestTraceId);
+        $this->assertNotNull(
+            $trigger
+        );
+        $this->assertSame(
+            30.0,
+            $trigger->groups[0]->durationMax
+        );
+        $this->assertSame(
+            'trace-30',
+            $trigger->groups[0]->slowestTraceId
+        );
     }
 
     public function testTheEventDatesTheSlowestTraceByItsStart(): void
     {
-        $trigger = $this->check(durations: [11.0, 3600.0]);
+        $trigger = $this->check(
+            durations: [11.0, 3600.0]
+        );
 
-        $this->assertNotNull($trigger);
-        $this->assertSame('trace-3600', $trigger->groups[0]->slowestTraceId);
+        $this->assertNotNull(
+            $trigger
+        );
+        $this->assertSame(
+            'trace-3600',
+            $trigger->groups[0]->slowestTraceId
+        );
         $this->assertSame(
             '2026-09-07 10:59:00',
             $trigger->groups[0]->slowestTraceLoggedAt
@@ -74,9 +110,13 @@ class SlowTracesCheckerTest extends TestCase
     /** Shapes come back slowest first, so the worst is the first thing read. */
     public function testTheShapesAreOrderedBySlowest(): void
     {
-        $trigger = $this->check(durations: [11.0, 30.0, 15.0]);
+        $trigger = $this->check(
+            durations: [11.0, 30.0, 15.0]
+        );
 
-        $this->assertNotNull($trigger);
+        $this->assertNotNull(
+            $trigger
+        );
         $this->assertSame(
             [30.0, 15.0, 11.0],
             array_map(
@@ -113,23 +153,31 @@ class SlowTracesCheckerTest extends TestCase
         }
 
         $repository = $this->createMock(WatcherTimelineRepository::class);
-        $repository->method('find')->willReturn(
-            new WatcherTimelineObject(1, [
-                new WatcherTimelineBucketObject(
-                    at: $now->clone()->subMinutes(2),
-                    count: count($groups),
-                    durationCount: count($groups),
-                    durationSum: array_sum($durations),
-                    durationMax: $durations ? max($durations) : 0,
-                    groups: $groups
-                ),
-            ])
-        );
+        $repository
+            ->method('find')
+            ->willReturn(
+                new WatcherTimelineObject(
+                    1,
+                    [
+                        new WatcherTimelineBucketObject(
+                            at: $now->clone()->subMinutes(2),
+                            count: count($groups),
+                            durationCount: count($groups),
+                            durationSum: array_sum($durations),
+                            durationMax: $durations ? max($durations) : 0,
+                            groups: $groups
+                        ),
+                    ]
+                )
+            );
 
         return new SlowTracesChecker($repository, new WatcherTimelineAnalyzer())->check(
             $this->watcher(
                 WatcherTypeEnum::SlowTraces,
-                new SlowTracesSettingsObject(duration: 10, windowMinutes: 5),
+                new SlowTracesSettingsObject(
+                    duration: 10,
+                    windowMinutes: 5
+                ),
                 collectSince: $now->clone()->subHour()
             ),
             new WatcherCheckContextObject($now, null)

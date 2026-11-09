@@ -22,9 +22,13 @@ class SendNotificationJobTest extends TestCase
     {
         $queueJob = $this->createMock(QueueJob::class);
 
-        $queueJob->expects($this->never())->method('release');
+        $queueJob->expects(
+            $this->never()
+        )->method('release');
 
-        $queueJob->expects($this->never())->method('fail');
+        $queueJob->expects(
+            $this->never()
+        )->method('fail');
 
         $this
             ->job(
@@ -48,9 +52,13 @@ class SendNotificationJobTest extends TestCase
     {
         $queueJob = $this->createMock(QueueJob::class);
 
-        $queueJob->expects($this->once())->method('fail');
+        $queueJob->expects(
+            $this->once()
+        )->method('fail');
 
-        $queueJob->expects($this->never())->method('release');
+        $queueJob->expects(
+            $this->never()
+        )->method('release');
 
         $result = new SendResultObject(
             delivered: false,
@@ -76,7 +84,9 @@ class SendNotificationJobTest extends TestCase
     {
         $queueJob = $this->createMock(QueueJob::class);
 
-        $queueJob->expects($this->once())->method('release')->with(37);
+        $queueJob->expects(
+            $this->once()
+        )->method('release')->with(37);
 
         $result = new SendResultObject(
             delivered: false,
@@ -127,7 +137,9 @@ class SendNotificationJobTest extends TestCase
     {
         $sendAction = $this->createMock(SendNotificationAction::class);
 
-        $sendAction->expects($this->never())->method('handle');
+        $sendAction->expects(
+            $this->never()
+        )->method('handle');
 
         (new SendNotificationJob('68be1f000000000000000001'))->handle(
             new \App\Modules\Notification\Domain\UseCases\SendNotificationUseCase(
@@ -142,7 +154,9 @@ class SendNotificationJobTest extends TestCase
     {
         $sendAction = $this->createMock(SendNotificationAction::class);
 
-        $sendAction->expects($this->never())->method('handle');
+        $sendAction->expects(
+            $this->never()
+        )->method('handle');
 
         (new SendNotificationJob('68be1f000000000000000001'))->handle(
             new \App\Modules\Notification\Domain\UseCases\SendNotificationUseCase(
@@ -157,8 +171,11 @@ class SendNotificationJobTest extends TestCase
         );
     }
 
-    private function job(NotificationObject $notification, SendResultObject $result, QueueJob $queueJob): SendNotificationJob
-    {
+    private function job(
+        NotificationObject $notification,
+        SendResultObject $result,
+        QueueJob $queueJob
+    ): SendNotificationJob {
         $job = new SendNotificationJob($notification->id);
 
         $job->setJob($queueJob);
@@ -173,7 +190,9 @@ class SendNotificationJobTest extends TestCase
     {
         $findChannelAction = $this->createMock(FindChannelAction::class);
 
-        $findChannelAction->method('handle')->willReturn($this->channel());
+        $findChannelAction->method('handle')->willReturn(
+            $this->channel()
+        );
 
         $sendAction = $this->createMock(SendNotificationAction::class);
 
@@ -188,8 +207,9 @@ class SendNotificationJobTest extends TestCase
         ];
     }
 
-    private function findNotificationAction(?NotificationObject $notification): FindNotificationAction
-    {
+    private function findNotificationAction(
+        ?NotificationObject $notification
+    ): FindNotificationAction {
         $action = $this->createMock(FindNotificationAction::class);
 
         $action->method('handle')->willReturn($notification);

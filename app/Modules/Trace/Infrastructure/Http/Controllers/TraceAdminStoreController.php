@@ -15,8 +15,11 @@ use App\Modules\Trace\Infrastructure\Http\Resources\TraceAdminStoresResource;
 
 readonly class TraceAdminStoreController
 {
-    public function __construct(private FindTraceAdminStoreByAdminUseCase $findTraceAdminStoreByAdminUseCase, private CreateTraceAdminStoreByAdminUseCase $createTraceAdminStoreByAdminUseCase, private DeleteTraceAdminStoreByAdminUseCase $deleteTraceAdminStoreByAdminUseCase)
-    {
+    public function __construct(
+        private FindTraceAdminStoreByAdminUseCase $findTraceAdminStoreByAdminUseCase,
+        private CreateTraceAdminStoreByAdminUseCase $createTraceAdminStoreByAdminUseCase,
+        private DeleteTraceAdminStoreByAdminUseCase $deleteTraceAdminStoreByAdminUseCase
+    ) {
     }
 
     public function index(TraceAdminStoreIndexRequest $request): TraceAdminStoresResource

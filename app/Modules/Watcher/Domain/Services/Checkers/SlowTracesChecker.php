@@ -36,8 +36,10 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof SlowTracesSettingsObject) {
@@ -56,7 +58,9 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
                     $from,
                     $to
                 ),
-                static fn(WatcherTimelineGroupObject $group): bool => $group->durationMax >= $settings->duration
+                static fn(
+                    WatcherTimelineGroupObject $group
+                ): bool => $group->durationMax >= $settings->duration
             )
         );
 
@@ -66,7 +70,10 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
 
         usort(
             $groups,
-            static fn(WatcherTimelineGroupObject $a, WatcherTimelineGroupObject $b): int => $b->durationMax <=> $a->durationMax
+            static fn(
+                WatcherTimelineGroupObject $a,
+                WatcherTimelineGroupObject $b
+            ): int => $b->durationMax <=> $a->durationMax
         );
 
         return new SlowTracesEventPayloadObject(
@@ -78,7 +85,9 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
                 slowest: round($groups[0]->durationMax, 3)
             ),
             groups: array_map(
-                static fn(WatcherTimelineGroupObject $group): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
+                static fn(
+                    WatcherTimelineGroupObject $group
+                ): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
                     serviceId: $group->serviceId,
                     type: $group->type,
                     tags: $group->tags,

@@ -18,14 +18,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class UserController
 {
-    public function __construct(private FindUsersByAdminUseCase $findUsersByAdminUseCase, private CreateUserByAdminUseCase $createUserByAdminUseCase, private UpdateUserByAdminUseCase $updateUserByAdminUseCase)
-    {
+    public function __construct(
+        private FindUsersByAdminUseCase $findUsersByAdminUseCase,
+        private CreateUserByAdminUseCase $createUserByAdminUseCase,
+        private UpdateUserByAdminUseCase $updateUserByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(UserResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return UserResource::collection($this->findUsersByAdminUseCase->handle());
+        return UserResource::collection(
+            $this->findUsersByAdminUseCase->handle()
+        );
     }
 
     public function create(CreateUserRequest $request): UserResource

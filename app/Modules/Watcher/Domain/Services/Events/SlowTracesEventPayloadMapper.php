@@ -57,7 +57,9 @@ readonly class SlowTracesEventPayloadMapper implements WatcherEventPayloadMapper
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof SlowTracesEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

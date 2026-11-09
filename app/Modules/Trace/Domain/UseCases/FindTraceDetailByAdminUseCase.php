@@ -11,8 +11,9 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 
 readonly class FindTraceDetailByAdminUseCase
 {
-    public function __construct(private FindTraceDetailAction $findTraceDetailAction)
-    {
+    public function __construct(
+        private FindTraceDetailAction $findTraceDetailAction
+    ) {
     }
 
     /**

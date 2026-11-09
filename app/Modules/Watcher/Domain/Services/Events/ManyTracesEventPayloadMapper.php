@@ -57,7 +57,9 @@ readonly class ManyTracesEventPayloadMapper implements WatcherEventPayloadMapper
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof ManyTracesEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

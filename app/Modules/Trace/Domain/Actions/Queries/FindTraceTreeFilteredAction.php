@@ -20,8 +20,10 @@ readonly class FindTraceTreeFilteredAction
     ) {
     }
 
-    public function handle(string $rootTraceId, TraceTreeFilterParameters $parameters): TraceTreeFilteredObject
-    {
+    public function handle(
+        string $rootTraceId,
+        TraceTreeFilterParameters $parameters
+    ): TraceTreeFilteredObject {
         $limit = (int) config('module-trace.tree.filter_limit');
 
         // One more than the limit: whether it comes back is whether the list is cut.

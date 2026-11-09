@@ -28,8 +28,10 @@ readonly class WebhookChannelType implements NotificationChannelTypeDefinitionIn
         );
     }
 
-    public function makeUpdatedSettings(array $submitted, ChannelSettingsInterface $stored): ChannelSettingsInterface
-    {
+    public function makeUpdatedSettings(
+        array $submitted,
+        ChannelSettingsInterface $stored
+    ): ChannelSettingsInterface {
         $settings = $this->makeSettings($submitted);
 
         if (!$settings instanceof WebhookSettingsObject || !$stored instanceof WebhookSettingsObject) {

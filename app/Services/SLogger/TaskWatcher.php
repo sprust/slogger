@@ -54,8 +54,14 @@ class TaskWatcher implements WatcherInterface
             $this->exceptedTasks = $excepted;
         }
 
-        $this->processor->registerEvent(TaskTickStarted::class, [$this, 'handleTickStarted']);
-        $this->processor->registerEvent(TaskTickFinished::class, [$this, 'handleTickFinished']);
+        $this->processor->registerEvent(
+            TaskTickStarted::class,
+            [$this, 'handleTickStarted']
+        );
+        $this->processor->registerEvent(
+            TaskTickFinished::class,
+            [$this, 'handleTickFinished']
+        );
     }
 
     public function handleTickStarted(TaskTickStarted $event): void
@@ -128,7 +134,11 @@ class TaskWatcher implements WatcherInterface
 
     protected function isExcepted(string $name): bool
     {
-        return in_array($name, $this->exceptedTasks, strict: true);
+        return in_array(
+            $name,
+            $this->exceptedTasks,
+            strict: true
+        );
     }
 
     protected function makeResultView(TickResultEnum $result): string
@@ -166,7 +176,10 @@ class TaskWatcher implements WatcherInterface
     protected function getOpenTicks(): array
     {
         /** @var array<string, OpenTick> $ticks */
-        $ticks = $this->context->get(static::CONTEXT_KEY_TICKS, []);
+        $ticks = $this->context->get(
+            static::CONTEXT_KEY_TICKS,
+            []
+        );
 
         return $ticks;
     }

@@ -11,13 +11,16 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class ToolLinksController
 {
-    public function __construct(private FindToolLinksByAdminUseCase $findToolLinksByAdminUseCase)
-    {
+    public function __construct(
+        private FindToolLinksByAdminUseCase $findToolLinksByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(ToolLinksResource::class)]
     public function __invoke(): AnonymousResourceCollection
     {
-        return ToolLinksResource::collection($this->findToolLinksByAdminUseCase->handle());
+        return ToolLinksResource::collection(
+            $this->findToolLinksByAdminUseCase->handle()
+        );
     }
 }

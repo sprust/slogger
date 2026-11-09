@@ -15,8 +15,9 @@ use Tests\Factories\Entities\NotificationFactory;
 class NotificationDatabaseTest extends BaseModuleTestCase
 {
     #[DataProvider('dataProvider')]
-    public function test(NotificationKindEnum $kind): void
-    {
+    public function test(
+        NotificationKindEnum $kind
+    ): void {
         $findNotificationsByAdminUseCase = $this->appMake(FindNotificationsByAdminUseCase::class);
         $notificationFactory             = $this->appMake(NotificationFactory::class);
 
@@ -54,15 +55,9 @@ class NotificationDatabaseTest extends BaseModuleTestCase
     public static function dataProvider(): array
     {
         return [
-            'opened notification' => [
-                NotificationKindEnum::Opened,
-            ],
-            'event notification' => [
-                NotificationKindEnum::Event,
-            ],
-            'closed notification' => [
-                NotificationKindEnum::Closed,
-            ],
+            'opened notification' => [NotificationKindEnum::Opened],
+            'event notification'  => [NotificationKindEnum::Event],
+            'closed notification' => [NotificationKindEnum::Closed],
         ];
     }
 }

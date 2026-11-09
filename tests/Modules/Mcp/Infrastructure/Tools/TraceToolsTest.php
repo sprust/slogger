@@ -61,24 +61,42 @@ class TraceToolsTest extends TestCase
     public function testGetTraceHasNoData(): void
     {
         $result = (new GetTraceTool(
-            findMcpTraceAction: $this->traceBridge($this->detail()),
+            findMcpTraceAction: $this->traceBridge(
+                $this->detail()
+            ),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([
-            'trace_id' => 't1',
-        ]));
+        ))->call(
+            new McpToolArguments([
+                'trace_id' => 't1',
+            ])
+        );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertArrayNotHasKey('data', $result->data);
+        $this->assertArrayNotHasKey(
+            'data',
+            $result->data
+        );
 
-        $this->assertSame([
-            'id'   => 3,
-            'name' => 'billing',
-        ], $result->data['service']);
+        $this->assertSame(
+            [
+                'id'   => 3,
+                'name' => 'billing',
+            ],
+            $result->data['service']
+        );
 
-        $this->assertSame('2026-09-28T12:00:00Z', $result->data['logged_at']);
+        $this->assertSame(
+            '2026-09-28T12:00:00Z',
+            $result->data['logged_at']
+        );
 
-        $this->assertSame(4321, $result->data['pid']);
+        $this->assertSame(
+            4321,
+            $result->data['pid']
+        );
     }
 
     public function testUnknownTraceIsAToolError(): void
@@ -86,13 +104,20 @@ class TraceToolsTest extends TestCase
         $result = (new GetTraceTool(
             findMcpTraceAction: $this->traceBridge(null),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([
-            'trace_id' => 'nope',
-        ]));
+        ))->call(
+            new McpToolArguments([
+                'trace_id' => 'nope',
+            ])
+        );
 
-        $this->assertTrue($result->isError);
+        $this->assertTrue(
+            $result->isError
+        );
 
-        $this->assertSame('trace_not_found', $result->data['error']);
+        $this->assertSame(
+            'trace_not_found',
+            $result->data['error']
+        );
     }
 
     public function testTraceDataIsWhatTheUiGets(): void
@@ -101,27 +126,34 @@ class TraceToolsTest extends TestCase
         $result = (new GetTraceDataTool(
             findMcpTraceAction: $this->traceBridge($detail),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([
-            'trace_id' => 't1',
-        ]));
+        ))->call(
+            new McpToolArguments([
+                'trace_id' => 't1',
+            ])
+        );
 
-        $this->assertFalse($result->truncate);
+        $this->assertFalse(
+            $result->truncate
+        );
 
-        $this->assertSame([
-            'key'      => '',
-            'value'    => null,
-            'children' => [
-                [
-                    'key'             => 'url',
-                    'value'           => '/pay',
-                    'children'        => null,
-                    'filter_key'      => 'url',
-                    'can_be_filtered' => true,
+        $this->assertSame(
+            [
+                'key'      => '',
+                'value'    => null,
+                'children' => [
+                    [
+                        'key'             => 'url',
+                        'value'           => '/pay',
+                        'children'        => null,
+                        'filter_key'      => 'url',
+                        'can_be_filtered' => true,
+                    ],
                 ],
+                'filter_key'      => '',
+                'can_be_filtered' => false,
             ],
-            'filter_key'      => '',
-            'can_be_filtered' => false,
-        ], $result->data['data']);
+            $result->data['data']
+        );
     }
 
     public function testFirstOpeningStartsTheBuild(): void
@@ -136,7 +168,9 @@ class TraceToolsTest extends TestCase
             );
 
         $this->treeAction
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with('t1', false, false)
             ->willReturn(
@@ -148,19 +182,31 @@ class TraceToolsTest extends TestCase
                 )
             );
 
-        $this->childrenAction->expects($this->never())->method('handle');
+        $this->childrenAction->expects(
+            $this->never()
+        )->method('handle');
 
         $result = $this
             ->treeTool()
-            ->call(new McpToolArguments([
-                'trace_id' => 't1',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'trace_id' => 't1',
+                ])
+            );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame('tree_building', $result->data['status']);
+        $this->assertSame(
+            'tree_building',
+            $result->data['status']
+        );
 
-        $this->assertSame(10, $result->data['retry_after_seconds']);
+        $this->assertSame(
+            10,
+            $result->data['retry_after_seconds']
+        );
     }
 
     public function testBuildingTreeIsNotRestarted(): void
@@ -176,32 +222,36 @@ class TraceToolsTest extends TestCase
                 )
             );
 
-        $this->treeAction->expects($this->never())->method('handle');
+        $this->treeAction->expects(
+            $this->never()
+        )->method('handle');
 
         $result = $this
             ->treeTool()
-            ->call(new McpToolArguments([
-                'trace_id' => 't1',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'trace_id' => 't1',
+                ])
+            );
 
-        $this->assertSame('tree_building', $result->data['status']);
+        $this->assertSame(
+            'tree_building',
+            $result->data['status']
+        );
     }
 
     /** @return iterable<string, array{TraceTreeCacheStateStatusEnum}> */
     public static function stoppedTrees(): iterable
     {
-        yield 'failed' => [
-            TraceTreeCacheStateStatusEnum::Failed,
-        ];
+        yield 'failed' => [TraceTreeCacheStateStatusEnum::Failed];
 
-        yield 'canceled' => [
-            TraceTreeCacheStateStatusEnum::Canceled,
-        ];
+        yield 'canceled' => [TraceTreeCacheStateStatusEnum::Canceled];
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('stoppedTrees')]
-    public function testFailedTreeIsAToolErrorWithoutRebuild(TraceTreeCacheStateStatusEnum $status): void
-    {
+    public function testFailedTreeIsAToolErrorWithoutRebuild(
+        TraceTreeCacheStateStatusEnum $status
+    ): void {
         $this->stateAction
             ->method('handle')
             ->willReturn(
@@ -214,19 +264,31 @@ class TraceToolsTest extends TestCase
                 )
             );
 
-        $this->treeAction->expects($this->never())->method('handle');
+        $this->treeAction->expects(
+            $this->never()
+        )->method('handle');
 
         $result = $this
             ->treeTool()
-            ->call(new McpToolArguments([
-                'trace_id' => 't1',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'trace_id' => 't1',
+                ])
+            );
 
-        $this->assertTrue($result->isError);
+        $this->assertTrue(
+            $result->isError
+        );
 
-        $this->assertSame('tree_' . $status->value, $result->data['error']);
+        $this->assertSame(
+            'tree_' . $status->value,
+            $result->data['error']
+        );
 
-        $this->assertStringContainsString('SLogger UI', $result->data['hint']);
+        $this->assertStringContainsString(
+            'SLogger UI',
+            $result->data['hint']
+        );
     }
 
     public function testReadyTreeIsReadBranchByBranch(): void
@@ -243,7 +305,9 @@ class TraceToolsTest extends TestCase
             );
 
         $this->childrenAction
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with('root', 'p1', 'c1', 300)
             ->willReturn(
@@ -263,29 +327,40 @@ class TraceToolsTest extends TestCase
 
         $result = $this
             ->treeTool()
-            ->call(new McpToolArguments([
-                'trace_id'        => 't1',
+            ->call(
+                new McpToolArguments([
+                    'trace_id'        => 't1',
+                    'parent_trace_id' => 'p1',
+                    'cursor'          => 'c1',
+                ])
+            );
+
+        $this->assertSame(
+            'ready',
+            $result->data['status']
+        );
+
+        $this->assertSame(
+            'c2',
+            $result->data['next_cursor']
+        );
+
+        $this->assertSame(
+            [
+                'trace_id'        => 'n1',
                 'parent_trace_id' => 'p1',
-                'cursor'          => 'c1',
-            ]));
-
-        $this->assertSame('ready', $result->data['status']);
-
-        $this->assertSame('c2', $result->data['next_cursor']);
-
-        $this->assertSame([
-            'trace_id'        => 'n1',
-            'parent_trace_id' => 'p1',
-            'service'         => [
-                'id'   => 3,
-                'name' => 'billing',
+                'service'         => [
+                    'id'   => 3,
+                    'name' => 'billing',
+                ],
+                'type'           => 'http',
+                'status'         => 'failed',
+                'duration'       => 1.5,
+                'pid'            => 77,
+                'children_count' => 4,
             ],
-            'type'           => 'http',
-            'status'         => 'failed',
-            'duration'       => 1.5,
-            'pid'            => 77,
-            'children_count' => 4,
-        ], $result->data['nodes'][0]);
+            $result->data['nodes'][0]
+        );
     }
 
     public function testFindKeepsOnlyMatchedNodes(): void
@@ -324,26 +399,34 @@ class TraceToolsTest extends TestCase
 
         $result = $this
             ->findTool()
-            ->call(new McpToolArguments([
-                'trace_id' => 't1',
-                'statuses' => [
-                    'failed',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'trace_id' => 't1',
+                    'statuses' => ['failed'],
+                ])
+            );
 
-        $this->assertSame([
-            'n1',
-            'n2',
-        ], array_column(
-            $result->data['nodes'],
-            'trace_id',
-        ));
+        $this->assertSame(
+            [
+                'n1',
+                'n2',
+            ],
+            array_column($result->data['nodes'], 'trace_id')
+        );
 
-        $this->assertSame(2, $result->data['matched_count']);
+        $this->assertSame(
+            2,
+            $result->data['matched_count']
+        );
 
-        $this->assertFalse($result->data['truncated']);
+        $this->assertFalse(
+            $result->data['truncated']
+        );
 
-        $this->assertArrayNotHasKey('children_count', $result->data['nodes'][0]);
+        $this->assertArrayNotHasKey(
+            'children_count',
+            $result->data['nodes'][0]
+        );
     }
 
     public function testFindNeedsAFilter(): void
@@ -352,9 +435,11 @@ class TraceToolsTest extends TestCase
 
         $this
             ->findTool()
-            ->call(new McpToolArguments([
-                'trace_id' => 't1',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'trace_id' => 't1',
+                ])
+            );
     }
 
     public function testFindDoesNotStartTheBuild(): void
@@ -368,22 +453,32 @@ class TraceToolsTest extends TestCase
                 )
             );
 
-        $this->treeAction->expects($this->never())->method('handle');
+        $this->treeAction->expects(
+            $this->never()
+        )->method('handle');
 
-        $this->filteredAction->expects($this->never())->method('handle');
+        $this->filteredAction->expects(
+            $this->never()
+        )->method('handle');
 
         $result = $this
             ->findTool()
-            ->call(new McpToolArguments([
-                'trace_id' => 't1',
-                'statuses' => [
-                    'failed',
-                ],
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'trace_id' => 't1',
+                    'statuses' => ['failed'],
+                ])
+            );
 
-        $this->assertSame('tree_building', $result->data['status']);
+        $this->assertSame(
+            'tree_building',
+            $result->data['status']
+        );
 
-        $this->assertStringContainsString('get_trace_tree', $result->data['hint']);
+        $this->assertStringContainsString(
+            'get_trace_tree',
+            $result->data['hint']
+        );
     }
 
     private function traceBridge(?TraceDetailObject $detail): FindMcpTraceAction
@@ -434,12 +529,14 @@ class TraceToolsTest extends TestCase
 
         $services
             ->method('handle')
-            ->willReturn(new TraceServicesObject([
-                new TraceServiceObject(
-                    id: 3,
-                    name: 'billing',
-                ),
-            ]));
+            ->willReturn(
+                new TraceServicesObject([
+                    new TraceServiceObject(
+                        id: 3,
+                        name: 'billing',
+                    ),
+                ])
+            );
 
         return new McpTraceTreeNodeFactory(
             findTraceServicesAction: $services,
@@ -469,8 +566,10 @@ class TraceToolsTest extends TestCase
         return $action;
     }
 
-    private function state(TraceTreeCacheStateStatusEnum $status, ?string $error = null): TraceTreeCacheStateObject
-    {
+    private function state(
+        TraceTreeCacheStateStatusEnum $status,
+        ?string $error = null
+    ): TraceTreeCacheStateObject {
         $now = Carbon::parse(
             time: '2026-09-28 12:00:00',
         );
@@ -488,8 +587,11 @@ class TraceToolsTest extends TestCase
         );
     }
 
-    private function node(string $traceId, ?int $serviceId = null, string $status = 'failed'): TraceTreeRawObject
-    {
+    private function node(
+        string $traceId,
+        ?int $serviceId = null,
+        string $status = 'failed'
+    ): TraceTreeRawObject {
         return new TraceTreeRawObject(
             serviceId: $serviceId,
             traceId: $traceId,
@@ -524,9 +626,7 @@ class TraceToolsTest extends TestCase
             parentTraceId: null,
             type: 'http',
             status: 'success',
-            tags: [
-                'api',
-            ],
+            tags: ['api'],
             data: new TraceDataObject(
                 key: '',
                 value: null,

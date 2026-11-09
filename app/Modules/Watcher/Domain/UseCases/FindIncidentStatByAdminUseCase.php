@@ -9,8 +9,9 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentStatAction;
 
 readonly class FindIncidentStatByAdminUseCase
 {
-    public function __construct(private FindIncidentStatAction $findIncidentStatAction)
-    {
+    public function __construct(
+        private FindIncidentStatAction $findIncidentStatAction
+    ) {
     }
 
     public function handle(): WatcherIncidentStatObject

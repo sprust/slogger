@@ -24,16 +24,21 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceTreeController
 {
-    public function __construct(private FindTraceTreeByAdminUseCase $findTraceTreeByAdminUseCase, private FindTraceTreeContentByAdminUseCase $findTraceTreeContentByAdminUseCase, private FindTraceTreeChildrenByAdminUseCase $findTraceTreeChildrenByAdminUseCase, private FindTraceTreeFilteredByAdminUseCase $findTraceTreeFilteredByAdminUseCase)
-    {
+    public function __construct(
+        private FindTraceTreeByAdminUseCase $findTraceTreeByAdminUseCase,
+        private FindTraceTreeContentByAdminUseCase $findTraceTreeContentByAdminUseCase,
+        private FindTraceTreeChildrenByAdminUseCase $findTraceTreeChildrenByAdminUseCase,
+        private FindTraceTreeFilteredByAdminUseCase $findTraceTreeFilteredByAdminUseCase
+    ) {
     }
 
     /**
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceTreeResource::class)]
-    public function tree(TraceTreeTreeRequest $request): TraceTreeResponse
-    {
+    public function tree(
+        TraceTreeTreeRequest $request
+    ): TraceTreeResponse {
         $validated = $request->validated();
         $traceTree = $this->findTraceTreeByAdminUseCase->handle(
             traceId: ArrayValueGetter::string(

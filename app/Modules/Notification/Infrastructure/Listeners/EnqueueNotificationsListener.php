@@ -13,8 +13,10 @@ use Throwable;
 
 readonly class EnqueueNotificationsListener
 {
-    public function __construct(private EnqueueIncidentNotificationsUseCase $enqueueIncidentNotificationsUseCase, private LoggerInterface $logger)
-    {
+    public function __construct(
+        private EnqueueIncidentNotificationsUseCase $enqueueIncidentNotificationsUseCase,
+        private LoggerInterface $logger
+    ) {
     }
 
     public function handle(WatcherIncidentChangedEvent $event): void
@@ -36,7 +38,11 @@ readonly class EnqueueNotificationsListener
             );
         } catch (Throwable $exception) {
             $this->logger->error(
-                message: sprintf('failed to enqueue notifications for incident [%s]: %s', $event->incident->id, $exception->getMessage()),
+                message: sprintf(
+                    'failed to enqueue notifications for incident [%s]: %s',
+                    $event->incident->id,
+                    $exception->getMessage()
+                ),
             );
         }
     }

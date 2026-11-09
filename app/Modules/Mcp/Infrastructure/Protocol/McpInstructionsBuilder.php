@@ -21,6 +21,7 @@ readonly class McpInstructionsBuilder
             - In the answer, say which installation every finding comes from.
             TEXT;
 
-        return $installation . "\n\n" . trim((string) file_get_contents(resource_path('mcp/instructions.md')));
+        return $installation . "\n\n"
+            . trim((string) file_get_contents(resource_path('mcp/instructions.md')));
     }
 }

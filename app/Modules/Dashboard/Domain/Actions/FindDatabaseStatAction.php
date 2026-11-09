@@ -11,8 +11,10 @@ use App\Modules\Dashboard\Repositories\DatabaseStatRepository;
 
 readonly class FindDatabaseStatAction
 {
-    public function __construct(private DispatcherInterface $dispatcher, private DatabaseStatRepository $databaseStatRepository)
-    {
+    public function __construct(
+        private DispatcherInterface $dispatcher,
+        private DatabaseStatRepository $databaseStatRepository
+    ) {
     }
 
     /**

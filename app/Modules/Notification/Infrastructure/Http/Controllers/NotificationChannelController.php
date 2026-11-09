@@ -20,25 +20,35 @@ readonly class NotificationChannelController
 {
     private const int DELIVERIES_LIMIT = 50;
 
-    public function __construct(private FindChannelsByAdminUseCase $findChannelsByAdminUseCase, private FindChannelTypesByAdminUseCase $findChannelTypesByAdminUseCase, private FindNotificationsByAdminUseCase $findNotificationsByAdminUseCase, private DeleteChannelByAdminUseCase $deleteChannelByAdminUseCase, private SendTestNotificationByAdminUseCase $sendTestNotificationByAdminUseCase)
-    {
+    public function __construct(
+        private FindChannelsByAdminUseCase $findChannelsByAdminUseCase,
+        private FindChannelTypesByAdminUseCase $findChannelTypesByAdminUseCase,
+        private FindNotificationsByAdminUseCase $findNotificationsByAdminUseCase,
+        private DeleteChannelByAdminUseCase $deleteChannelByAdminUseCase,
+        private SendTestNotificationByAdminUseCase $sendTestNotificationByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(ChannelResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return ChannelResource::collection($this->findChannelsByAdminUseCase->handle());
+        return ChannelResource::collection(
+            $this->findChannelsByAdminUseCase->handle()
+        );
     }
 
     #[OaListItemTypeAttribute(ChannelTypeResource::class)]
     public function types(): AnonymousResourceCollection
     {
-        return ChannelTypeResource::collection($this->findChannelTypesByAdminUseCase->handle());
+        return ChannelTypeResource::collection(
+            $this->findChannelTypesByAdminUseCase->handle()
+        );
     }
 
     #[OaListItemTypeAttribute(NotificationResource::class)]
-    public function deliveries(int $id): AnonymousResourceCollection
-    {
+    public function deliveries(
+        int $id
+    ): AnonymousResourceCollection {
         return NotificationResource::collection(
             $this->findNotificationsByAdminUseCase->handle(
                 channelId: $id,
@@ -49,7 +59,9 @@ readonly class NotificationChannelController
 
     public function test(int $id): SendResultResource
     {
-        return new SendResultResource($this->sendTestNotificationByAdminUseCase->handle($id));
+        return new SendResultResource(
+            $this->sendTestNotificationByAdminUseCase->handle($id)
+        );
     }
 
     public function delete(int $id): void

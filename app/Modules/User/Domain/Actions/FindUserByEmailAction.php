@@ -16,6 +16,8 @@ readonly class FindUserByEmailAction
 
     public function handle(string $email): ?UserDetailObject
     {
-        return $this->userRepository->findByEmail(email: $email);
+        return $this->userRepository->findByEmail(
+            email: $email
+        );
     }
 }

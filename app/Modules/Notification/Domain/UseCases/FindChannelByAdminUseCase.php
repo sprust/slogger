@@ -11,8 +11,9 @@ use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 
 readonly class FindChannelByAdminUseCase
 {
-    public function __construct(private FindTypedChannelAction $findTypedChannelAction)
-    {
+    public function __construct(
+        private FindTypedChannelAction $findTypedChannelAction
+    ) {
     }
 
     /** @throws NotificationChannelNotFoundException */

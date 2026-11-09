@@ -10,8 +10,9 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeCacheStatesAction;
 
 readonly class FindTraceTreeCacheStatesByAdminUseCase
 {
-    public function __construct(private FindTraceTreeCacheStatesAction $findTraceTreeCacheStatesAction)
-    {
+    public function __construct(
+        private FindTraceTreeCacheStatesAction $findTraceTreeCacheStatesAction
+    ) {
     }
 
     /**

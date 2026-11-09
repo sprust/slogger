@@ -26,8 +26,13 @@ readonly class IncidentMessageFactory
     {
     }
 
-    public function make(NotificationKindEnum $kind, IncidentWatcherParameters $watcher, IncidentSnapshotParameters $incident, ?IncidentEventParameters $event, NotificationSenderInterface $sender): string
-    {
+    public function make(
+        NotificationKindEnum $kind,
+        IncidentWatcherParameters $watcher,
+        IncidentSnapshotParameters $incident,
+        ?IncidentEventParameters $event,
+        NotificationSenderInterface $sender
+    ): string {
         $blocks = [
             $this->title(
                 kind: $kind,
@@ -47,10 +52,7 @@ readonly class IncidentMessageFactory
         // A payload that could not be read leaves the message at its head: the event
         // happened, and saying so with no numbers beats inventing some.
         if ($kind === NotificationKindEnum::Closed || is_null($event) || is_null($event->payload)) {
-            return implode(
-                "\n\n",
-                $blocks,
-            );
+            return implode("\n\n", $blocks);
         }
 
         // The stored document rather than the object: its keys are the names a reader of
@@ -62,13 +64,9 @@ readonly class IncidentMessageFactory
             sender: $sender,
         );
 
-        if (
-            count($settings)
-        ) {
-            $blocks[] = "⚙️ settings:\n" . implode(
-                "\n",
-                $settings,
-            );
+        if (count($settings)) {
+            $blocks[] = "⚙️ settings:\n"
+                . implode("\n", $settings);
         }
 
         $measured = $this->values(
@@ -76,13 +74,9 @@ readonly class IncidentMessageFactory
             sender: $sender,
         );
 
-        if (
-            count($measured)
-        ) {
-            $blocks[] = "📊 measured:\n" . implode(
-                "\n",
-                $measured,
-            );
+        if (count($measured)) {
+            $blocks[] = "📊 measured:\n"
+                . implode("\n", $measured);
         }
 
         $traces = $this->traces(
@@ -90,19 +84,12 @@ readonly class IncidentMessageFactory
             sender: $sender,
         );
 
-        if (
-            count($traces)
-        ) {
-            $blocks[] = "🔎 traces:\n" . implode(
-                "\n",
-                $traces,
-            );
+        if (count($traces)) {
+            $blocks[] = "🔎 traces:\n"
+                . implode("\n", $traces);
         }
 
-        return implode(
-            "\n\n",
-            $blocks,
-        );
+        return implode("\n\n", $blocks);
     }
 
     private function title(NotificationKindEnum $kind, NotificationSenderInterface $sender): string
@@ -113,14 +100,20 @@ readonly class IncidentMessageFactory
             NotificationKindEnum::Closed => '🟢',
         };
 
-        return $mark . ' ' . $sender->bold($sender->escape($this->appName) . ' (' . $kind->value . ')');
+        return $mark . ' ' . $sender->bold(
+            $sender->escape($this->appName) . ' (' . $kind->value . ')'
+        );
     }
 
     /**
      * @return string[]
      */
-    private function head(NotificationKindEnum $kind, IncidentWatcherParameters $watcher, IncidentSnapshotParameters $incident, NotificationSenderInterface $sender): array
-    {
+    private function head(
+        NotificationKindEnum $kind,
+        IncidentWatcherParameters $watcher,
+        IncidentSnapshotParameters $incident,
+        NotificationSenderInterface $sender
+    ): array {
         $lines = [
             '🏷 name: ' . $sender->escape($watcher->name),
             '📛 type: ' . $sender->escape($watcher->typeTitle),
@@ -165,11 +158,7 @@ readonly class IncidentMessageFactory
             $lines[] = sprintf(
                 '• %s: %s',
                 $sender->escape(
-                    str_replace(
-                        '_',
-                        ' ',
-                        $key,
-                    )
+                    str_replace('_', ' ', $key)
                 ),
                 $sender->escape(
                     $this->readable(
@@ -192,39 +181,37 @@ readonly class IncidentMessageFactory
     {
         $lines = [];
 
-        foreach (
-            array_slice(
-                $groups,
-                0,
-                self::MAX_GROUPS,
-            ) as $group
-        ) {
-            $lines[] = '• ' . $sender->escape(
-                implode(
-                    ' ',
-                    [
-                        $group->type,
-                        ...$group->tags,
-                    ],
-                )
-            );
+        foreach (array_slice($groups, 0, self::MAX_GROUPS) as $group) {
+            $lines[] = '• '
+                . $sender->escape(
+                    implode(
+                        ' ',
+                        [
+                            $group->type,
+                            ...$group->tags,
+                        ],
+                    )
+                );
             $line = sprintf('  %d trace%s', $group->count, $group->count === 1 ? '' : 's');
 
             // Only the slow-traces watcher has a maximum to name; the groups of a
             // counting watcher carry a count and nothing else.
             if (!is_null($group->durationMax)) {
-                $line .= ', up to ' . $sender->escape(
-                    $this->readable(
-                        key: 'duration_max',
-                        value: $group->durationMax,
-                    )
-                );
+                $line .= ', up to '
+                    . $sender->escape(
+                        $this->readable(
+                            key: 'duration_max',
+                            value: $group->durationMax,
+                        )
+                    );
             }
 
             $lines[] = $line;
 
             if (!is_null($group->slowestTraceId)) {
-                $lines[] = '  ' . $sender->code($sender->escape($group->slowestTraceId));
+                $lines[] = '  ' . $sender->code(
+                    $sender->escape($group->slowestTraceId)
+                );
             }
         }
 
@@ -239,10 +226,6 @@ readonly class IncidentMessageFactory
 
         $value = (string) $value;
 
-        return in_array(
-            $key,
-            self::SECOND_KEYS,
-            true,
-        ) ? $value . 's' : $value;
+        return in_array($key, self::SECOND_KEYS, true) ? $value . 's' : $value;
     }
 }

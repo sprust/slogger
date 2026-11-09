@@ -18,8 +18,9 @@ class DeleteExpiredUserTokensCommand extends Command
      * lapses, because the lookup checks the expiry on the row it finds. This only keeps
      * the table from growing for ever.
      */
-    public function handle(DeleteExpiredUserTokensAction $deleteExpiredUserTokensAction): int
-    {
+    public function handle(
+        DeleteExpiredUserTokensAction $deleteExpiredUserTokensAction
+    ): int {
         $this->components->info(
             sprintf('%d expired sessions deleted', $deleteExpiredUserTokensAction->handle())
         );

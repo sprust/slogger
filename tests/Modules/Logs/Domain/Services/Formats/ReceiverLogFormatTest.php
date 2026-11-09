@@ -28,7 +28,9 @@ class ReceiverLogFormatTest extends TestCase
 
     public function testAStackTraceBelongsToItsEntry(): void
     {
-        $first  = "2026-09-25 07:00:57.401 ERROR dial tcp: connection refused\n->stack trace:\n - /app/internal/a.go:140\n<-end of trace\n";
+        $first  = ("2026-09-25 07:00:57.401 ERROR dial tcp: connection "
+            . "refused\n->stack trace:\n - /app/internal/a.go:140\n<-end of "
+            . "trace\n");
         $second = "2026-09-25 07:01:08.585 DEBUG received message with len 944\n";
 
         $starts = $this->find($first . $second);
@@ -52,7 +54,11 @@ class ReceiverLogFormatTest extends TestCase
         foreach (['DEBUG', 'INFO', 'WARN', 'ERROR'] as $index => $level) {
             $starts = $this->find("2026-09-25 07:00:57.401 $level m\n");
 
-            $this->assertSame($index + 1, $starts[0]->level, $level);
+            $this->assertSame(
+                $index + 1,
+                $starts[0]->level,
+                $level
+            );
         }
     }
 
@@ -74,13 +80,25 @@ class ReceiverLogFormatTest extends TestCase
 
     public function testTheMessageIsTheFirstLine(): void
     {
-        $details = $this->format()->parseEntry(
-            "2026-09-25 07:00:57.401 ERROR dial tcp: connection refused\n->stack trace:\n - /app/internal/a.go:140\n<-end of trace\n"
-        );
+        $details = $this
+            ->format()
+            ->parseEntry(
+                ("2026-09-25 07:00:57.401 ERROR dial tcp: connection "
+                . "refused\n->stack trace:\n - /app/internal/a.go:140\n<-end of "
+                . "trace\n")
+            );
 
-        $this->assertSame('dial tcp: connection refused', $details->message);
-        $this->assertNull($details->context);
-        $this->assertSame([], $details->fields);
+        $this->assertSame(
+            'dial tcp: connection refused',
+            $details->message
+        );
+        $this->assertNull(
+            $details->context
+        );
+        $this->assertSame(
+            [],
+            $details->fields
+        );
     }
 
     public function testTextWithoutAHeaderIsTheMessage(): void
@@ -101,6 +119,8 @@ class ReceiverLogFormatTest extends TestCase
 
     private function format(): ReceiverLogFormat
     {
-        return new ReceiverLogFormat(new LogTimeParser());
+        return new ReceiverLogFormat(
+            new LogTimeParser()
+        );
     }
 }

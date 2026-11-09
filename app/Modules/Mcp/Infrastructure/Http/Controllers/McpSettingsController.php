@@ -9,12 +9,15 @@ use App\Modules\Mcp\Infrastructure\Http\Resources\McpSettingsResource;
 
 readonly class McpSettingsController
 {
-    public function __construct(private FindMcpSettingsByAdminUseCase $findMcpSettingsByAdminUseCase)
-    {
+    public function __construct(
+        private FindMcpSettingsByAdminUseCase $findMcpSettingsByAdminUseCase
+    ) {
     }
 
     public function show(): McpSettingsResource
     {
-        return new McpSettingsResource($this->findMcpSettingsByAdminUseCase->handle());
+        return new McpSettingsResource(
+            $this->findMcpSettingsByAdminUseCase->handle()
+        );
     }
 }

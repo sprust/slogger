@@ -32,7 +32,9 @@ class TraceTreeStateBroadcastTest extends TestCase
 
     public function testTheFrameGoesToThatTreeAlone(): void
     {
-        $broadcast = new TraceTreeStateBroadcast($this->state());
+        $broadcast = new TraceTreeStateBroadcast(
+            $this->state()
+        );
 
         // By the root trace id, which is not the trace that was opened: with is_child
         // false the server walks up to the topmost ancestor and builds that one.
@@ -41,7 +43,10 @@ class TraceTreeStateBroadcastTest extends TestCase
             array_map(strval(...), $broadcast->broadcastOn())
         );
 
-        $this->assertSame('state.changed', $broadcast->broadcastAs());
+        $this->assertSame(
+            'state.changed',
+            $broadcast->broadcastAs()
+        );
     }
 
     public function testAFailingBusCannotReachTheBuildThatRaisedThis(): void
@@ -52,7 +57,9 @@ class TraceTreeStateBroadcastTest extends TestCase
         // build as failed.
         $this->assertInstanceOf(
             ShouldRescue::class,
-            new TraceTreeStateBroadcast($this->state())
+            new TraceTreeStateBroadcast(
+                $this->state()
+            )
         );
     }
 

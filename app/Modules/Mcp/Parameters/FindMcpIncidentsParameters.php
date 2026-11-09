@@ -8,7 +8,10 @@ use App\Modules\Mcp\Enums\McpIncidentStatusEnum;
 
 readonly class FindMcpIncidentsParameters
 {
-    public function __construct(public ?McpIncidentStatusEnum $status, public ?int $watcherId, public int $page)
-    {
+    public function __construct(
+        public ?McpIncidentStatusEnum $status,
+        public ?int $watcherId,
+        public int $page
+    ) {
     }
 }

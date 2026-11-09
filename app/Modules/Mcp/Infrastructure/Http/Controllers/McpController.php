@@ -21,14 +21,22 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class McpController
 {
-    public function __construct(private FindMcpsByAdminUseCase $findMcpsByAdminUseCase, private FindMcpByAdminUseCase $findMcpByAdminUseCase, private CreateMcpByAdminUseCase $createMcpByAdminUseCase, private UpdateMcpByAdminUseCase $updateMcpByAdminUseCase, private RegenerateMcpTokenByAdminUseCase $regenerateMcpTokenByAdminUseCase, private DeleteMcpByAdminUseCase $deleteMcpByAdminUseCase)
-    {
+    public function __construct(
+        private FindMcpsByAdminUseCase $findMcpsByAdminUseCase,
+        private FindMcpByAdminUseCase $findMcpByAdminUseCase,
+        private CreateMcpByAdminUseCase $createMcpByAdminUseCase,
+        private UpdateMcpByAdminUseCase $updateMcpByAdminUseCase,
+        private RegenerateMcpTokenByAdminUseCase $regenerateMcpTokenByAdminUseCase,
+        private DeleteMcpByAdminUseCase $deleteMcpByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(McpResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return McpResource::collection($this->findMcpsByAdminUseCase->handle());
+        return McpResource::collection(
+            $this->findMcpsByAdminUseCase->handle()
+        );
     }
 
     public function show(int $id): McpResource

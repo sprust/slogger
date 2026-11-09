@@ -33,34 +33,35 @@ class FindMcpTraceFacetsActionTest extends TestCase
             ->action()
             ->handle(
                 $this->parameters(
-                    types: [
-                        'request',
-                    ],
-                    statuses: [
-                        'failed',
-                    ],
+                    types: ['request'],
+                    statuses: ['failed'],
                 )
             );
 
-        $this->assertSame([
-            2,
-        ], $this->typesParameters?->serviceIds);
+        $this->assertSame(
+            [2],
+            $this->typesParameters?->serviceIds
+        );
 
-        $this->assertSame([
-            'failed',
-        ], $this->typesParameters->statuses);
+        $this->assertSame(
+            ['failed'],
+            $this->typesParameters->statuses
+        );
 
-        $this->assertSame([
-            'request',
-        ], $this->statusesParameters?->types);
+        $this->assertSame(
+            ['request'],
+            $this->statusesParameters?->types
+        );
 
-        $this->assertSame([
-            'request',
-        ], $this->tagsParameters?->types);
+        $this->assertSame(
+            ['request'],
+            $this->tagsParameters?->types
+        );
 
-        $this->assertSame([
-            'failed',
-        ], $this->tagsParameters->statuses);
+        $this->assertSame(
+            ['failed'],
+            $this->tagsParameters->statuses
+        );
 
         $this->assertSame(
             '2026-09-28 10:00:00',
@@ -87,11 +88,20 @@ class FindMcpTraceFacetsActionTest extends TestCase
                 )
             );
 
-        $this->assertSame([], $this->typesParameters?->serviceIds);
+        $this->assertSame(
+            [],
+            $this->typesParameters?->serviceIds
+        );
 
-        $this->assertSame([], $this->statusesParameters?->serviceIds);
+        $this->assertSame(
+            [],
+            $this->statusesParameters?->serviceIds
+        );
 
-        $this->assertSame([], $this->tagsParameters?->serviceIds);
+        $this->assertSame(
+            [],
+            $this->tagsParameters?->serviceIds
+        );
     }
 
     public function testListsAreSortedByCountAndCut(): void
@@ -104,35 +114,46 @@ class FindMcpTraceFacetsActionTest extends TestCase
                 )
             );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'job',
-                30,
+                [
+                    'job',
+                    30,
+                ],
+                [
+                    'request',
+                    30,
+                ],
             ],
-            [
-                'request',
-                30,
-            ],
-        ], array_map(static fn(McpTraceStringFieldObject $item) => [
-            $item->name,
-            $item->count,
-        ], $facets->types->items));
+            array_map(
+                static fn(McpTraceStringFieldObject $item) => [
+                    $item->name,
+                    $item->count,
+                ],
+                $facets->types->items
+            )
+        );
 
-        $this->assertTrue($facets->types->truncated);
+        $this->assertTrue(
+            $facets->types->truncated
+        );
 
-        $this->assertFalse($facets->statuses->truncated);
+        $this->assertFalse(
+            $facets->statuses->truncated
+        );
     }
 
     /**
      * @param string[] $types
      * @param string[] $statuses
      */
-    private function parameters(array $types = [], array $statuses = [], int $limit = 50): FindMcpTraceFacetsParameters
-    {
+    private function parameters(
+        array $types = [],
+        array $statuses = [],
+        int $limit = 50
+    ): FindMcpTraceFacetsParameters {
         return new FindMcpTraceFacetsParameters(
-            serviceIds: [
-                2,
-            ],
+            serviceIds: [2],
             period: $this->period(),
             types: $types,
             statuses: $statuses,
@@ -146,49 +167,55 @@ class FindMcpTraceFacetsActionTest extends TestCase
 
         $types
             ->method('handle')
-            ->willReturnCallback(function (TraceFindTypesParameters $parameters): array {
-                $this->typesParameters = $parameters;
+            ->willReturnCallback(
+                function (TraceFindTypesParameters $parameters): array {
+                    $this->typesParameters = $parameters;
 
-                return [
-                    new TraceStringFieldObject(
-                        name: 'command',
-                        count: 5,
-                    ),
-                    new TraceStringFieldObject(
-                        name: 'request',
-                        count: 30,
-                    ),
-                    new TraceStringFieldObject(
-                        name: 'job',
-                        count: 30,
-                    ),
-                ];
-            });
+                    return [
+                        new TraceStringFieldObject(
+                            name: 'command',
+                            count: 5,
+                        ),
+                        new TraceStringFieldObject(
+                            name: 'request',
+                            count: 30,
+                        ),
+                        new TraceStringFieldObject(
+                            name: 'job',
+                            count: 30,
+                        ),
+                    ];
+                }
+            );
 
         $statuses = $this->createMock(FindStatusesAction::class);
 
         $statuses
             ->method('handle')
-            ->willReturnCallback(function (TraceFindStatusesParameters $parameters): array {
-                $this->statusesParameters = $parameters;
+            ->willReturnCallback(
+                function (TraceFindStatusesParameters $parameters): array {
+                    $this->statusesParameters = $parameters;
 
-                return [
-                    new TraceStringFieldObject(
-                        name: 'failed',
-                        count: 3,
-                    ),
-                ];
-            });
+                    return [
+                        new TraceStringFieldObject(
+                            name: 'failed',
+                            count: 3,
+                        ),
+                    ];
+                }
+            );
 
         $tags = $this->createMock(FindTagsAction::class);
 
         $tags
             ->method('handle')
-            ->willReturnCallback(function (TraceFindTagsParameters $parameters): array {
-                $this->tagsParameters = $parameters;
+            ->willReturnCallback(
+                function (TraceFindTagsParameters $parameters): array {
+                    $this->tagsParameters = $parameters;
 
-                return [];
-            });
+                    return [];
+                }
+            );
 
         return new FindMcpTraceFacetsAction(
             findTypesAction: $types,

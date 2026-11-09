@@ -15,17 +15,26 @@ class McpHeaderValidatorTest extends TestCase
     public function testMatchingHeadersPass(): void
     {
         $version = new McpHeaderValidator()->validate(
-            $this->message('tools/call', ['name' => 'get_trace']),
+            $this->message(
+                'tools/call',
+                ['name' => 'get_trace']
+            ),
             new McpRequestHeaders('2026-07-28', 'tools/call', 'get_trace')
         );
 
-        $this->assertSame('2026-07-28', $version);
+        $this->assertSame(
+            '2026-07-28',
+            $version
+        );
     }
 
     public function testBase64NameIsDecoded(): void
     {
         $version = new McpHeaderValidator()->validate(
-            $this->message('tools/call', ['name' => 'get_trace']),
+            $this->message(
+                'tools/call',
+                ['name' => 'get_trace']
+            ),
             new McpRequestHeaders(
                 '2026-07-28',
                 'tools/call',
@@ -33,13 +42,20 @@ class McpHeaderValidatorTest extends TestCase
             )
         );
 
-        $this->assertSame('2026-07-28', $version);
+        $this->assertSame(
+            '2026-07-28',
+            $version
+        );
     }
 
     public function testMissingVersionHeaderNamesTheSupportedVersion(): void
     {
         $exception = $this->failure(
-            $this->message('initialize', [], meta: false),
+            $this->message(
+                'initialize',
+                [],
+                meta: false
+            ),
             new McpRequestHeaders(null, null, null)
         );
 
@@ -52,7 +68,11 @@ class McpHeaderValidatorTest extends TestCase
     public function testVersionMustMatchMeta(): void
     {
         $this->failure(
-            $this->message('tools/list', [], meta: false),
+            $this->message(
+                'tools/list',
+                [],
+                meta: false
+            ),
             new McpRequestHeaders('2026-07-28', 'tools/list', null)
         );
     }
@@ -60,7 +80,10 @@ class McpHeaderValidatorTest extends TestCase
     public function testMethodMustMatch(): void
     {
         $this->failure(
-            $this->message('tools/call', ['name' => 'get_trace']),
+            $this->message(
+                'tools/call',
+                ['name' => 'get_trace']
+            ),
             new McpRequestHeaders('2026-07-28', 'tools/list', 'get_trace')
         );
     }
@@ -68,7 +91,10 @@ class McpHeaderValidatorTest extends TestCase
     public function testNameMustMatch(): void
     {
         $this->failure(
-            $this->message('tools/call', ['name' => 'get_trace']),
+            $this->message(
+                'tools/call',
+                ['name' => 'get_trace']
+            ),
             new McpRequestHeaders('2026-07-28', 'tools/call', 'get_services')
         );
     }
@@ -76,7 +102,10 @@ class McpHeaderValidatorTest extends TestCase
     public function testNameIsRequiredForToolCalls(): void
     {
         $this->failure(
-            $this->message('tools/call', ['name' => 'get_trace']),
+            $this->message(
+                'tools/call',
+                ['name' => 'get_trace']
+            ),
             new McpRequestHeaders('2026-07-28', 'tools/call', null)
         );
     }
@@ -84,14 +113,21 @@ class McpHeaderValidatorTest extends TestCase
     public function testInvalidCharactersAreRejected(): void
     {
         $this->failure(
-            $this->message('tools/list', []),
+            $this->message(
+                'tools/list',
+                []
+            ),
             new McpRequestHeaders('2026-07-28', "tools/list\n", null)
         );
     }
 
     public function testUnsupportedVersionListsSupported(): void
     {
-        $message = $this->message('tools/list', [], version: '2025-11-25');
+        $message = $this->message(
+            'tools/list',
+            [],
+            version: '2025-11-25'
+        );
 
         $version = new McpHeaderValidator()->validate(
             $message,
@@ -107,7 +143,10 @@ class McpHeaderValidatorTest extends TestCase
                 McpErrorCodeEnum::UnsupportedProtocolVersion,
                 $exception->errorCode
             );
-            $this->assertSame(400, $exception->httpStatus);
+            $this->assertSame(
+                400,
+                $exception->httpStatus
+            );
             $this->assertSame(
                 ['supported' => ['2026-07-28'], 'requested' => '2025-11-25'],
                 $exception->data
@@ -128,11 +167,17 @@ class McpHeaderValidatorTest extends TestCase
             $params['_meta'] = [McpHeaderValidator::META_PROTOCOL_VERSION => $version];
         }
 
-        return new McpRequestMessage(id: 1, method: $method, params: $params);
+        return new McpRequestMessage(
+            id: 1,
+            method: $method,
+            params: $params
+        );
     }
 
-    private function failure(McpRequestMessage $message, McpRequestHeaders $headers): McpProtocolException
-    {
+    private function failure(
+        McpRequestMessage $message,
+        McpRequestHeaders $headers
+    ): McpProtocolException {
         try {
             new McpHeaderValidator()->validate($message, $headers);
         } catch (McpProtocolException $exception) {
@@ -140,7 +185,10 @@ class McpHeaderValidatorTest extends TestCase
                 McpErrorCodeEnum::HeaderMismatch,
                 $exception->errorCode
             );
-            $this->assertSame(400, $exception->httpStatus);
+            $this->assertSame(
+                400,
+                $exception->httpStatus
+            );
 
             return $exception;
         }

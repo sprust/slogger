@@ -31,8 +31,9 @@ class SendNotificationJob implements ShouldQueue
     {
     }
 
-    public function handle(SendNotificationUseCase $sendNotificationUseCase): void
-    {
+    public function handle(
+        SendNotificationUseCase $sendNotificationUseCase
+    ): void {
         $result = $sendNotificationUseCase->handle($this->notificationId);
 
         if ($result === null) {

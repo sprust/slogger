@@ -54,37 +54,44 @@ readonly class FindTraceTreeContentAction
 
         $servicesKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
-                ->findServices(rootTraceId: $rootTraceId)
+                ->findServices(
+                    rootTraceId: $rootTraceId
+                )
         );
 
         $typesKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
-                ->findTypes(rootTraceId: $rootTraceId)
+                ->findTypes(
+                    rootTraceId: $rootTraceId
+                )
         );
 
         $tagsKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
-                ->findTags(rootTraceId: $rootTraceId)
+                ->findTags(
+                    rootTraceId: $rootTraceId
+                )
         );
 
         $statusesKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
-                ->findStatuses(rootTraceId: $rootTraceId)
+                ->findStatuses(
+                    rootTraceId: $rootTraceId
+                )
         );
 
         $countKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
-                ->findCount(rootTraceId: $rootTraceId)
+                ->findCount(
+                    rootTraceId: $rootTraceId
+                )
         );
 
         $results = $waitGroup->waitResults();
 
         $services = $this->findTraceServicesAction->handle(
             serviceIds: array_unique(
-                array_map(
-                    static fn(TraceTreeServiceDto $item) => $item->id,
-                    $results[$servicesKey]
-                )
+                array_map(static fn(TraceTreeServiceDto $item) => $item->id, $results[$servicesKey])
             )
         );
 

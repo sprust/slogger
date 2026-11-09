@@ -21,8 +21,11 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceTimestampsController
 {
-    public function __construct(private FindTraceTimestampsByAdminUseCase $findTraceTimestampsByAdminUseCase, private MakeMetricIndicatorsByAdminUseCase $makeMetricIndicatorsByAdminUseCase, private DataFilterParameterTransport $dataFilterParameterTransport)
-    {
+    public function __construct(
+        private FindTraceTimestampsByAdminUseCase $findTraceTimestampsByAdminUseCase,
+        private MakeMetricIndicatorsByAdminUseCase $makeMetricIndicatorsByAdminUseCase,
+        private DataFilterParameterTransport $dataFilterParameterTransport
+    ) {
     }
 
     /**
@@ -110,6 +113,8 @@ readonly class TraceTimestampsController
     #[OaListItemTypeAttribute(TraceMetricIndicatorEnumResource::class)]
     public function fields(): AnonymousResourceCollection
     {
-        return TraceMetricIndicatorEnumResource::collection($this->makeMetricIndicatorsByAdminUseCase->handle());
+        return TraceMetricIndicatorEnumResource::collection(
+            $this->makeMetricIndicatorsByAdminUseCase->handle()
+        );
     }
 }

@@ -8,9 +8,7 @@ use Illuminate\Validation\Rules\RequiredIf;
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractStreamedApiResource;
 
 return [
-    'sources' => [
-        App\Services\OpenApiGenerator\Sources\Illuminate\AdminApiRoutesParser::class,
-    ],
+    'sources'              => [App\Services\OpenApiGenerator\Sources\Illuminate\AdminApiRoutesParser::class],
     'security_middlewares' => [
         \App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware::class,
     ],

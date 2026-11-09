@@ -47,7 +47,10 @@ class LogLevelCounter
         $levelCounts = [];
 
         foreach ($this->counts as $level => $count) {
-            $levelCounts[] = new LogLevelCountObject(level: $level, count: $count);
+            $levelCounts[] = new LogLevelCountObject(
+                level: $level,
+                count: $count
+            );
         }
 
         return $levelCounts;

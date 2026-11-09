@@ -35,7 +35,8 @@ readonly class BufferOverflowWatcherType implements WatcherTypeDefinitionInterfa
         return new WatcherTypeObject(
             type: WatcherTypeEnum::BufferOverflow,
             title: 'Buffer overflow',
-            description: 'Traces are piling up in the intake buffer: the receiver takes them in faster than they are saved.',
+            description: ('Traces are piling up in the intake buffer: the receiver takes '
+                . 'them in faster than they are saved.'),
             defaultCooldownSeconds: WatcherTypeEnum::BufferOverflow->defaultCooldownSeconds(),
             hasTraceFilter: false,
             fields: [

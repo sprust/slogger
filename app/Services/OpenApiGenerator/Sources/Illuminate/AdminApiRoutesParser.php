@@ -45,8 +45,6 @@ class AdminApiRoutesParser extends BaseRouterParser
 
     protected function getPathPrefixes(): array
     {
-        return [
-            'admin-api/',
-        ];
+        return ['admin-api/'];
     }
 }

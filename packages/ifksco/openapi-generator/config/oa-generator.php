@@ -39,9 +39,7 @@ return [
     ],
     'classes'              => [
         'request_parent_class'     => FormRequest::class,
-        'resources_parent_classes' => [
-            JsonResource::class,
-        ],
+        'resources_parent_classes' => [JsonResource::class],
     ],
     'custom'               => [
         /**

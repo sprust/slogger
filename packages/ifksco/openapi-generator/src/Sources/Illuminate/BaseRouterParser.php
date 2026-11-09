@@ -23,7 +23,9 @@ abstract class BaseRouterParser implements SourceInterface
     public function getPaths(): array
     {
         return $this->routersParser->parseRoutes(
-            (new RouterService($this->getPathPrefixes()))->getRoutes()
+            (new RouterService(
+                $this->getPathPrefixes()
+            ))->getRoutes()
         );
     }
 }

@@ -14,19 +14,36 @@ class McpMessageParserTest extends TestCase
 {
     public function testParsesARequest(): void
     {
-        $message = new McpMessageParser()->parse('{"jsonrpc":"2.0","id":7,"method":"tools/list","params":{"a":1}}');
+        $message = new McpMessageParser()->parse(
+            '{"jsonrpc":"2.0","id":7,"method":"tools/list","params":{"a":1}}'
+        );
 
-        $this->assertInstanceOf(McpRequestMessage::class, $message);
-        $this->assertSame(7, $message->id);
-        $this->assertSame('tools/list', $message->method);
-        $this->assertSame(['a' => 1], $message->params);
+        $this->assertInstanceOf(
+            McpRequestMessage::class,
+            $message
+        );
+        $this->assertSame(
+            7,
+            $message->id
+        );
+        $this->assertSame(
+            'tools/list',
+            $message->method
+        );
+        $this->assertSame(
+            ['a' => 1],
+            $message->params
+        );
     }
 
     public function testParsesANotification(): void
     {
         $message = new McpMessageParser()->parse('{"jsonrpc":"2.0","method":"notifications/initialized"}');
 
-        $this->assertInstanceOf(McpNotificationMessage::class, $message);
+        $this->assertInstanceOf(
+            McpNotificationMessage::class,
+            $message
+        );
     }
 
     /**
@@ -36,25 +53,39 @@ class McpMessageParserTest extends TestCase
     {
         return [
             'not json'       => ['{"jsonrpc":', McpErrorCodeEnum::ParseError],
-            'batch'          => ['[{"jsonrpc":"2.0","id":1,"method":"tools/list"}]', McpErrorCodeEnum::InvalidRequest],
+            'batch'          => [
+                '[{"jsonrpc":"2.0","id":1,"method":"tools/list"}]',
+                McpErrorCodeEnum::InvalidRequest,
+            ],
             'scalar'         => ['42', McpErrorCodeEnum::InvalidRequest],
             'no jsonrpc'     => ['{"id":1,"method":"tools/list"}', McpErrorCodeEnum::InvalidRequest],
             'no method'      => ['{"jsonrpc":"2.0","id":1}', McpErrorCodeEnum::InvalidRequest],
-            'list params'    => ['{"jsonrpc":"2.0","id":1,"method":"tools/list","params":[1]}', McpErrorCodeEnum::InvalidRequest],
+            'list params'    => [
+                '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":[1]}',
+                McpErrorCodeEnum::InvalidRequest,
+            ],
             'object id'      => ['{"jsonrpc":"2.0","id":{},"method":"tools/list"}', McpErrorCodeEnum::InvalidRequest],
         ];
     }
 
     #[DataProvider('invalidBodies')]
-    public function testRejectsInvalidBodies(string $body, McpErrorCodeEnum $code): void
-    {
+    public function testRejectsInvalidBodies(
+        string $body,
+        McpErrorCodeEnum $code
+    ): void {
         try {
             new McpMessageParser()->parse($body);
 
             $this->fail('No exception');
         } catch (McpProtocolException $exception) {
-            $this->assertSame($code, $exception->errorCode);
-            $this->assertSame(400, $exception->httpStatus);
+            $this->assertSame(
+                $code,
+                $exception->errorCode
+            );
+            $this->assertSame(
+                400,
+                $exception->httpStatus
+            );
         }
     }
 }

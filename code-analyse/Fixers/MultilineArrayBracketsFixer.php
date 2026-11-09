@@ -26,7 +26,9 @@ use SplFileInfo;
  *               php-cs-fixer marks its tokenizer and base fixer classes as @internal,
  *               yet they are the only API a custom fixer can be built on
  */
-class MultilineArrayBracketsFixer extends AbstractFixer implements ConfigurableFixerInterface, WhitespacesAwareFixerInterface
+class MultilineArrayBracketsFixer extends AbstractFixer implements
+    ConfigurableFixerInterface,
+    WhitespacesAwareFixerInterface
 {
     /** @use ConfigurableFixerTrait<_Config, _Config> */
     use ConfigurableFixerTrait;
@@ -66,9 +68,7 @@ class MultilineArrayBracketsFixer extends AbstractFixer implements ConfigurableF
 
     protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([
-            $this->excludedPathsOption(),
-        ]);
+        return new FixerConfigurationResolver([$this->excludedPathsOption()]);
     }
 
     protected function applyFix(SplFileInfo $file, Tokens $tokens): void

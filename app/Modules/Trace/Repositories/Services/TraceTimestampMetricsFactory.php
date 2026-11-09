@@ -33,8 +33,10 @@ class TraceTimestampMetricsFactory
         );
     }
 
-    public function calcLoggedAtFrom(TraceTimestampPeriodEnum $timestampPeriod, Carbon $date): Carbon
-    {
+    public function calcLoggedAtFrom(
+        TraceTimestampPeriodEnum $timestampPeriod,
+        Carbon $date
+    ): Carbon {
         return match ($timestampPeriod) {
             TraceTimestampPeriodEnum::Minute5  => $date->clone()->subMinutes(5),
             TraceTimestampPeriodEnum::Minute30 => $date->clone()->subMinutes(30),
@@ -205,9 +207,7 @@ class TraceTimestampMetricsFactory
                 TraceTimestampEnum::H12,
                 TraceTimestampEnum::D,
             ],
-            TraceTimestampPeriodEnum::Month3 => [
-                TraceTimestampEnum::D,
-            ],
+            TraceTimestampPeriodEnum::Month3                                 => [TraceTimestampEnum::D],
             TraceTimestampPeriodEnum::Month6, TraceTimestampPeriodEnum::Year => [
                 TraceTimestampEnum::D,
                 TraceTimestampEnum::M,
@@ -218,27 +218,21 @@ class TraceTimestampMetricsFactory
     private function sliceHours(Carbon $date, int $slice): Carbon
     {
         return $date
-            ->setHours(
-                $this->sliceValue($date->hour, $slice)
-            )
+            ->setHours($this->sliceValue($date->hour, $slice))
             ->startOfHour();
     }
 
     private function sliceMinutes(Carbon $date, int $slice): Carbon
     {
         return $date
-            ->setMinutes(
-                $this->sliceValue($date->minute, $slice)
-            )
+            ->setMinutes($this->sliceValue($date->minute, $slice))
             ->startOfMinute();
     }
 
     private function sliceSeconds(Carbon $date, int $slice): Carbon
     {
         return $date
-            ->setSeconds(
-                $this->sliceValue($date->second, $slice)
-            )
+            ->setSeconds($this->sliceValue($date->second, $slice))
             ->startOfSecond();
     }
 

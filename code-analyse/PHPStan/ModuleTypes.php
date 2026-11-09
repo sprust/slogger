@@ -38,7 +38,10 @@ class ModuleTypes
                 $name   = $ancestor->getName();
                 $module = self::module($name);
 
-                if ($module !== null && $module !== $owner && $module !== 'Common' && str_contains($name, '\\Parameters\\')) {
+                if (
+                    $module !== null && $module !== $owner && $module !== 'Common'
+                    && str_contains($name, '\\Parameters\\')
+                ) {
                     $invalid[] = $name;
                 }
             }
@@ -48,10 +51,17 @@ class ModuleTypes
             }
 
             foreach ($reflection->getNativeReflection()->getProperties() as $property) {
-                if ($reflection->hasNativeProperty($property->getName())) {
+                if (
+                    $reflection->hasNativeProperty(
+                        $property->getName()
+                    )
+                ) {
                     $invalid = [
-                        ...$invalid, ...$this->foreignParameters(
-                            $reflection->getNativeProperty($property->getName())->getReadableType(),
+                        ...$invalid,
+                        ...$this->foreignParameters(
+                            $reflection->getNativeProperty(
+                                $property->getName()
+                            )->getReadableType(),
                             $owner,
                             $visited
                         ),

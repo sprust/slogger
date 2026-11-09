@@ -20,8 +20,11 @@ readonly class GetTraceFacetsTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
 
-    public function __construct(private FindMcpTraceFacetsAction $findMcpTraceFacetsAction, private FindMcpSettingsAction $findMcpSettingsAction, private McpToolTraceScopeReader $scopeReader)
-    {
+    public function __construct(
+        private FindMcpTraceFacetsAction $findMcpTraceFacetsAction,
+        private FindMcpSettingsAction $findMcpSettingsAction,
+        private McpToolTraceScopeReader $scopeReader
+    ) {
     }
 
     public function name(): string
@@ -36,7 +39,9 @@ readonly class GetTraceFacetsTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'Trace types, statuses and tags of the chosen services (all when omitted) over a period ' . 'with their counts, most frequent first, as the filters of the SLogger traces page. Types are ' . 'counted without the types filter, statuses without the statuses filter.';
+        return 'Trace types, statuses and tags of the chosen services (all when omitted) over a period '
+            . 'with their counts, most frequent first, as the filters of the SLogger traces page. Types are '
+            . 'counted without the types filter, statuses without the statuses filter.';
     }
 
     public function schema(): McpToolSchema
@@ -98,9 +103,12 @@ readonly class GetTraceFacetsTool implements McpToolInterface
      */
     private function items(McpTraceFacetListObject $list): array
     {
-        return array_map(static fn(TraceStringFieldObject $item) => [
-            'value' => $item->name,
-            'count' => $item->count,
-        ], $list->items);
+        return array_map(
+            static fn(TraceStringFieldObject $item) => [
+                'value' => $item->name,
+                'count' => $item->count,
+            ],
+            $list->items
+        );
     }
 }

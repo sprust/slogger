@@ -23,8 +23,19 @@ use Symfony\Component\HttpFoundation\Response;
 
 readonly class McpServer
 {
-    public function __construct(private DispatcherInterface $dispatcher, private FindMcpSettingsAction $findMcpSettingsAction, private McpToolRegistry $toolRegistry, private McpPromptRegistry $promptRegistry, private McpToolSchemaCompiler $schemaCompiler, private McpResultFactory $resultFactory, private McpInstructionsBuilder $instructionsBuilder, private McpStringTruncator $stringTruncator, private McpJsonEncoder $jsonEncoder, private McpToolFormatter $toolFormatter, private ValidationFactory $validationFactory)
-    {
+    public function __construct(
+        private DispatcherInterface $dispatcher,
+        private FindMcpSettingsAction $findMcpSettingsAction,
+        private McpToolRegistry $toolRegistry,
+        private McpPromptRegistry $promptRegistry,
+        private McpToolSchemaCompiler $schemaCompiler,
+        private McpResultFactory $resultFactory,
+        private McpInstructionsBuilder $instructionsBuilder,
+        private McpStringTruncator $stringTruncator,
+        private McpJsonEncoder $jsonEncoder,
+        private McpToolFormatter $toolFormatter,
+        private ValidationFactory $validationFactory
+    ) {
     }
 
     /**
@@ -65,10 +76,8 @@ readonly class McpServer
         return $this->resultFactory->cacheable(
             settings: $settings,
             result: [
-                'supportedVersions' => [
-                    McpVersionValidator::SUPPORTED_VERSION,
-                ],
-                'capabilities' => [
+                'supportedVersions' => [McpVersionValidator::SUPPORTED_VERSION],
+                'capabilities'      => [
                     'tools'   => new stdClass(),
                     'prompts' => new stdClass(),
                 ],
@@ -85,15 +94,20 @@ readonly class McpServer
         return $this->resultFactory->cacheable(
             settings: $settings,
             result: [
-                'tools' => array_map(fn(McpToolInterface $tool) => [
-                    'name'        => $tool->name(),
-                    'title'       => $tool->title(),
-                    'description' => $tool->description(),
-                    'inputSchema' => $this->schemaCompiler->toJsonSchema($tool->schema()),
-                    'annotations' => [
-                        'readOnlyHint' => true,
+                'tools' => array_map(
+                    fn(McpToolInterface $tool) => [
+                        'name'        => $tool->name(),
+                        'title'       => $tool->title(),
+                        'description' => $tool->description(),
+                        'inputSchema' => $this->schemaCompiler->toJsonSchema(
+                            $tool->schema()
+                        ),
+                        'annotations' => [
+                            'readOnlyHint' => true,
+                        ],
                     ],
-                ], $this->toolRegistry->all()),
+                    $this->toolRegistry->all()
+                ),
             ],
         );
     }
@@ -173,11 +187,12 @@ readonly class McpServer
     /**
      * @throws McpProtocolException
      */
-    private function validateArguments(McpRequestMessage $message, McpToolInterface $tool, mixed $arguments): McpToolArguments
-    {
-        if (
-            !is_array($arguments) || count($arguments) > 0 && array_is_list($arguments)
-        ) {
+    private function validateArguments(
+        McpRequestMessage $message,
+        McpToolInterface $tool,
+        mixed $arguments
+    ): McpToolArguments {
+        if (!is_array($arguments) || count($arguments) > 0 && array_is_list($arguments)) {
             throw $this->invalidParams(
                 message: $message,
                 text: 'Invalid params: "arguments" must be an object',
@@ -186,16 +201,8 @@ readonly class McpServer
 
         $known = array_map(static fn($property) => $property->name, $tool->schema()->properties);
 
-        foreach (
-            array_keys($arguments) as $key
-        ) {
-            if (
-                !in_array(
-                    $key,
-                    $known,
-                    true,
-                )
-            ) {
+        foreach (array_keys($arguments) as $key) {
+            if (!in_array($key, $known, true)) {
                 throw $this->invalidParams(
                     message: $message,
                     text: "Invalid params: unknown argument [{$key}]",
@@ -205,7 +212,9 @@ readonly class McpServer
 
         $validator = $this->validationFactory->make(
             data: $arguments,
-            rules: $this->schemaCompiler->toRules($tool->schema()),
+            rules: $this->schemaCompiler->toRules(
+                $tool->schema()
+            ),
         );
 
         if ($validator->fails()) {
@@ -234,16 +243,22 @@ readonly class McpServer
         return $this->resultFactory->cacheable(
             settings: $settings,
             result: [
-                'prompts' => array_map(static fn(McpPromptInterface $prompt) => [
-                    'name'        => $prompt->name(),
-                    'title'       => $prompt->title(),
-                    'description' => $prompt->description(),
-                    'arguments'   => array_map(static fn(McpPromptArgument $argument) => [
-                        'name'        => $argument->name,
-                        'description' => $argument->description,
-                        'required'    => $argument->required,
-                    ], $prompt->arguments()),
-                ], $this->promptRegistry->all()),
+                'prompts' => array_map(
+                    static fn(McpPromptInterface $prompt) => [
+                        'name'        => $prompt->name(),
+                        'title'       => $prompt->title(),
+                        'description' => $prompt->description(),
+                        'arguments'   => array_map(
+                            static fn(McpPromptArgument $argument) => [
+                                'name'        => $argument->name,
+                                'description' => $argument->description,
+                                'required'    => $argument->required,
+                            ],
+                            $prompt->arguments()
+                        ),
+                    ],
+                    $this->promptRegistry->all()
+                ),
             ],
         );
     }

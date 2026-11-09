@@ -14,6 +14,9 @@ class McpTraceGroupsOverlapException extends Exception
     public function __construct(
         public readonly array $statuses
     ) {
-        parent::__construct('Statuses in both groups: ' . implode(', ', $statuses));
+        parent::__construct(
+            'Statuses in both groups: '
+                . implode(', ', $statuses)
+        );
     }
 }

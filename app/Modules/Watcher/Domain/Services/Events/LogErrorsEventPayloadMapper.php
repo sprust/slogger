@@ -54,7 +54,9 @@ readonly class LogErrorsEventPayloadMapper implements WatcherEventPayloadMapperI
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof LogErrorsEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

@@ -24,8 +24,12 @@ readonly class AggregateTracesTool implements McpToolInterface
 
     private const int MAX_DATA_FILTER   = 3;
 
-    public function __construct(private FindMcpTraceGroupsAction $findMcpTraceGroupsAction, private McpToolTraceScopeReader $scopeReader, private McpToolServiceFinder $serviceFinder, private McpToolFormatter $formatter)
-    {
+    public function __construct(
+        private FindMcpTraceGroupsAction $findMcpTraceGroupsAction,
+        private McpToolTraceScopeReader $scopeReader,
+        private McpToolServiceFinder $serviceFinder,
+        private McpToolFormatter $formatter
+    ) {
     }
 
     public function name(): string
@@ -40,7 +44,16 @@ readonly class AggregateTracesTool implements McpToolInterface
 
     public function description(): string
     {
-        return sprintf('Traces over a period grouped by 1 to %d of: service, type, status, hour, minute10 (at most one of ' . 'the two times), with count, average, p95 and max duration and the slowest trace of each group. ' . 'Groups by time come in time order, the rest most frequent first; at most %d groups. Use it ' . 'first for overview questions (which services and types, when failures happen, how latency ' . 'changes), then search_traces for the traces themselves. Takes the filters of search_traces, ' . 'data_filter included.', FindMcpTraceGroupsAction::MAX_FIELDS, FindMcpTraceGroupsAction::LIMIT);
+        return sprintf(
+            'Traces over a period grouped by 1 to %d of: service, type, status, hour, minute10 (at most one of '
+                . 'the two times), with count, average, p95 and max duration and the slowest trace of each group. '
+                . 'Groups by time come in time order, the rest most frequent first; at most %d groups. Use it '
+                . 'first for overview questions (which services and types, when failures happen, how latency '
+                . 'changes), then search_traces for the traces themselves. Takes the filters of search_traces, '
+                . 'data_filter included.',
+            FindMcpTraceGroupsAction::MAX_FIELDS,
+            FindMcpTraceGroupsAction::LIMIT
+        );
     }
 
     public function schema(): McpToolSchema
@@ -53,7 +66,12 @@ readonly class AggregateTracesTool implements McpToolInterface
                     type: McpToolPropertyTypeEnum::StringList,
                     description: 'Fields to group by.',
                     required: true,
-                    enum: array_map(static fn(TraceGroupFieldEnum $field) => $field->value, TraceGroupFieldEnum::cases()),
+                    enum: array_map(
+                        static fn(
+                            TraceGroupFieldEnum $field
+                        ) => $field->value,
+                        TraceGroupFieldEnum::cases()
+                    ),
                     min: 1,
                     max: FindMcpTraceGroupsAction::MAX_FIELDS,
                 ),
@@ -92,7 +110,8 @@ readonly class AggregateTracesTool implements McpToolInterface
                 new McpToolProperty(
                     name: 'data_filter',
                     type: McpToolPropertyTypeEnum::StringList,
-                    description: 'Conditions on the trace data, all must hold. ' . McpTraceDataFilterParser::FORMAT,
+                    description: 'Conditions on the trace data, all must hold. '
+                        . McpTraceDataFilterParser::FORMAT,
                     max: self::MAX_DATA_FILTER,
                 ),
             ],
@@ -131,7 +150,11 @@ readonly class AggregateTracesTool implements McpToolInterface
         } catch (McpTraceDataFilterInvalidException $exception) {
             return $this->formatter->error(
                 error: 'invalid_data_filter',
-                hint: sprintf('Condition "%s" is not valid. Format: %s', $exception->condition, McpTraceDataFilterParser::FORMAT),
+                hint: sprintf(
+                    'Condition "%s" is not valid. Format: %s',
+                    $exception->condition,
+                    McpTraceDataFilterParser::FORMAT
+                ),
             );
         }
 
@@ -159,8 +182,11 @@ readonly class AggregateTracesTool implements McpToolInterface
      *
      * @return array<string, mixed>
      */
-    private function group(TraceGroupObject $group, array $groupBy, McpToolServiceNames $names): array
-    {
+    private function group(
+        TraceGroupObject $group,
+        array $groupBy,
+        McpToolServiceNames $names
+    ): array {
         $data = [];
 
         foreach ($groupBy as $field) {

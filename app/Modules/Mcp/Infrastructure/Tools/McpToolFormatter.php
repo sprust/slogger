@@ -34,7 +34,10 @@ readonly class McpToolFormatter
     {
         return $this->error(
             error: 'invalid_time',
-            hint: sprintf('Argument "%s" is not an ISO 8601 time, for example 2026-09-28T20:00:00Z.', $argument),
+            hint: sprintf(
+                'Argument "%s" is not an ISO 8601 time, for example 2026-09-28T20:00:00Z.',
+                $argument
+            ),
         );
     }
 
@@ -45,7 +48,8 @@ readonly class McpToolFormatter
     {
         return $this->error(
             error: 'query_failed',
-            hint: 'The trace storage could not answer this query. Try a shorter period, fewer services ' . 'or narrower filters.',
+            hint: 'The trace storage could not answer this query. Try a shorter period, fewer services '
+                . 'or narrower filters.',
         );
     }
 
@@ -58,10 +62,7 @@ readonly class McpToolFormatter
             error: 'service_not_found',
             hint: sprintf(
                 'No services with ids [%s]. Call get_services to get the ids.',
-                implode(
-                    ', ',
-                    $serviceIds,
-                )
+                implode(', ', $serviceIds)
             ),
         );
     }
@@ -137,7 +138,13 @@ readonly class McpToolFormatter
             TraceTreeCacheStateStatusEnum::Finished                                        => null,
             TraceTreeCacheStateStatusEnum::Failed, TraceTreeCacheStateStatusEnum::Canceled => $this->error(
                 error: 'tree_' . $tree->status->value,
-                hint: sprintf('Building the tree of root trace [%s] ended with status %s%s. ' . 'Only the user can rebuild it in the SLogger UI.', $tree->rootTraceId, $tree->status->value, is_null($tree->error) ? '' : ": {$tree->error}"),
+                hint: sprintf(
+                    'Building the tree of root trace [%s] ended with status %s%s. '
+                        . 'Only the user can rebuild it in the SLogger UI.',
+                    $tree->rootTraceId,
+                    $tree->status->value,
+                    is_null($tree->error) ? '' : ": {$tree->error}"
+                ),
             ),
             default => new McpToolResult(
                 data: [

@@ -27,28 +27,62 @@ class UserAdminHttpTest extends TestCase
     public function testWithoutSessionIsUnauthorized(): void
     {
         $this->getJson('/admin-api/users')->assertUnauthorized();
-        $this->postJson('/admin-api/users', $this->createPayload())->assertUnauthorized();
-        $this->patchJson('/admin-api/users/1', ['first_name' => 'Ann'])->assertUnauthorized();
+        $this
+            ->postJson('/admin-api/users', $this->createPayload())
+            ->assertUnauthorized();
+        $this
+            ->patchJson(
+                '/admin-api/users/1',
+                ['first_name' => 'Ann']
+            )
+            ->assertUnauthorized();
     }
 
     public function testListsUsersWithoutPasswords(): void
     {
         $this->withoutAuth();
 
-        $this->repository->method('find')->willReturn([
-            $this->userObject(id: 1, firstName: 'Ann'),
-            $this->userObject(id: 2, firstName: 'Bob'),
-        ]);
+        $this->repository
+            ->method('find')
+            ->willReturn([
+                $this->userObject(
+                    id: 1,
+                    firstName: 'Ann'
+                ),
+                $this->userObject(
+                    id: 2,
+                    firstName: 'Bob'
+                ),
+            ]);
 
-        $response = $this->getJson('/admin-api/users')
+        $response = $this
+            ->getJson('/admin-api/users')
             ->assertOk()
-            ->assertJsonPath('data.0.id', 1)
-            ->assertJsonPath('data.1.first_name', 'Bob')
-            ->assertJsonPath('data.0.email', 'us****@example.com')
-            ->assertJsonPath('data.0.created_at', '2026-10-22 05:00:00')
-            ->assertJsonPath('data.0.updated_at', '2026-10-22 06:00:00');
+            ->assertJsonPath(
+                'data.0.id',
+                1
+            )
+            ->assertJsonPath(
+                'data.1.first_name',
+                'Bob'
+            )
+            ->assertJsonPath(
+                'data.0.email',
+                'us****@example.com'
+            )
+            ->assertJsonPath(
+                'data.0.created_at',
+                '2026-10-22 05:00:00'
+            )
+            ->assertJsonPath(
+                'data.0.updated_at',
+                '2026-10-22 06:00:00'
+            );
 
-        $this->assertArrayNotHasKey('password', $response->json('data.0'));
+        $this->assertArrayNotHasKey(
+            'password',
+            $response->json('data.0')
+        );
     }
 
     public function testCreates(): void
@@ -56,44 +90,82 @@ class UserAdminHttpTest extends TestCase
         $this->withoutAuth();
 
         $this->repository->method('isExistByEmail')->with('ann@example.com')->willReturn(false);
-        $this->repository->expects($this->once())
+        $this->repository
+            ->expects(
+                $this->once()
+            )
             ->method('create')
             ->with(
                 $this->callback(
                     fn(UserCreateParameters $parameters) => $parameters->firstName === 'Ann'
-                        && $parameters->lastName === null
-                        && $parameters->email === 'ann@example.com'
-                        && $parameters->password === 'secret12'
+                    && $parameters->lastName === null
+                    && $parameters->email === 'ann@example.com'
+                    && $parameters->password === 'secret12'
                 )
             )
             ->willReturn(5);
-        $this->repository->method('findOneById')->with(5)->willReturn($this->userObject(id: 5, firstName: 'Ann'));
+        $this->repository
+            ->method('findOneById')
+            ->with(5)
+            ->willReturn(
+                $this->userObject(
+                    id: 5,
+                    firstName: 'Ann'
+                )
+            );
 
-        $this->postJson('/admin-api/users', $this->createPayload())
+        $this
+            ->postJson('/admin-api/users', $this->createPayload())
             ->assertOk()
-            ->assertJsonPath('data.id', 5)
-            ->assertJsonPath('data.first_name', 'Ann');
+            ->assertJsonPath(
+                'data.id',
+                5
+            )
+            ->assertJsonPath(
+                'data.first_name',
+                'Ann'
+            );
     }
 
     public function testMasksEmails(): void
     {
         $this->withoutAuth();
 
-        $this->repository->method('find')->willReturn([
-            $this->userObject(
-                id: 1,
-                firstName: 'Ann',
-                email: 'sppetrovich@gmail.com'
-            ),
-            $this->userObject(id: 2, firstName: 'Bob', email: 'ab@gmail.com'),
-            $this->userObject(id: 3, firstName: 'Kim', email: 'a@gmail.com'),
-        ]);
+        $this->repository
+            ->method('find')
+            ->willReturn([
+                $this->userObject(
+                    id: 1,
+                    firstName: 'Ann',
+                    email: 'sppetrovich@gmail.com'
+                ),
+                $this->userObject(
+                    id: 2,
+                    firstName: 'Bob',
+                    email: 'ab@gmail.com'
+                ),
+                $this->userObject(
+                    id: 3,
+                    firstName: 'Kim',
+                    email: 'a@gmail.com'
+                ),
+            ]);
 
-        $this->getJson('/admin-api/users')
+        $this
+            ->getJson('/admin-api/users')
             ->assertOk()
-            ->assertJsonPath('data.0.email', 'sp****@gmail.com')
-            ->assertJsonPath('data.1.email', 'a****@gmail.com')
-            ->assertJsonPath('data.2.email', 'a****@gmail.com');
+            ->assertJsonPath(
+                'data.0.email',
+                'sp****@gmail.com'
+            )
+            ->assertJsonPath(
+                'data.1.email',
+                'a****@gmail.com'
+            )
+            ->assertJsonPath(
+                'data.2.email',
+                'a****@gmail.com'
+            );
     }
 
     public function testCreatingWithUsedEmailIsRejected(): void
@@ -101,44 +173,73 @@ class UserAdminHttpTest extends TestCase
         $this->withoutAuth();
 
         $this->repository->method('isExistByEmail')->willReturn(true);
-        $this->repository->expects($this->never())->method('create');
+        $this->repository->expects(
+            $this->never()
+        )->method('create');
 
-        $this->postJson('/admin-api/users', $this->createPayload())->assertUnprocessable();
+        $this
+            ->postJson('/admin-api/users', $this->createPayload())
+            ->assertUnprocessable();
     }
 
     public function testInvalidCreateIsRejected(): void
     {
         $this->withoutAuth();
 
-        $this->repository->expects($this->never())->method('create');
+        $this->repository->expects(
+            $this->never()
+        )->method('create');
 
-        $this->postJson(
-            '/admin-api/users',
-            [...$this->createPayload(), 'email' => 'wrong']
-        )->assertUnprocessable();
-        $this->postJson(
-            '/admin-api/users',
-            [...$this->createPayload(), 'password' => 'short']
-        )->assertUnprocessable();
-        $this->postJson(
-            '/admin-api/users',
-            [...$this->createPayload(), 'first_name' => '']
-        )->assertUnprocessable();
+        $this
+            ->postJson(
+                '/admin-api/users',
+                [...$this->createPayload(), 'email' => 'wrong']
+            )
+            ->assertUnprocessable();
+        $this
+            ->postJson(
+                '/admin-api/users',
+                [...$this->createPayload(), 'password' => 'short']
+            )
+            ->assertUnprocessable();
+        $this
+            ->postJson(
+                '/admin-api/users',
+                [...$this->createPayload(), 'first_name' => '']
+            )
+            ->assertUnprocessable();
     }
 
     public function testRenames(): void
     {
         $this->withoutAuth();
 
-        $this->repository->method('findOneById')->with(3)->willReturn($this->userObject(id: 3, firstName: 'Ann'));
-        $this->repository->expects($this->once())->method('updateName')->with(3, 'Anna', 'Smith');
+        $this->repository
+            ->method('findOneById')
+            ->with(3)
+            ->willReturn(
+                $this->userObject(
+                    id: 3,
+                    firstName: 'Ann'
+                )
+            );
+        $this->repository
+            ->expects(
+                $this->once()
+            )
+            ->method('updateName')
+            ->with(3, 'Anna', 'Smith');
 
-        $this->patchJson(
-            '/admin-api/users/3',
-            ['first_name' => 'Anna', 'last_name' => 'Smith']
-        )
+        $this
+            ->patchJson(
+                '/admin-api/users/3',
+                ['first_name' => 'Anna', 'last_name' => 'Smith']
+            )
             ->assertOk()
-            ->assertJsonPath('data.id', 3);
+            ->assertJsonPath(
+                'data.id',
+                3
+            );
     }
 
     public function testRenamingUnknownUserIsNotFound(): void
@@ -146,9 +247,16 @@ class UserAdminHttpTest extends TestCase
         $this->withoutAuth();
 
         $this->repository->method('findOneById')->willReturn(null);
-        $this->repository->expects($this->never())->method('updateName');
+        $this->repository->expects(
+            $this->never()
+        )->method('updateName');
 
-        $this->patchJson('/admin-api/users/999999', ['first_name' => 'Ann'])->assertNotFound();
+        $this
+            ->patchJson(
+                '/admin-api/users/999999',
+                ['first_name' => 'Ann']
+            )
+            ->assertNotFound();
     }
 
     /**
@@ -163,8 +271,11 @@ class UserAdminHttpTest extends TestCase
         ];
     }
 
-    private function userObject(int $id, string $firstName, string $email = 'user@example.com'): UserObject
-    {
+    private function userObject(
+        int $id,
+        string $firstName,
+        string $email = 'user@example.com'
+    ): UserObject {
         return new UserObject(
             id: $id,
             firstName: $firstName,

@@ -20,8 +20,12 @@ readonly class CompareTraceGroupsTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
 
-    public function __construct(private CompareMcpTraceGroupsAction $compareMcpTraceGroupsAction, private McpToolTraceScopeReader $scopeReader, private McpToolServiceFinder $serviceFinder, private McpToolFormatter $formatter)
-    {
+    public function __construct(
+        private CompareMcpTraceGroupsAction $compareMcpTraceGroupsAction,
+        private McpToolTraceScopeReader $scopeReader,
+        private McpToolServiceFinder $serviceFinder,
+        private McpToolFormatter $formatter
+    ) {
     }
 
     public function name(): string
@@ -36,7 +40,15 @@ readonly class CompareTraceGroupsTool implements McpToolInterface
 
     public function description(): string
     {
-        return sprintf('Compares two groups of traces over a period by status (group A, and group B or all other ' . 'statuses) across the values of type, service, tag or a data key (data.<key>): counts and ' . 'shares in each group, the values most typical of group A first, at most %d. Answers what ' . 'failed traces have in common that the others do not. By tag a trace counts once for each of ' . 'its tags, so the totals are tag uses; data.<key> reads the value at the key and does not ' . 'walk into arrays.', CompareMcpTraceGroupsAction::LIMIT);
+        return sprintf(
+            'Compares two groups of traces over a period by status (group A, and group B or all other '
+                . 'statuses) across the values of type, service, tag or a data key (data.<key>): counts and '
+                . 'shares in each group, the values most typical of group A first, at most %d. Answers what '
+                . 'failed traces have in common that the others do not. By tag a trace counts once for each of '
+                . 'its tags, so the totals are tag uses; data.<key> reads the value at the key and does not '
+                . 'walk into arrays.',
+            CompareMcpTraceGroupsAction::LIMIT
+        );
     }
 
     public function schema(): McpToolSchema
@@ -104,13 +116,7 @@ readonly class CompareTraceGroupsTool implements McpToolInterface
         } catch (McpTraceGroupsOverlapException $exception) {
             return $this->formatter->error(
                 error: 'overlapping_groups',
-                hint: sprintf(
-                    'Statuses [%s] are in both groups.',
-                    implode(
-                        ', ',
-                        $exception->statuses,
-                    )
-                ),
+                hint: sprintf('Statuses [%s] are in both groups.', implode(', ', $exception->statuses)),
             );
         }
 
@@ -122,13 +128,18 @@ readonly class CompareTraceGroupsTool implements McpToolInterface
                 'by'            => $by,
                 'group_a_total' => $comparison->groupATotal,
                 'group_b_total' => $comparison->groupBTotal,
-                'rows'          => array_map(static fn(TraceGroupComparisonRowObject $row) => [
-                    'value'         => $by === 'service' && is_numeric($row->value) ? $names->describe((int) $row->value) : $row->value,
-                    'group_a_count' => $row->groupACount,
-                    'group_a_share' => $row->groupAShare,
-                    'group_b_count' => $row->groupBCount,
-                    'group_b_share' => $row->groupBShare,
-                ], $comparison->rows),
+                'rows'          => array_map(
+                    static fn(TraceGroupComparisonRowObject $row) => [
+                        'value'         => $by === 'service' && is_numeric($row->value)
+                            ? $names->describe((int) $row->value)
+                            : $row->value,
+                        'group_a_count' => $row->groupACount,
+                        'group_a_share' => $row->groupAShare,
+                        'group_b_count' => $row->groupBCount,
+                        'group_b_share' => $row->groupBShare,
+                    ],
+                    $comparison->rows
+                ),
                 'truncated' => $comparison->truncated,
             ],
         );

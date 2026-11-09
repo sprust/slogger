@@ -32,7 +32,9 @@ class TraceGroupsActionsTest extends TestCase
 
     public function testGroupsPassTheFiltersOfTheTraceSearch(): void
     {
-        $data = new TraceDataFilterParameters(filter: [$this->dataFilterItem()]);
+        $data = new TraceDataFilterParameters(
+            filter: [$this->dataFilterItem()]
+        );
 
         $repository = $this->repository(
             'findGroups',
@@ -53,8 +55,13 @@ class TraceGroupsActionsTest extends TestCase
             )
         );
 
-        $this->assertCount(2, $result->items);
-        $this->assertTrue($result->truncated);
+        $this->assertCount(
+            2,
+            $result->items
+        );
+        $this->assertTrue(
+            $result->truncated
+        );
         $this->assertSame(
             '2026-09-28 10:00:00',
             $this->repositoryArguments['loggedAtFrom']?->toDateTimeString()
@@ -78,7 +85,17 @@ class TraceGroupsActionsTest extends TestCase
             array_intersect_key(
                 $this->repositoryArguments ?? [],
                 array_flip(
-                    ['groupBy', 'limit', 'serviceIds', 'types', 'tags', 'statuses', 'durationFrom', 'durationTo', 'data']
+                    [
+                        'groupBy',
+                        'limit',
+                        'serviceIds',
+                        'types',
+                        'tags',
+                        'statuses',
+                        'durationFrom',
+                        'durationTo',
+                        'data',
+                    ]
                 )
             )
         );
@@ -86,7 +103,10 @@ class TraceGroupsActionsTest extends TestCase
 
     public function testGroupsWithoutDataAreNotFilteredByData(): void
     {
-        $repository = $this->repository('findGroups', [$this->group()]);
+        $repository = $this->repository(
+            'findGroups',
+            [$this->group()]
+        );
 
         $result = new FindTraceGroupsAction($repository)->handle(
             new TraceFindGroupsParameters(
@@ -96,29 +116,69 @@ class TraceGroupsActionsTest extends TestCase
             )
         );
 
-        $this->assertCount(1, $result->items);
-        $this->assertFalse($result->truncated);
-        $this->assertArrayHasKey('data', $this->repositoryArguments ?? []);
-        $this->assertNull($this->repositoryArguments['data']);
+        $this->assertCount(
+            1,
+            $result->items
+        );
+        $this->assertFalse(
+            $result->truncated
+        );
+        $this->assertArrayHasKey(
+            'data',
+            $this->repositoryArguments ?? []
+        );
+        $this->assertNull(
+            $this->repositoryArguments['data']
+        );
     }
 
     public function testComparisonSharesAndOrder(): void
     {
         $result = $this->compare(
             [
-                new TraceGroupComparisonCountObject(value: 'request', inGroupA: true, count: 8),
-                new TraceGroupComparisonCountObject(value: 'request', inGroupA: false, count: 10),
-                new TraceGroupComparisonCountObject(value: 'job', inGroupA: true, count: 2),
-                new TraceGroupComparisonCountObject(value: 'job', inGroupA: false, count: 90),
-                new TraceGroupComparisonCountObject(value: null, inGroupA: false, count: 0),
+                new TraceGroupComparisonCountObject(
+                    value: 'request',
+                    inGroupA: true,
+                    count: 8
+                ),
+                new TraceGroupComparisonCountObject(
+                    value: 'request',
+                    inGroupA: false,
+                    count: 10
+                ),
+                new TraceGroupComparisonCountObject(
+                    value: 'job',
+                    inGroupA: true,
+                    count: 2
+                ),
+                new TraceGroupComparisonCountObject(
+                    value: 'job',
+                    inGroupA: false,
+                    count: 90
+                ),
+                new TraceGroupComparisonCountObject(
+                    value: null,
+                    inGroupA: false,
+                    count: 0
+                ),
             ],
             groupBStatuses: []
         );
 
-        $this->assertSame(10, $result->groupATotal);
-        $this->assertSame(100, $result->groupBTotal);
         $this->assertSame(
-            [['request', 8, 0.8, 10, 0.1], [null, 0, 0.0, 0, 0.0], ['job', 2, 0.2, 90, 0.9]],
+            10,
+            $result->groupATotal
+        );
+        $this->assertSame(
+            100,
+            $result->groupBTotal
+        );
+        $this->assertSame(
+            [
+                ['request', 8, 0.8, 10, 0.1],
+                [null, 0, 0.0, 0, 0.0],
+                ['job', 2, 0.2, 90, 0.9],
+            ],
             array_map(
                 static fn(TraceGroupComparisonRowObject $row) => [
                     $row->value,
@@ -130,13 +190,21 @@ class TraceGroupsActionsTest extends TestCase
                 $result->rows
             )
         );
-        $this->assertFalse($result->truncated);
-        $this->assertSame([], $this->repositoryArguments['statuses'] ?? null);
+        $this->assertFalse(
+            $result->truncated
+        );
+        $this->assertSame(
+            [],
+            $this->repositoryArguments['statuses'] ?? null
+        );
     }
 
     public function testGroupBLimitsTheStatuses(): void
     {
-        $this->compare([], groupBStatuses: ['success']);
+        $this->compare(
+            [],
+            groupBStatuses: ['success']
+        );
 
         $this->assertSame(
             ['failed', 'success'],
@@ -147,23 +215,44 @@ class TraceGroupsActionsTest extends TestCase
     public function testComparisonRowsAreLimited(): void
     {
         $counts = array_map(
-            static fn(int $i) => new TraceGroupComparisonCountObject(value: "v$i", inGroupA: true, count: $i),
+            static fn(
+                int $i
+            ) => new TraceGroupComparisonCountObject(
+                value: "v$i",
+                inGroupA: true,
+                count: $i
+            ),
             range(1, 5)
         );
 
-        $result = $this->compare($counts, groupBStatuses: [], limit: 3);
+        $result = $this->compare(
+            $counts,
+            groupBStatuses: [],
+            limit: 3
+        );
 
-        $this->assertCount(3, $result->rows);
-        $this->assertTrue($result->truncated);
-        $this->assertSame('v5', $result->rows[0]->value);
+        $this->assertCount(
+            3,
+            $result->rows
+        );
+        $this->assertTrue(
+            $result->truncated
+        );
+        $this->assertSame(
+            'v5',
+            $result->rows[0]->value
+        );
     }
 
     /**
      * @param TraceGroupComparisonCountObject[] $counts
      * @param string[]                          $groupBStatuses
      */
-    private function compare(array $counts, array $groupBStatuses, int $limit = 30): TraceGroupComparisonObject
-    {
+    private function compare(
+        array $counts,
+        array $groupBStatuses,
+        int $limit = 30
+    ): TraceGroupComparisonObject {
         $repository = $this->repository('compareGroups', $counts);
 
         return new CompareTraceGroupsAction($repository)->handle(
@@ -191,13 +280,21 @@ class TraceGroupsActionsTest extends TestCase
             new ReflectionMethod(TraceGroupsRepository::class, $method)->getParameters()
         );
 
-        $repository->expects($this->once())
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method($method)
-            ->willReturnCallback(function (...$arguments) use ($names, $result): array {
-                $this->repositoryArguments = array_combine(array_slice($names, 0, count($arguments)), $arguments);
+            ->willReturnCallback(
+                function (...$arguments) use ($names, $result): array {
+                    $this->repositoryArguments = array_combine(
+                        array_slice($names, 0, count($arguments)),
+                        $arguments
+                    );
 
-                return $result;
-            });
+                    return $result;
+                }
+            );
 
         return $repository;
     }

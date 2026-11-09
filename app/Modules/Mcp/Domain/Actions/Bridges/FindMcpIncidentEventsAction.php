@@ -17,8 +17,14 @@ readonly class FindMcpIncidentEventsAction
 {
     public const int PER_PAGE = 50;
 
-    public function __construct(private FindIncidentAction $findIncidentAction, private FindWatcherAction $findWatcherAction, private FindIncidentEventsAction $findIncidentEventsAction, private WatcherTypeRegistry $watcherTypeRegistry, private McpIncidentObjectTransport $mcpIncidentObjectTransport, private McpIncidentEventObjectTransport $mcpIncidentEventObjectTransport)
-    {
+    public function __construct(
+        private FindIncidentAction $findIncidentAction,
+        private FindWatcherAction $findWatcherAction,
+        private FindIncidentEventsAction $findIncidentEventsAction,
+        private WatcherTypeRegistry $watcherTypeRegistry,
+        private McpIncidentObjectTransport $mcpIncidentObjectTransport,
+        private McpIncidentEventObjectTransport $mcpIncidentEventObjectTransport
+    ) {
     }
 
     public function handle(string $incidentId, int $page): ?McpIncidentEventPageObject
@@ -45,7 +51,9 @@ readonly class FindMcpIncidentEventsAction
             );
         }
 
-        $watcherEventPayloadMapper = $this->watcherTypeRegistry->for($watcher->type)->eventPayloadMapper();
+        $watcherEventPayloadMapper = $this->watcherTypeRegistry
+            ->for($watcher->type)
+            ->eventPayloadMapper();
         $events                    = $this->findIncidentEventsAction->handle(
             incidentId: $incidentId,
             type: $watcher->type,
@@ -65,9 +73,13 @@ readonly class FindMcpIncidentEventsAction
                 watcher: $watcher,
             ),
             items: array_map(
-                fn(WatcherIncidentEventObject $event) => $this->mcpIncidentEventObjectTransport->fromWatcher(
+                fn(
+                    WatcherIncidentEventObject $event
+                ) => $this->mcpIncidentEventObjectTransport->fromWatcher(
                     watcherIncidentEventObject: $event,
-                    numbers: $event->payload === null ? null : $watcherEventPayloadMapper->toDocument($event->payload),
+                    numbers: $event->payload === null
+                        ? null
+                        : $watcherEventPayloadMapper->toDocument($event->payload),
                 ),
                 $events
             ),

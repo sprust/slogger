@@ -14,12 +14,17 @@ class FindTraceDataRangeActionTest extends TestCase
     {
         $repository = $this->createMock(TraceRepository::class);
 
-        $repository->expects($this->once())->method('findHourRange')->willReturn(
-            new TraceDataRangeObject(
-                firstHour: Carbon::parse('2026-09-25 10:00:00', 'UTC'),
-                lastHour: Carbon::parse('2026-09-28 14:00:00', 'UTC')
+        $repository
+            ->expects(
+                $this->once()
             )
-        );
+            ->method('findHourRange')
+            ->willReturn(
+                new TraceDataRangeObject(
+                    firstHour: Carbon::parse('2026-09-25 10:00:00', 'UTC'),
+                    lastHour: Carbon::parse('2026-09-28 14:00:00', 'UTC')
+                )
+            );
 
         $range = new FindTraceDataRangeAction($repository)->handle();
 
@@ -37,13 +42,22 @@ class FindTraceDataRangeActionTest extends TestCase
     {
         $repository = $this->createMock(TraceRepository::class);
 
-        $repository->method('findHourRange')->willReturn(
-            new TraceDataRangeObject(firstHour: null, lastHour: null)
-        );
+        $repository
+            ->method('findHourRange')
+            ->willReturn(
+                new TraceDataRangeObject(
+                    firstHour: null,
+                    lastHour: null
+                )
+            );
 
         $range = new FindTraceDataRangeAction($repository)->handle();
 
-        $this->assertNull($range->firstHour);
-        $this->assertNull($range->lastHour);
+        $this->assertNull(
+            $range->firstHour
+        );
+        $this->assertNull(
+            $range->lastHour
+        );
     }
 }

@@ -33,60 +33,119 @@ class McpAdminHttpTest extends TestCase
     {
         $this->withoutAuth();
 
-        $this->repository->method('find')->willReturn([$this->mcpObject(id: 3, requestsCount: 42)]);
+        $this->repository
+            ->method('find')
+            ->willReturn([$this->mcpObject(id: 3, requestsCount: 42)]);
 
-        $this->getJson('/admin-api/mcps')
+        $this
+            ->getJson('/admin-api/mcps')
             ->assertOk()
-            ->assertJsonPath('data.0.id', 3)
-            ->assertJsonPath('data.0.token', 'token')
-            ->assertJsonPath('data.0.enabled', true)
-            ->assertJsonPath('data.0.requests_count', 42)
-            ->assertJsonPath('data.0.last_used_at', null);
+            ->assertJsonPath(
+                'data.0.id',
+                3
+            )
+            ->assertJsonPath(
+                'data.0.token',
+                'token'
+            )
+            ->assertJsonPath(
+                'data.0.enabled',
+                true
+            )
+            ->assertJsonPath(
+                'data.0.requests_count',
+                42
+            )
+            ->assertJsonPath(
+                'data.0.last_used_at',
+                null
+            );
     }
 
     public function testCreates(): void
     {
         $this->withoutAuth();
 
-        $this->repository->expects($this->once())
+        $this->repository
+            ->expects(
+                $this->once()
+            )
             ->method('create')
-            ->willReturnCallback(fn(string $name, string $token) => $this->mcpObject(token: $token));
+            ->willReturnCallback(
+                fn(string $name, string $token) => $this->mcpObject(
+                    token: $token
+                )
+            );
 
-        $response = $this->postJson('/admin-api/mcps', ['name' => 'CI agent'])->assertOk();
+        $response = $this
+            ->postJson(
+                '/admin-api/mcps',
+                ['name' => 'CI agent']
+            )
+            ->assertOk();
 
-        $this->assertSame(50, strlen((string) $response->json('data.token')));
+        $this->assertSame(
+            50,
+            strlen((string) $response->json('data.token'))
+        );
     }
 
     public function testEmptyNameIsRejected(): void
     {
         $this->withoutAuth();
 
-        $this->repository->expects($this->never())->method('create');
+        $this->repository->expects(
+            $this->never()
+        )->method('create');
 
-        $this->postJson('/admin-api/mcps', ['name' => ''])->assertUnprocessable();
+        $this
+            ->postJson(
+                '/admin-api/mcps',
+                ['name' => '']
+            )
+            ->assertUnprocessable();
     }
 
     public function testDisables(): void
     {
         $this->withoutAuth();
 
-        $this->repository->method('findOneById')->willReturn($this->mcpObject(id: 3));
-        $this->repository->expects($this->once())
+        $this->repository
+            ->method('findOneById')
+            ->willReturn(
+                $this->mcpObject(
+                    id: 3
+                )
+            );
+        $this->repository
+            ->expects(
+                $this->once()
+            )
             ->method('update')
             ->with(3, 'Claude Code', false);
 
-        $this->patchJson(
-            '/admin-api/mcps/3',
-            ['name' => 'Claude Code', 'enabled' => false]
-        )->assertOk();
+        $this
+            ->patchJson(
+                '/admin-api/mcps/3',
+                ['name' => 'Claude Code', 'enabled' => false]
+            )
+            ->assertOk();
     }
 
     public function testRegeneratesToken(): void
     {
         $this->withoutAuth();
 
-        $this->repository->method('findOneById')->willReturn($this->mcpObject(id: 3));
-        $this->repository->expects($this->once())->method('updateToken');
+        $this->repository
+            ->method('findOneById')
+            ->willReturn(
+                $this->mcpObject(
+                    id: 3
+                )
+            );
+        $this->repository->expects(
+            $this->once()
+        )->method('updateToken');
 
         $this->patchJson('/admin-api/mcps/3/token')->assertOk();
     }
@@ -95,7 +154,9 @@ class McpAdminHttpTest extends TestCase
     {
         $this->withoutAuth();
 
-        $this->repository->expects($this->once())->method('delete')->with(3)->willReturn(true);
+        $this->repository->expects(
+            $this->once()
+        )->method('delete')->with(3)->willReturn(true);
 
         $this->deleteJson('/admin-api/mcps/3')->assertOk();
     }
@@ -108,10 +169,12 @@ class McpAdminHttpTest extends TestCase
         $this->repository->method('delete')->willReturn(false);
 
         $this->getJson('/admin-api/mcps/999999')->assertNotFound();
-        $this->patchJson(
-            '/admin-api/mcps/999999',
-            ['name' => 'x', 'enabled' => true]
-        )->assertNotFound();
+        $this
+            ->patchJson(
+                '/admin-api/mcps/999999',
+                ['name' => 'x', 'enabled' => true]
+            )
+            ->assertNotFound();
         $this->patchJson('/admin-api/mcps/999999/token')->assertNotFound();
         $this->deleteJson('/admin-api/mcps/999999')->assertNotFound();
     }
@@ -121,11 +184,18 @@ class McpAdminHttpTest extends TestCase
         $this->withoutAuth();
 
         config()->set('mcp.server_name', 'stand');
-        config()->set('app.url', 'https://slogger.stand.example.com');
+        config()->set(
+            'app.url',
+            'https://slogger.stand.example.com'
+        );
 
-        $this->getJson('/admin-api/mcps/settings')
+        $this
+            ->getJson('/admin-api/mcps/settings')
             ->assertOk()
-            ->assertJsonPath('data.server_name', 'stand')
+            ->assertJsonPath(
+                'data.server_name',
+                'stand'
+            )
             ->assertJsonPath(
                 'data.endpoint_url',
                 'https://slogger.stand.example.com/mcp'

@@ -24,8 +24,10 @@ readonly class ReceiverErrorsChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof LogErrorsSettingsObject) {
@@ -41,7 +43,9 @@ readonly class ReceiverErrorsChecker implements WatcherCheckerInterface
         }
 
         return new LogErrorsEventPayloadObject(
-            settings: new LogErrorsEventSettingsObject(threshold: $settings->threshold),
+            settings: new LogErrorsEventSettingsObject(
+                threshold: $settings->threshold
+            ),
             measured: new LogErrorsEventMeasuredObject(
                 errorCount: $stat->count,
                 since: $since->toDateTimeString(),

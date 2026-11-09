@@ -23,7 +23,9 @@ class AuthMiddlewareTerminateTest extends TestCase
     {
         $touch = $this->createMock(TouchUserTokenAction::class);
 
-        $touch->expects($this->never())->method('handle');
+        $touch->expects(
+            $this->never()
+        )->method('handle');
 
         $this
             ->middleware($touch)
@@ -37,7 +39,9 @@ class AuthMiddlewareTerminateTest extends TestCase
     {
         $touch = $this->createMock(TouchUserTokenAction::class);
 
-        $touch->expects($this->never())->method('handle');
+        $touch->expects(
+            $this->never()
+        )->method('handle');
 
         $this
             ->middleware($touch)
@@ -53,7 +57,9 @@ class AuthMiddlewareTerminateTest extends TestCase
     {
         $touch = $this->createMock(TouchUserTokenAction::class);
 
-        $touch->expects($this->once())->method('handle')->with('a-token');
+        $touch->expects(
+            $this->once()
+        )->method('handle')->with('a-token');
 
         $request = $this->request('a-token');
 
@@ -75,7 +81,9 @@ class AuthMiddlewareTerminateTest extends TestCase
     {
         $touch = $this->createMock(TouchUserTokenAction::class);
 
-        $touch->expects($this->once())->method('handle')->with('a-token');
+        $touch->expects(
+            $this->once()
+        )->method('handle')->with('a-token');
 
         $finder = $this->createMock(FindUserByTokenAction::class);
 

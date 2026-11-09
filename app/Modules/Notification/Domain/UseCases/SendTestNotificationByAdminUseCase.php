@@ -10,8 +10,9 @@ use App\Modules\Notification\Domain\Actions\Mutations\SendTestNotificationAction
 
 readonly class SendTestNotificationByAdminUseCase
 {
-    public function __construct(private SendTestNotificationAction $sendTestNotificationAction)
-    {
+    public function __construct(
+        private SendTestNotificationAction $sendTestNotificationAction
+    ) {
     }
 
     /**

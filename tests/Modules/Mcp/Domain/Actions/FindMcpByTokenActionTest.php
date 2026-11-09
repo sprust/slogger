@@ -15,7 +15,13 @@ class FindMcpByTokenActionTest extends TestCase
     {
         $repository = $this->createMock(McpRepository::class);
 
-        $repository->method('findOneByToken')->willReturn($this->mcpObject(id: 7));
+        $repository
+            ->method('findOneByToken')
+            ->willReturn(
+                $this->mcpObject(
+                    id: 7
+                )
+            );
 
         $this->assertSame(
             7,
@@ -27,9 +33,17 @@ class FindMcpByTokenActionTest extends TestCase
     {
         $repository = $this->createMock(McpRepository::class);
 
-        $repository->method('findOneByToken')->willReturn($this->mcpObject(enabled: false));
+        $repository
+            ->method('findOneByToken')
+            ->willReturn(
+                $this->mcpObject(
+                    enabled: false
+                )
+            );
 
-        $this->assertNull($this->action($repository)->handle('token'));
+        $this->assertNull(
+            $this->action($repository)->handle('token')
+        );
     }
 
     public function testUnknownTokenFindsNothing(): void
@@ -38,7 +52,9 @@ class FindMcpByTokenActionTest extends TestCase
 
         $repository->method('findOneByToken')->willReturn(null);
 
-        $this->assertNull($this->action($repository)->handle('token'));
+        $this->assertNull(
+            $this->action($repository)->handle('token')
+        );
     }
 
     private function action(McpRepository $repository): FindMcpByTokenAction

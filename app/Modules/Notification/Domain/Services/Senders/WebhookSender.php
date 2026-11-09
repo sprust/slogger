@@ -52,11 +52,14 @@ readonly class WebhookSender implements NotificationSenderInterface
         }
 
         try {
-            $body = json_encode([
-                'channel' => $channel->name,
-                'text'    => $this->cut($text),
-                'sent_at' => gmdate('c'),
-            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $body = json_encode(
+                [
+                    'channel' => $channel->name,
+                    'text'    => $this->cut($text),
+                    'sent_at' => gmdate('c'),
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
         } catch (JsonException $exception) {
             return new SendResultObject(
                 delivered: false,
@@ -111,7 +114,8 @@ readonly class WebhookSender implements NotificationSenderInterface
             return $text;
         }
 
-        return mb_substr($text, 0, self::MAX_TEXT_LENGTH - 1) . '…';
+        return mb_substr($text, 0, self::MAX_TEXT_LENGTH - 1)
+            . '…';
     }
 
     private function withoutToken(string $message, string $token): string

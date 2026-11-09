@@ -14,14 +14,18 @@ readonly class DeleteTraceTreeCacheAction
 {
     private const int CHUNK_COUNT = 10000;
 
-    public function __construct(private TraceTreeCacheRepository $traceTreeCacheRepository, private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction, private DispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        private TraceTreeCacheRepository $traceTreeCacheRepository,
+        private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
+        private DispatcherInterface $dispatcher
+    ) {
     }
 
     public function handle(string $rootTraceId, ?string $buildVersion = null): void
     {
         if (
-            !is_null($buildVersion) && !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
+            !is_null($buildVersion)
+            && !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
                 rootTraceId: $rootTraceId,
                 version: $buildVersion,
             )

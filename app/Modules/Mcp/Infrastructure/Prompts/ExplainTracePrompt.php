@@ -37,15 +37,22 @@ readonly class ExplainTracePrompt implements McpPromptInterface
 
     public function text(array $arguments): string
     {
-        return implode("\n", [
-            sprintf('Explain trace "%s": what it did and why it ended the way it did.', $arguments['trace_id'] ?? ''),
-            '',
-            'Steps:',
-            '1. get_trace for the summary.',
-            '2. get_trace_tree to walk the calls it made; search_trace_tree for failed or slow calls in a large tree.',
-            '3. get_trace_data only for the nodes that explain the result.',
-            '',
-            'Answer with what happened step by step, the trace ids behind every claim and what was not checked.',
-        ]);
+        return implode(
+            "\n",
+            [
+                sprintf(
+                    'Explain trace "%s": what it did and why it ended the way it did.',
+                    $arguments['trace_id'] ?? ''
+                ),
+                '',
+                'Steps:',
+                '1. get_trace for the summary.',
+                ('2. get_trace_tree to walk the calls it made; search_trace_tree '
+                    . 'for failed or slow calls in a large tree.'),
+                '3. get_trace_data only for the nodes that explain the result.',
+                '',
+                'Answer with what happened step by step, the trace ids behind every claim and what was not checked.',
+            ]
+        );
     }
 }

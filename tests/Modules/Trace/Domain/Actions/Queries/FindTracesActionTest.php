@@ -34,11 +34,113 @@ class FindTracesActionTest extends TestCase
 
         $traces
             ->method('find')
-            ->willReturnCallback(function (...$arguments) use (&$batches): array {
-                $traceIds  = $arguments[3];
-                $batches[] = $traceIds;
+            ->willReturnCallback(
+                function (...$arguments) use (&$batches): array {
+                    $traceIds  = $arguments[3];
+                    $batches[] = $traceIds;
 
-                return match ($traceIds) {
+                    return match ($traceIds) {
+                        [
+                            'a',
+                            'b',
+                        ] => [
+                            $this->trace(
+                                traceId: 'a',
+                                loggedAtMinute: 9,
+                            ),
+                            $this->trace(
+                                traceId: 'b',
+                                loggedAtMinute: 4,
+                            ),
+                        ],
+                        [
+                            'c',
+                            'd',
+                        ] => [
+                            $this->trace(
+                                traceId: 'c',
+                                loggedAtMinute: 7,
+                            ),
+                            $this->trace(
+                                traceId: 'd',
+                                loggedAtMinute: 1,
+                            ),
+                        ],
+                        default => [],
+                    };
+                }
+            );
+
+        $action = $this->action(
+            traces: $traces,
+            treeCacheExists: true,
+            treeIdsBatches: [
+                [
+                    'a',
+                    'b',
+                ],
+                [
+                    'c',
+                    'd',
+                ],
+            ],
+        );
+        $found = $action->handle(
+            new TraceFindParameters(
+                page: 1,
+                perPage: 3,
+                traceId: 'child',
+                allTracesInTree: true,
+            )
+        );
+
+        self::assertSame(
+            [
+                'a',
+                'c',
+                'b',
+            ],
+            array_map(
+                static fn(
+                    $item
+                ): string => $item->trace->traceId,
+                $found->items
+            ),
+            'the page is ordered by logged-at across batches, not batch by batch'
+        );
+
+        self::assertSame(
+            [
+                [
+                    'a',
+                    'b',
+                ],
+                [
+                    'c',
+                    'd',
+                ],
+            ],
+            $batches
+        );
+    }
+
+    public function testASecondPageTakesWhatTheMergeSkipped(): void
+    {
+        $traces = $this->createMock(TraceRepository::class);
+
+        $traces
+            ->method('findOneDetailByTraceId')
+            ->willReturn(
+                $this->trace(
+                    traceId: 'child',
+                    loggedAtMinute: 5,
+                )
+            );
+
+        $traces
+            ->method('find')
+            ->willReturnCallback(
+                fn(...$arguments): array => match ($arguments[3]) {
                     [
                         'a',
                         'b',
@@ -66,94 +168,8 @@ class FindTracesActionTest extends TestCase
                         ),
                     ],
                     default => [],
-                };
-            });
-
-        $action = $this->action(
-            traces: $traces,
-            treeCacheExists: true,
-            treeIdsBatches: [
-                [
-                    'a',
-                    'b',
-                ],
-                [
-                    'c',
-                    'd',
-                ],
-            ],
-        );
-        $found = $action->handle(
-            new TraceFindParameters(
-                page: 1,
-                perPage: 3,
-                traceId: 'child',
-                allTracesInTree: true,
-            )
-        );
-
-        self::assertSame([
-            'a',
-            'c',
-            'b',
-        ], array_map(static fn($item): string => $item->trace->traceId, $found->items), 'the page is ordered by logged-at across batches, not batch by batch');
-
-        self::assertSame([
-            [
-                'a',
-                'b',
-            ],
-            [
-                'c',
-                'd',
-            ],
-        ], $batches);
-    }
-
-    public function testASecondPageTakesWhatTheMergeSkipped(): void
-    {
-        $traces = $this->createMock(TraceRepository::class);
-
-        $traces
-            ->method('findOneDetailByTraceId')
-            ->willReturn(
-                $this->trace(
-                    traceId: 'child',
-                    loggedAtMinute: 5,
-                )
+                }
             );
-
-        $traces
-            ->method('find')
-            ->willReturnCallback(fn(...$arguments): array => match ($arguments[3]) {
-                [
-                    'a',
-                    'b',
-                ] => [
-                    $this->trace(
-                        traceId: 'a',
-                        loggedAtMinute: 9,
-                    ),
-                    $this->trace(
-                        traceId: 'b',
-                        loggedAtMinute: 4,
-                    ),
-                ],
-                [
-                    'c',
-                    'd',
-                ] => [
-                    $this->trace(
-                        traceId: 'c',
-                        loggedAtMinute: 7,
-                    ),
-                    $this->trace(
-                        traceId: 'd',
-                        loggedAtMinute: 1,
-                    ),
-                ],
-                default => [],
-            });
 
         $found = $this
             ->action(
@@ -179,10 +195,13 @@ class FindTracesActionTest extends TestCase
                 )
             );
 
-        self::assertSame([
-            'b',
-            'd',
-        ], array_map(static fn($item): string => $item->trace->traceId, $found->items));
+        self::assertSame(
+            [
+                'b',
+                'd',
+            ],
+            array_map(static fn($item): string => $item->trace->traceId, $found->items)
+        );
     }
 
     /**
@@ -205,16 +224,18 @@ class FindTracesActionTest extends TestCase
 
         $traces
             ->method('find')
-            ->willReturnCallback(function (...$arguments) use (&$asked): array {
-                $asked = $arguments[3];
+            ->willReturnCallback(
+                function (...$arguments) use (&$asked): array {
+                    $asked = $arguments[3];
 
-                return [
-                    $this->trace(
-                        traceId: 'a',
-                        loggedAtMinute: 9,
-                    ),
-                ];
-            });
+                    return [
+                        $this->trace(
+                            traceId: 'a',
+                            loggedAtMinute: 9,
+                        ),
+                    ];
+                }
+            );
 
         $tree = $this->createMock(TraceTreeRepository::class);
 
@@ -223,9 +244,7 @@ class FindTracesActionTest extends TestCase
         $tree
             ->method('findTraceIdsInTreeByParentTraceId')
             ->willReturn([
-                [
-                    'a',
-                ],
+                ['a'],
             ]);
 
         $found = $this
@@ -244,12 +263,18 @@ class FindTracesActionTest extends TestCase
                 )
             );
 
-        self::assertSame([
-            'root',
-            'a',
-        ], $asked);
+        self::assertSame(
+            [
+                'root',
+                'a',
+            ],
+            $asked
+        );
 
-        self::assertCount(1, $found->items);
+        self::assertCount(
+            1,
+            $found->items
+        );
     }
 
     public function testALargeTreeWithoutACacheIsSearchedInBatchesOfIds(): void
@@ -268,21 +293,23 @@ class FindTracesActionTest extends TestCase
 
         $traces
             ->method('find')
-            ->willReturnCallback(function (...$arguments) use (&$asked): array {
-                $asked[] = $arguments[3];
+            ->willReturnCallback(
+                function (...$arguments) use (&$asked): array {
+                    $asked[] = $arguments[3];
 
-                return $arguments[3][0] === 'root' ? [
-                    $this->trace(
-                        traceId: 'root',
-                        loggedAtMinute: 1,
-                    ),
-                ] : [
-                    $this->trace(
-                        traceId: 'n-6000',
-                        loggedAtMinute: 9,
-                    ),
-                ];
-            });
+                    return $arguments[3][0] === 'root' ? [
+                        $this->trace(
+                            traceId: 'root',
+                            loggedAtMinute: 1,
+                        ),
+                    ] : [
+                        $this->trace(
+                            traceId: 'n-6000',
+                            loggedAtMinute: 9,
+                        ),
+                    ];
+                }
+            );
 
         $tree = $this->createMock(TraceTreeRepository::class);
 
@@ -291,16 +318,7 @@ class FindTracesActionTest extends TestCase
         $tree
             ->method('findTraceIdsInTreeByParentTraceId')
             ->willReturn(
-                array_chunk(
-                    array_map(
-                        static fn(int $index) => "n-{$index}",
-                        range(
-                            1,
-                            12000,
-                        )
-                    ),
-                    300,
-                )
+                array_chunk(array_map(static fn(int $index) => "n-{$index}", range(1, 12000)), 300)
             );
 
         $found = $this
@@ -319,17 +337,23 @@ class FindTracesActionTest extends TestCase
                 )
             );
 
-        self::assertSame([
-            5000,
-            5000,
-            2001,
-        ], array_map(count(...), $asked));
+        self::assertSame(
+            [
+                5000,
+                5000,
+                2001,
+            ],
+            array_map(count(...), $asked)
+        );
 
-        self::assertSame([
-            'n-6000',
-            'n-6000',
-            'root',
-        ], array_map(static fn($item) => $item->trace->traceId, $found->items));
+        self::assertSame(
+            [
+                'n-6000',
+                'n-6000',
+                'root',
+            ],
+            array_map(static fn($item) => $item->trace->traceId, $found->items)
+        );
     }
 
     public function testACachedTreeIsReadInBatchesOfIds(): void
@@ -353,7 +377,13 @@ class FindTracesActionTest extends TestCase
 
         $treeCache->method('existsByRootTraceId')->willReturn(true);
 
-        $treeCache->expects($this->once())->method('findTraceIds')->with('root', 5000)->willReturn([]);
+        $treeCache
+            ->expects(
+                $this->once()
+            )
+            ->method('findTraceIds')
+            ->with('root', 5000)
+            ->willReturn([]);
 
         $services = $this->createMock(FindTraceServicesAction::class);
 
@@ -391,11 +421,13 @@ class FindTracesActionTest extends TestCase
 
         $traces
             ->method('find')
-            ->willReturnCallback(static function (...$arguments) use (&$asked): array {
-                $asked[] = $arguments[1];
+            ->willReturnCallback(
+                static function (...$arguments) use (&$asked): array {
+                    $asked[] = $arguments[1];
 
-                return [];
-            });
+                    return [];
+                }
+            );
 
         $action = $this->action(
             traces: $traces,
@@ -403,13 +435,7 @@ class FindTracesActionTest extends TestCase
             treeIdsBatches: [],
         );
 
-        foreach (
-            [
-                null,
-                50,
-                100,
-            ] as $perPage
-        ) {
+        foreach ([null, 50, 100] as $perPage) {
             $action->handle(
                 new TraceFindParameters(
                     page: 1,
@@ -418,18 +444,25 @@ class FindTracesActionTest extends TestCase
             );
         }
 
-        self::assertSame([
-            20,
-            50,
-            50,
-        ], $asked);
+        self::assertSame(
+            [
+                20,
+                50,
+                50,
+            ],
+            $asked
+        );
     }
 
     /**
      * @param list<list<string>> $treeIdsBatches
      */
-    private function action(TraceRepository $traces, bool $treeCacheExists, array $treeIdsBatches, ?TraceTreeRepository $tree = null): FindTracesAction
-    {
+    private function action(
+        TraceRepository $traces,
+        bool $treeCacheExists,
+        array $treeIdsBatches,
+        ?TraceTreeRepository $tree = null
+    ): FindTracesAction {
         if ($tree === null) {
             $tree = $this->createMock(TraceTreeRepository::class);
 
@@ -487,7 +520,8 @@ class FindTracesActionTest extends TestCase
             pid: null,
             loggedAt: Carbon::parse(
                 time: '2026-09-19 12:00:00',
-            )->addMinutes($loggedAtMinute),
+            )
+                ->addMinutes($loggedAtMinute),
             createdAt: Carbon::parse(
                 time: '2026-09-19 12:00:00',
             ),

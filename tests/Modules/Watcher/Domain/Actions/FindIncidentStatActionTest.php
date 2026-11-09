@@ -14,7 +14,9 @@ class FindIncidentStatActionTest extends TestCase
     public function testItCountsTheOpenIncidents(): void
     {
         $incidents = $this->createMock(WatcherIncidentRepository::class);
-        $incidents->expects($this->once())->method('countOpen')->willReturn(4);
+        $incidents->expects(
+            $this->once()
+        )->method('countOpen')->willReturn(4);
 
         $this->assertSame(
             4,

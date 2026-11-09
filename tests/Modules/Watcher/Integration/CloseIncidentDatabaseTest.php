@@ -19,8 +19,9 @@ use Tests\Factories\Entities\UserTokenFactory;
 class CloseIncidentDatabaseTest extends BaseModuleTestCase
 {
     #[DataProvider('dataProvider')]
-    public function test(bool $closeTwice): void
-    {
+    public function test(
+        bool $closeTwice
+    ): void {
         $userTokenFactory = $this->appMake(UserTokenFactory::class);
         $incidentId       = $this->appMake(IncidentFactory::class)->create();
         $userId           = $this->appMake(UserFactory::class)->create();
@@ -72,12 +73,8 @@ class CloseIncidentDatabaseTest extends BaseModuleTestCase
     public static function dataProvider(): array
     {
         return [
-            'closes with authenticated user' => [
-                false,
-            ],
-            'repeated close preserves original user' => [
-                true,
-            ],
+            'closes with authenticated user'         => [false],
+            'repeated close preserves original user' => [true],
         ];
     }
 }

@@ -32,8 +32,11 @@ abstract readonly class AbstractIncidentEventController
      *
      * @return WatcherIncidentEventObject[]
      */
-    protected function incidentEvents(WatcherTypeEnum $type, string $incidentId, array $validated): array
-    {
+    protected function incidentEvents(
+        WatcherTypeEnum $type,
+        string $incidentId,
+        array $validated
+    ): array {
         return $this->findIncidentEventsByAdminUseCase->handle(
             type: $type,
             incidentId: $incidentId,

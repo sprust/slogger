@@ -56,7 +56,9 @@ readonly class WatcherEventGroupMapper
             $result[] = new WatcherIncidentEventGroupObject(
                 serviceId: $serviceId,
                 type: $type,
-                tags: array_values(ArrayValueGetter::arrayStringNull($group, 'tags') ?? []),
+                tags: array_values(
+                    ArrayValueGetter::arrayStringNull($group, 'tags') ?? []
+                ),
                 count: $count,
                 durationMax: ArrayValueGetter::floatNull($group, 'duration_max'),
                 slowestTraceId: ArrayValueGetter::stringNull($group, 'trace_id'),

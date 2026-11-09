@@ -27,8 +27,10 @@ readonly class SlackChannelType implements NotificationChannelTypeDefinitionInte
         );
     }
 
-    public function makeUpdatedSettings(array $submitted, ChannelSettingsInterface $stored): ChannelSettingsInterface
-    {
+    public function makeUpdatedSettings(
+        array $submitted,
+        ChannelSettingsInterface $stored
+    ): ChannelSettingsInterface {
         $settings = $this->makeSettings($submitted);
 
         if (!$settings instanceof SlackSettingsObject || !$stored instanceof SlackSettingsObject) {

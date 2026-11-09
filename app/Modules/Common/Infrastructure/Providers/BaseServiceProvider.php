@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Common\Infrastructure\Providers;
 
 use App\Modules\Common\Domain\Services\DispatcherInterface;
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerInterface;
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerRegistry;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
@@ -26,7 +26,7 @@ abstract class BaseServiceProvider extends ServiceProvider
     /** @return array<class-string, list<class-string>> */
     abstract protected function getListeners(): array;
 
-    /** @return class-string<ExceptionManagerInterface>|null */
+    /** @return class-string<BaseExceptionManager>|null */
     abstract protected function getExceptionManagerClass(): ?string;
 
     public function register(): void
@@ -73,10 +73,10 @@ abstract class BaseServiceProvider extends ServiceProvider
         $exceptionManagerClass = $this->getExceptionManagerClass();
 
         if ($exceptionManagerClass !== null) {
-            $exceptionManagerRegistry = $this->app->make(ExceptionManagerRegistry::class);
+            $exceptionManagers        = $this->app->make(ExceptionManagers::class);
             $exceptionManager         = $this->app->make($exceptionManagerClass);
 
-            $exceptionManagerRegistry->register($exceptionManager);
+            $exceptionManagers->register($exceptionManager);
         }
     }
 

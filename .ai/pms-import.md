@@ -17,6 +17,7 @@
 | `opsx-*` wrappers / OpenSpec | Уже установленные официальные `openspec-*`; дубли не копируются |
 | `NoMultilineArrayKeyRule` | `code-analyse/PHPStan/NoMultilineArrayKeyRule.php`, подключён в PHPStan |
 | Четыре custom CS fixers и их traits | `code-analyse/Fixers`, единый конфиг `code-analyse/php-cs-fixer.dist.php` для штатных check/fix |
+| Exception managers | Исходный Manager API, BaseExceptionManager, DTO и ReportableException; сохранены статусы/JSON Dashboard SLogger, без PMS LocaleRules и ErrorReport |
 | ModulesConfig и BaseServiceProvider | Единый список, hooks, модульные регистраторы и расписание; `getContracts` сохраняет SLogger singleton lifetime, без PMS AppContext/static caches |
 | Тестовые tmpfs DB, .env.testing и factories | Изолированные MySQL/MongoDB/ClickHouse и Redis, guarded bootstrap, BaseModuleTestCase и readonly factories сущностей SLogger; без PMS seeders/context |
 | OpenAPI generator | Локальный пакет и SourceInterface; только admin API SLogger, public/private aliases, без Go traces-api и PMS collection-классов |
@@ -51,3 +52,44 @@ fixers, исключения Models/Repositories, правила перенос�
 Для первоначального подключения выполняется форматирование проверяемых файлов;
 бизнес-поведение при этом не меняется. Каталоги интеграций PMS не переносятся.
 Текстовые правила для fluent-цепочек и логических блоков требуют отдельной проверки.
+
+## Повторная сверка переноса
+
+Проверены исходники PMS commit `0633fc0a` и текущая версия: providers и их
+регистраторы, ModulesConfig, dispatcher, четыре custom fixers, OA pipeline,
+тестовые tmpfs-сервисы и bootstrap. Подтверждены описанные выше адаптации.
+Исправлены самодельный map API исключений, потеря семантики явного report и
+принудительная data-обёртка OA для ресурсов с withoutWrapping.
+
+Formatter охватывает собственный PHP в app, packages, tests, database/seeders,
+config, routes, bootstrap и code-analyse. database/migrations сохраняет прежнее
+оформление и исключён из массового форматирования и проверки длины строк. Добавлена проверка строк до 120 символов;
+namespace/use и содержимое heredoc fixtures исключаются, значения строк сохраняются.
+`inline_constructor_arguments=false` сохраняет перенос длинного конструктора
+анонимного класса; enum cases стоят перед методами. Короткие простые вызовы,
+условия и небольшие массивы допускаются в строку по уточнениям пользователя.
+Заголовок foreach всегда однострочный: большие выражения обхода выносятся
+в переменную. Formatter не разворачивает его вложенные вызовы; regex helpers
+оставляются компактными. Короткий pcntl_signal callback-префикс сохраняется.
+Вложенный вызов в аргументе конструктора/метода раскрывается на отдельной строке,
+в частности new SconcurStatResource с результатом UseCase.
+
+Оставшиеся результаты аудита, которые нельзя выдавать за завершённый перенос:
+
+- 52 публичных входа Entity/Repository DTO в Domain существовали ещё в master;
+  новая проверка входных Parameters не контролирует это правило целиком.
+- Созданные CheckWatcherParameters, RegisterTriggerParameters,
+  SendNotificationParameters и IncidentEventParameters содержат Entities,
+  а PMS требует примитивы, enum и вложенные Parameters. Обёртка сама по себе
+  не устраняет нарушение входного контракта.
+- В SLogger PHPStan пока не охватывает весь tests/seeders и не включает общие
+  checkUninitializedProperties/treatPhpDocTypesAsCertain:false из PMS.
+  Отдельный audit-конфиг выявил 208 ошибок тестов; перенос путей без исправлений
+  не будет зелёной проверкой. Ошибочное checkedExceptionClasses из PMS копировать
+  нельзя: regex там воспринимается как имя класса.
+- Изменённые EnqueueNotificationsActionTest и SendNotificationActionTest сохраняют
+  mocks Actions/Repositories; их сценарии ещё нужно перевести на factories/DB.
+  Новые интеграционные проверки не заменяют эти сценарии.
+
+Эти находки отделены от подтверждённой эквивалентности форматирования и исправленного
+механизма исключений; они требуют отдельного функционального изменения Domain и тестов.

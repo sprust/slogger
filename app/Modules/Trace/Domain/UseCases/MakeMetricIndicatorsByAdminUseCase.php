@@ -9,8 +9,9 @@ use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 
 readonly class MakeMetricIndicatorsByAdminUseCase
 {
-    public function __construct(private MakeMetricIndicatorsAction $makeMetricIndicatorsAction)
-    {
+    public function __construct(
+        private MakeMetricIndicatorsAction $makeMetricIndicatorsAction
+    ) {
     }
 
     /**

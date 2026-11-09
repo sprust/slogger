@@ -24,35 +24,28 @@ $defaultQueueConnection = env('QUEUE_CONNECTION');
 return [
     // global enable/disable.
     'enabled'                         => env('SLOGGER_ENABLED', false),
-
     // api token for the backend.
     'token'                           => env('SLOGGER_TOKEN'),
-
     // trace id prefix. if empty, uses slugged app.name or "app".
     'trace_id_prefix'                 => env('SLOGGER_TRACE_ID_PREFIX', ''),
-
     // where the state of one unit of work - one request, one job, one command - is kept.
     // one of: array, fiber - or the class name of your own TraceContextInterface.
     //   array: a single map for the whole process.
     //   fiber: a map per running fiber, which is what sconcur gives each request.
     'context'                         => env('SLOGGER_CONTEXT', 'array'),
-
     // dispatcher selection and configuration.
     'dispatchers'                     => [
         // one of: queue, memory.
         'default' => env('SLOGGER_DISPATCHER', 'queue'),
-
-        'queue' => [
+        'queue'   => [
             // queue worker connection and name.
             'connection'  => env('SLOGGER_DISPATCHER_QUEUE_CONNECTION', $defaultQueueConnection),
             'name'        => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
-
             'api_clients' => [
                 // socket is the only client the package ships since 2.0 - anything
                 // else makes ApiClientFactory throw on every trace job.
                 'default' => env('SLOGGER_DISPATCHER_QUEUE_API_CLIENT', 'socket'),
-
-                'socket' => [
+                'socket'  => [
                     // socket address for socket backend (e.g. tcp://host:port).
                     'url'             => env('SLOGGER_DISPATCHER_QUEUE_SOCKET_CLIENT_URL'),
                     // read/write timeout in seconds (connect timeout is separate).
@@ -61,17 +54,12 @@ return [
             ],
         ],
     ],
-
     // channel for internal errors/logs.
     'log_channel'                     => env('SLOGGER_LOG_CHANNEL', 'daily'),
-
     // internal listener for watcher errors.
     'listeners'                       => [
-        WatcherErrorEvent::class => [
-            WatcherErrorListener::class,
-        ],
+        WatcherErrorEvent::class => [WatcherErrorListener::class],
     ],
-
     'masking'                         => [
         // the value under a matching key is replaced whole, and everything below it.
         // matched case-insensitively against the whole key and each of its components.
@@ -112,7 +100,6 @@ return [
             'credit_card',
             // not covered by `pass`, `passwd` or `pw`: `user_pwd` splits to `pwd`
             'pwd',
-
             // a wildcard matches the whole key, and the bare form with it - so a
             // word listed here is not repeated above
             '*token*',
@@ -128,7 +115,6 @@ return [
             '*card_number*',
             '*recovery_code*',
         ],
-
         // two characters kept at each end, so two records still look different.
         // these identify a person rather than authenticate one - never a secret here.
         //
@@ -143,7 +129,6 @@ return [
             'middle_name',
             'fullname',
             'full_name',
-
             '*email*',
             '*phone*',
             '*recipient*',
@@ -152,7 +137,6 @@ return [
             '*lastname*',
             '*last_name*',
         ],
-
         // matched against the value and masked in place, for what no key name points
         // at - an address in a log line. an invalid pattern is ignored, not fatal.
         //
@@ -162,18 +146,16 @@ return [
             // postgres://app:secret@db. a scheme is required, so `//assets:v2@2x.png`
             // is left alone; the group runs to the last `@`
             'url_credentials' => '/\b[a-z][a-z0-9+.-]*:\/\/[^\/\s:@]+:([^\/\s]+)@/i',
-
             // a secret in a url, wherever it turns up. the parameter name is a word,
             // not a substring: unbounded, it took `?author=` and `?country_code=`
-            'url_secret' => '/[?&](?:[\w.-]*[_-])?(?:token|apikey|api_key|api-key|secret|password|passwd|auth|authorization|signature|credential|session|sessionid)(?:[_-][\w.-]*)?=([^&\s"\'<>]+)/i',
-
+            'url_secret' => ('/[?&](?:[\w.-]*[_-])?(?:token|apikey|api_key|api-key|secret|passw'
+                . 'ord|passwd|auth|authorization|signature|credential|session|sessio'
+                . 'nid)(?:[_-][\w.-]*)?=([^&\s"\'<>]+)/i'),
             // whole parameter name only, or it takes `country_code` and `zip_code`
             'url_oauth_code' => '/[?&]code=([^&\s"\'<>]+)/i',
-
-            'email' => '/[\w.+-]+@[\w-]+\.[\w.-]*[\w-]/u',
+            'email'          => '/[\w.+-]+@[\w-]+\.[\w.-]*[\w-]/u',
         ],
     ],
-
     // exclude files from trace backtraces (supports wildcard masks).
 
     // exclude files from trace backtraces (supports wildcard masks).
@@ -182,13 +164,11 @@ return [
             //
         ],
     ],
-
     // header key for parent trace id propagation.
     'http_parent_trace_id_header_key' => env(
         'SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY',
         'x-parent-trace-id'
     ),
-
     // watchers configuration (parents and children).
     'watchers'                        => [
         /**
@@ -222,34 +202,24 @@ return [
                 'only_paths'     => [
                     //
                 ],
-
                 // skip these url patterns.
-                'excepted_paths' => [
-                    '/traces-api*',
-                ],
-
-                'input' => [
+                'excepted_paths' => ['/traces-api*'],
+                'input'          => [
                     // apply input formatting only for these url patterns. empty means all.
                     'only_paths'         => [
                         //
                     ],
-
                     // hide all request parameters for these url patterns.
-                    'hidden_paths'       => [
-                        'admin-api/auth/login',
-                    ],
-
+                    'hidden_paths'       => ['admin-api/auth/login'],
                     // above this the parameters are not recorded at all. a value
                     // larger than the masker reads records nothing, not something raw
                     'max_content_length' => 1000000,
                 ],
-
                 'output' => [
                     // apply response formatting only for these url patterns. empty means all.
                     'only_paths'      => [
                         //
                     ],
-
                     // hide all response data for these url patterns.
                     'hidden_paths'       => [
                         'admin-api/auth/*',
@@ -257,7 +227,6 @@ return [
                         // tool results are large and hold the data of other services' traces
                         'mcp',
                     ],
-
                     // the same for the response body
                     'max_content_length' => 1000000,
                 ],
@@ -268,9 +237,7 @@ return [
             'enabled' => env('SLOGGER_LOG_JOBS_ENABLED', false),
             'config'  => [
                 // job classes to ignore.
-                'excepted' => [
-                    SendTracesJob::class,
-                ],
+                'excepted' => [SendTracesJob::class],
             ],
         ],
         [
@@ -282,7 +249,6 @@ return [
                 'excepted' => [],
             ],
         ],
-
         /**
          * CHILDREN
          */

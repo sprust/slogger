@@ -27,16 +27,30 @@ class NoNewTracesCheckerTest extends TestCase
 
     public function testSilenceThroughTheWholeWindowIsReported(): void
     {
-        $trigger = $this->check(bucketsAtMinutesAgo: []);
+        $trigger = $this->check(
+            bucketsAtMinutesAgo: []
+        );
 
-        $this->assertNotNull($trigger);
-        $this->assertInstanceOf(NoNewTracesEventPayloadObject::class, $trigger);
-        $this->assertSame(10, $trigger->settings->periodMinutes);
+        $this->assertNotNull(
+            $trigger
+        );
+        $this->assertInstanceOf(
+            NoNewTracesEventPayloadObject::class,
+            $trigger
+        );
+        $this->assertSame(
+            10,
+            $trigger->settings->periodMinutes
+        );
     }
 
     public function testOneTraceInTheWindowIsEnoughToStayQuiet(): void
     {
-        $this->assertNull($this->check(bucketsAtMinutesAgo: [5]));
+        $this->assertNull(
+            $this->check(
+                bucketsAtMinutesAgo: [5]
+            )
+        );
     }
 
     /**
@@ -46,13 +60,21 @@ class NoNewTracesCheckerTest extends TestCase
      */
     public function testATraceInsideTheLagDoesNotCount(): void
     {
-        $this->assertNotNull($this->check(bucketsAtMinutesAgo: [0]));
+        $this->assertNotNull(
+            $this->check(
+                bucketsAtMinutesAgo: [0]
+            )
+        );
     }
 
     /** A trace older than the window is not in the window. */
     public function testATraceBeforeTheWindowDoesNotCount(): void
     {
-        $this->assertNotNull($this->check(bucketsAtMinutesAgo: [30]));
+        $this->assertNotNull(
+            $this->check(
+                bucketsAtMinutesAgo: [30]
+            )
+        );
     }
 
     /**
@@ -72,17 +94,32 @@ class NoNewTracesCheckerTest extends TestCase
 
     public function testAWatcherThatIsNotCollectingSaysNothing(): void
     {
-        $this->assertNull($this->check(bucketsAtMinutesAgo: [], collecting: false));
+        $this->assertNull(
+            $this->check(
+                bucketsAtMinutesAgo: [],
+                collecting: false
+            )
+        );
     }
 
     public function testATruncatedLineThatStartsInsideTheWindowSaysNothing(): void
     {
-        $this->assertNull($this->check(bucketsAtMinutesAgo: [2], truncated: true));
+        $this->assertNull(
+            $this->check(
+                bucketsAtMinutesAgo: [2],
+                truncated: true
+            )
+        );
     }
 
     public function testAnUntruncatedLineStartingInsideTheWindowStillReports(): void
     {
-        $this->assertNotNull($this->check(bucketsAtMinutesAgo: [30], truncated: false));
+        $this->assertNotNull(
+            $this->check(
+                bucketsAtMinutesAgo: [30],
+                truncated: false
+            )
+        );
     }
 
     private function check(
@@ -94,7 +131,9 @@ class NoNewTracesCheckerTest extends TestCase
         $now = Carbon::parse(self::NOW);
 
         $buckets = array_map(
-            static fn(int $minutesAgo): WatcherTimelineBucketObject => new WatcherTimelineBucketObject(
+            static fn(
+                int $minutesAgo
+            ): WatcherTimelineBucketObject => new WatcherTimelineBucketObject(
                 at: $now->clone()->subMinutes($minutesAgo),
                 count: 1,
                 durationCount: 0,
@@ -106,11 +145,17 @@ class NoNewTracesCheckerTest extends TestCase
         );
 
         $repository = $this->createMock(WatcherTimelineRepository::class);
-        $repository->method('find')->willReturn(new WatcherTimelineObject(1, $buckets, $truncated));
+        $repository
+            ->method('find')
+            ->willReturn(
+                new WatcherTimelineObject(1, $buckets, $truncated)
+            );
 
         $watcher = $this->watcher(
             WatcherTypeEnum::NoNewTraces,
-            new NoNewTracesSettingsObject(periodMinutes: 10),
+            new NoNewTracesSettingsObject(
+                periodMinutes: 10
+            ),
             collectSince: $collecting ? $collectSince ?? $now->clone()->subHour() : null
         );
 

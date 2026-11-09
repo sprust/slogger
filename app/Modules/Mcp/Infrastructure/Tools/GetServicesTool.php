@@ -15,8 +15,9 @@ use App\Modules\Mcp\Entities\Bridges\McpServiceObject;
 
 readonly class GetServicesTool implements McpToolInterface
 {
-    public function __construct(private FindMcpServicesAction $findMcpServicesAction)
-    {
+    public function __construct(
+        private FindMcpServicesAction $findMcpServicesAction
+    ) {
     }
 
     public function name(): string
@@ -31,7 +32,8 @@ readonly class GetServicesTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'Services that send traces to this SLogger installation: id and name. ' . 'Use it to resolve the service the user means.';
+        return 'Services that send traces to this SLogger installation: id and name. '
+            . 'Use it to resolve the service the user means.';
     }
 
     public function schema(): McpToolSchema
@@ -52,10 +54,15 @@ readonly class GetServicesTool implements McpToolInterface
     {
         return new McpToolResult(
             data: [
-                'services' => array_map(static fn(McpServiceObject $service) => [
-                    'id'   => $service->id,
-                    'name' => $service->name,
-                ], $this->findMcpServicesAction->handle($arguments->stringNull('query'))),
+                'services' => array_map(
+                    static fn(McpServiceObject $service) => [
+                        'id'   => $service->id,
+                        'name' => $service->name,
+                    ],
+                    $this->findMcpServicesAction->handle(
+                        $arguments->stringNull('query')
+                    )
+                ),
             ],
         );
     }

@@ -6,10 +6,10 @@ namespace App\Modules\Trace\Enums;
 
 enum TraceDataFilterCompNumericTypeEnum: string
 {
-    case Eq = '=';
+    case Eq  = '=';
     case Neq = '!=';
-    case Gt = '>';
+    case Gt  = '>';
     case Gte = '>=';
-    case Lt = '<';
+    case Lt  = '<';
     case Lte = '<=';
 }

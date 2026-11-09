@@ -9,7 +9,15 @@ use Illuminate\Support\Carbon;
 
 readonly class IncidentSnapshotParameters
 {
-    public function __construct(public string $id, public int $watcherId, public IncidentStatusEnum $status, public Carbon $firstEventAt, public Carbon $lastEventAt, public int $eventsCount, public ?Carbon $closedAt, public ?int $closedByUserId)
-    {
+    public function __construct(
+        public string $id,
+        public int $watcherId,
+        public IncidentStatusEnum $status,
+        public Carbon $firstEventAt,
+        public Carbon $lastEventAt,
+        public int $eventsCount,
+        public ?Carbon $closedAt,
+        public ?int $closedByUserId
+    ) {
     }
 }

@@ -9,8 +9,9 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherTypesAction;
 
 readonly class FindWatcherTypesByAdminUseCase
 {
-    public function __construct(private FindWatcherTypesAction $findWatcherTypesAction)
-    {
+    public function __construct(
+        private FindWatcherTypesAction $findWatcherTypesAction
+    ) {
     }
 
     /**

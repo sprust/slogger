@@ -26,10 +26,24 @@ class LogFileDeleteHttpTest extends TestCase
 
         config()->set('cache.mutex_store', 'array');
 
-        config()->set('module-logs.sources', [
-            ['name' => 'Laravel', 'folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel, 'deletable' => true],
-            ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'error*.log', 'type' => LogTypeEnum::NginxError],
-        ]);
+        config()->set(
+            'module-logs.sources',
+            [
+                [
+                    'name'      => 'Laravel',
+                    'folder'    => $this->tempDir . '/logs',
+                    'pattern'   => '*.log',
+                    'type'      => LogTypeEnum::Laravel,
+                    'deletable' => true,
+                ],
+                [
+                    'name'    => 'Nginx',
+                    'folder'  => $this->tempDir . '/logs/nginx',
+                    'pattern' => 'error*.log',
+                    'type'    => LogTypeEnum::NginxError,
+                ],
+            ]
+        );
 
         $this->write(
             'logs/laravel-2026-09-24.log',
@@ -63,7 +77,11 @@ class LogFileDeleteHttpTest extends TestCase
         }
 
         $this->assertEquals(
-            ['laravel-2026-09-24.log' => true, 'laravel-2026-09-25.log' => false, 'error.log' => false],
+            [
+                'laravel-2026-09-24.log' => true,
+                'laravel-2026-09-25.log' => false,
+                'error.log'              => false,
+            ],
             $canDelete
         );
     }
@@ -78,34 +96,50 @@ class LogFileDeleteHttpTest extends TestCase
 
         $indexPath = sprintf('%s/%s', config('module-logs.index.path'), sha1($path));
 
-        $this->assertDirectoryExists($indexPath);
+        $this->assertDirectoryExists(
+            $indexPath
+        );
 
-        $this->deleteJson('/admin-api/logs/files/' . sha1($path))->assertOk();
+        $this->deleteJson(
+            '/admin-api/logs/files/' . sha1($path)
+        )->assertOk();
 
-        $this->assertFileDoesNotExist($path);
+        $this->assertFileDoesNotExist(
+            $path
+        );
 
         // is_dir() above left the answer in PHP's stat cache.
         clearstatcache();
 
-        $this->assertDirectoryDoesNotExist($indexPath);
+        $this->assertDirectoryDoesNotExist(
+            $indexPath
+        );
     }
 
     public function testTheNewestFileIsKept(): void
     {
         $path = $this->tempDir . '/logs/laravel-2026-09-25.log';
 
-        $this->deleteJson('/admin-api/logs/files/' . sha1($path))->assertUnprocessable();
+        $this->deleteJson(
+            '/admin-api/logs/files/' . sha1($path)
+        )->assertUnprocessable();
 
-        $this->assertFileExists($path);
+        $this->assertFileExists(
+            $path
+        );
     }
 
     public function testAFileOfASourceWithoutDeletingIsKept(): void
     {
         $path = $this->tempDir . '/logs/nginx/error.log';
 
-        $this->deleteJson('/admin-api/logs/files/' . sha1($path))->assertUnprocessable();
+        $this->deleteJson(
+            '/admin-api/logs/files/' . sha1($path)
+        )->assertUnprocessable();
 
-        $this->assertFileExists($path);
+        $this->assertFileExists(
+            $path
+        );
     }
 
     public function testAFileOutsideTheSourcesIsNotFound(): void
@@ -115,7 +149,10 @@ class LogFileDeleteHttpTest extends TestCase
         $this
             ->deleteJson('/admin-api/logs/files/' . $fileId)
             ->assertNotFound()
-            ->assertJsonPath('message', "Log file [$fileId] not found");
+            ->assertJsonPath(
+                'message',
+                "Log file [$fileId] not found"
+            );
     }
 
     private function write(string $relativePath, int $modifiedAt): void

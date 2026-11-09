@@ -84,8 +84,11 @@ readonly class LogFileStreamFactory
         );
     }
 
-    private function findEntryRange(LogFileObject $file, LogIndexMetaObject $meta, LogEntriesFilterParameters $filter): LogEntryRangeObject
-    {
+    private function findEntryRange(
+        LogFileObject $file,
+        LogIndexMetaObject $meta,
+        LogEntriesFilterParameters $filter
+    ): LogEntryRangeObject {
         $low  = 0;
         $high = $meta->entriesCount - 1;
 
@@ -107,7 +110,10 @@ readonly class LogFileStreamFactory
             ) - 1;
         }
 
-        return new LogEntryRangeObject(lowEntryNo: $low, highEntryNo: $high);
+        return new LogEntryRangeObject(
+            lowEntryNo: $low,
+            highEntryNo: $high
+        );
     }
 
     /**
@@ -123,10 +129,7 @@ readonly class LogFileStreamFactory
 
         $levels = array_values(
             array_unique(
-                array_filter(
-                    $filter->levels,
-                    static fn(int $level): bool => $levelCounter->get($level) > 0
-                )
+                array_filter($filter->levels, static fn(int $level): bool => $levelCounter->get($level) > 0)
             )
         );
 

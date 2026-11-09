@@ -32,7 +32,9 @@ class LogIndexSearchTest extends TestCase
             );
         }
 
-        $this->app->make(LogIndexRepository::class)->appendRecords('f', $records);
+        $this->app
+            ->make(LogIndexRepository::class)
+            ->appendRecords('f', $records);
     }
 
     protected function tearDown(): void
@@ -102,7 +104,9 @@ class LogIndexSearchTest extends TestCase
     {
         $this->assertSame(
             0,
-            $this->app->make(LogIndexSearch::class)->lowerBoundByTime('missing', null, 0, 10)
+            $this->app
+                ->make(LogIndexSearch::class)
+                ->lowerBoundByTime('missing', null, 0, 10)
         );
     }
 }

@@ -10,8 +10,9 @@ use App\Modules\Dashboard\Domain\Actions\FindTraceMetricsAction;
 
 readonly class FindTraceMetricsByAdminUseCase
 {
-    public function __construct(private FindTraceMetricsAction $findTraceMetricsAction)
-    {
+    public function __construct(
+        private FindTraceMetricsAction $findTraceMetricsAction
+    ) {
     }
 
     /**

@@ -69,7 +69,9 @@ readonly class LogFileFinder
         }
 
         return array_map(
-            static fn(LogFileObject $file): LogFileObject => $file !== $newest ? $file : new LogFileObject(
+            static fn(
+                LogFileObject $file
+            ): LogFileObject => $file !== $newest ? $file : new LogFileObject(
                 id: $file->id,
                 path: $file->path,
                 name: $file->name,

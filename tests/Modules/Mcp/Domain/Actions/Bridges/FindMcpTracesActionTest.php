@@ -26,58 +26,66 @@ class FindMcpTracesActionTest extends TestCase
             ->action()
             ->handle(
                 new FindMcpTracesParameters(
-                    serviceIds: [
-                        2,
-                    ],
+                    serviceIds: [2],
                     period: $this->period(),
-                    types: [
-                        'request',
-                    ],
-                    statuses: [
-                        'failed',
-                    ],
+                    types: ['request'],
+                    statuses: ['failed'],
                     durationFrom: 0.5,
                     durationTo: 3.0,
-                    dataFilter: [
-                        'response.status >= 500',
-                    ],
-                    dataFields: [
-                        'request.uri',
-                    ],
+                    dataFilter: ['response.status >= 500'],
+                    dataFields: ['request.uri'],
                     page: 3,
                 )
             );
 
-        $this->assertSame(3, $this->captured?->page);
+        $this->assertSame(
+            3,
+            $this->captured?->page
+        );
 
-        $this->assertSame(50, $this->captured->perPage);
+        $this->assertSame(
+            50,
+            $this->captured->perPage
+        );
 
-        $this->assertSame([
-            2,
-        ], $this->captured->serviceIds);
+        $this->assertSame(
+            [2],
+            $this->captured->serviceIds
+        );
 
-        $this->assertSame([
-            'request',
-        ], $this->captured->types);
+        $this->assertSame(
+            ['request'],
+            $this->captured->types
+        );
 
-        $this->assertSame([
-            'failed',
-        ], $this->captured->statuses);
+        $this->assertSame(
+            ['failed'],
+            $this->captured->statuses
+        );
 
-        $this->assertSame(0.5, $this->captured->durationFrom);
+        $this->assertSame(
+            0.5,
+            $this->captured->durationFrom
+        );
 
-        $this->assertSame(3.0, $this->captured->durationTo);
+        $this->assertSame(
+            3.0,
+            $this->captured->durationTo
+        );
 
         $this->assertSame(
             'dt.response.status',
             $this->captured->data?->filter[0]->field
         );
 
-        $this->assertSame([
-            'request.uri',
-        ], $this->captured->data->fields);
+        $this->assertSame(
+            ['request.uri'],
+            $this->captured->data->fields
+        );
 
-        $this->assertNull($this->captured->traceId);
+        $this->assertNull(
+            $this->captured->traceId
+        );
 
         $this->assertSame(
             '2026-09-28 10:00:00',
@@ -91,14 +99,14 @@ class FindMcpTracesActionTest extends TestCase
             ->action()
             ->handle(
                 new FindMcpTracesParameters(
-                    serviceIds: [
-                        2,
-                    ],
+                    serviceIds: [2],
                     period: $this->period(),
                 )
             );
 
-        $this->assertNull($this->captured?->data);
+        $this->assertNull(
+            $this->captured?->data
+        );
     }
 
     public function testTagsAndDataFilterGoTogether(): void
@@ -107,22 +115,17 @@ class FindMcpTracesActionTest extends TestCase
             ->action()
             ->handle(
                 new FindMcpTracesParameters(
-                    serviceIds: [
-                        2,
-                    ],
+                    serviceIds: [2],
                     period: $this->period(),
-                    tags: [
-                        'api',
-                    ],
-                    dataFilter: [
-                        'response.status >= 500',
-                    ],
+                    tags: ['api'],
+                    dataFilter: ['response.status >= 500'],
                 )
             );
 
-        $this->assertSame([
-            'api',
-        ], $this->captured?->tags);
+        $this->assertSame(
+            ['api'],
+            $this->captured?->tags
+        );
 
         $this->assertSame(
             'dt.response.status',
@@ -138,13 +141,9 @@ class FindMcpTracesActionTest extends TestCase
             ->action()
             ->handle(
                 new FindMcpTracesParameters(
-                    serviceIds: [
-                        2,
-                    ],
+                    serviceIds: [2],
                     period: $this->period(),
-                    dataFilter: [
-                        'status ~ 5',
-                    ],
+                    dataFilter: ['status ~ 5'],
                 )
             );
     }
@@ -155,15 +154,15 @@ class FindMcpTracesActionTest extends TestCase
 
         $search
             ->method('handle')
-            ->willReturnCallback(function (TraceFindParameters $parameters) {
-                $this->captured = $parameters;
+            ->willReturnCallback(
+                function (TraceFindParameters $parameters) {
+                    $this->captured = $parameters;
 
-                return $this->traceItems(
-                    traceIds: [
-                        't1',
-                    ],
-                );
-            });
+                    return $this->traceItems(
+                        traceIds: ['t1'],
+                    );
+                }
+            );
 
         return new FindMcpTracesAction(
             findTracesAction: $search,

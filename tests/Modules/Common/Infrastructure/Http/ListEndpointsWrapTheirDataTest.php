@@ -49,8 +49,8 @@ class ListEndpointsWrapTheirDataTest extends TestCase
                     'array',
                     $type->getName(),
                     "$controller->name::$method->name() answers with a plain array, which "
-                    . 'reaches the panel without the `data` the schema promises. Return a '
-                    . 'resource collection — Resource::collection(...) — instead.'
+                        . 'reaches the panel without the `data` the schema promises. Return a '
+                        . 'resource collection — Resource::collection(...) — instead.'
                 );
             }
         }
@@ -117,6 +117,11 @@ class ListEndpointsWrapTheirDataTest extends TestCase
         $relative = str_replace($this->projectRoot() . '/app/', '', $file->getPathname());
 
         /** @var class-string */
-        return 'App\\' . str_replace(['/', '.php'], ['\\', ''], $relative);
+        return 'App\\'
+            . str_replace(
+                ['/', '.php'],
+                ['\\', ''],
+                $relative
+            );
     }
 }

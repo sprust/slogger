@@ -101,14 +101,11 @@ readonly class TraceGroupsRepository
         $rows = $this->client->select(
             sql: sprintf(
                 'SELECT %s, count() AS count, avg(dur) AS avg, quantile(0.95)(dur) AS p95, max(dur) AS max, '
-                . 'argMax(tid, coalesce(dur, -1)) AS example FROM traces FINAL WHERE %s '
-                . 'GROUP BY %s ORDER BY %s LIMIT {limit:UInt32}',
+                    . 'argMax(tid, coalesce(dur, -1)) AS example FROM traces FINAL WHERE %s '
+                    . 'GROUP BY %s ORDER BY %s LIMIT {limit:UInt32}',
                 implode(', ', $keys),
                 $condition->sql,
-                implode(
-                    ', ',
-                    array_map(static fn(TraceGroupFieldEnum $field) => $field->value, $groupBy)
-                ),
+                implode(', ', array_map(static fn(TraceGroupFieldEnum $field) => $field->value, $groupBy)),
                 implode(', ', $orderBy)
             ),
             params: [
@@ -124,7 +121,9 @@ readonly class TraceGroupsRepository
                     serviceId: is_numeric($row['service'] ?? null) ? (int) $row['service'] : null,
                     type: is_string($row['type'] ?? null) ? $row['type'] : null,
                     status: is_string($row['status'] ?? null) ? $row['status'] : null,
-                    startedAt: is_null($timeField) ? null : $this->rowReader->time($row[$timeField->value]),
+                    startedAt: is_null($timeField)
+                        ? null
+                        : $this->rowReader->time($row[$timeField->value]),
                     count: (int) $row['count'],
                     durationAvg: $this->readFloat($row['avg'] ?? null),
                     durationP95: $this->readFloat($row['p95'] ?? null),
@@ -180,7 +179,7 @@ readonly class TraceGroupsRepository
         $rows = $this->client->select(
             sql: sprintf(
                 'SELECT st IN {groupA:Array(String)} AS inA, %s AS value, count() AS count '
-                . 'FROM traces FINAL WHERE %s GROUP BY inA, value',
+                    . 'FROM traces FINAL WHERE %s GROUP BY inA, value',
                 $value,
                 $condition->sql
             ),

@@ -24,8 +24,13 @@ readonly class FindMcpTraceGroupsAction
 
     public const int MAX_FIELDS = 3;
 
-    public function __construct(private FindTraceGroupsAction $findTraceGroupsAction, private McpTraceDataFilterParser $dataFilterParser, private McpTracePeriodTransport $mcpTracePeriodTransport, private TraceObjectTransport $traceObjectTransport, private TraceParametersTransport $traceParametersTransport)
-    {
+    public function __construct(
+        private FindTraceGroupsAction $findTraceGroupsAction,
+        private McpTraceDataFilterParser $dataFilterParser,
+        private McpTracePeriodTransport $mcpTracePeriodTransport,
+        private TraceObjectTransport $traceObjectTransport,
+        private TraceParametersTransport $traceParametersTransport
+    ) {
     }
 
     /**
@@ -36,7 +41,9 @@ readonly class FindMcpTraceGroupsAction
     public function handle(FindMcpTraceGroupsParameters $parameters): TraceGroupsObject
     {
         $groupBy = $this->parseGroupBy($parameters->groupBy);
-        $filter  = $this->traceParametersTransport->toTraceDataFilters($this->dataFilterParser->parse($parameters->dataFilter));
+        $filter  = $this->traceParametersTransport->toTraceDataFilters(
+            $this->dataFilterParser->parse($parameters->dataFilter)
+        );
         $result  = $this->findTraceGroupsAction->handle(
             new TraceFindGroupsParameters(
                 loggingPeriod: $this->mcpTracePeriodTransport->toLoggingPeriod($parameters->period),
@@ -72,11 +79,7 @@ readonly class FindMcpTraceGroupsAction
             );
         }
 
-        if (
-            count(
-                array_unique($values),
-            ) !== count($values)
-        ) {
+        if (count(array_unique($values)) !== count($values)) {
             throw new McpTraceGroupByInvalidException(
                 message: 'A field is repeated.',
             );
@@ -98,7 +101,9 @@ readonly class FindMcpTraceGroupsAction
 
         $timeFields = array_filter(
             $fields,
-            static fn(TraceGroupFieldEnum $field) => $field === TraceGroupFieldEnum::Hour || $field === TraceGroupFieldEnum::Minute10,
+            static fn(
+                TraceGroupFieldEnum $field
+            ) => $field === TraceGroupFieldEnum::Hour || $field === TraceGroupFieldEnum::Minute10,
         );
 
         if (count($timeFields) > 1) {

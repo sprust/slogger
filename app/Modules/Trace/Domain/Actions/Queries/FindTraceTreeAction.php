@@ -17,8 +17,13 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceTreeAction
 {
-    public function __construct(private DispatcherInterface $dispatcher, private TraceRepository $traceRepository, private TraceTreeRepository $traceTreeRepository, private TraceTreeCacheRepository $traceTreeCacheRepository, private TraceTreeCacheStateRepository $traceTreeCacheStateRepository)
-    {
+    public function __construct(
+        private DispatcherInterface $dispatcher,
+        private TraceRepository $traceRepository,
+        private TraceTreeRepository $traceTreeRepository,
+        private TraceTreeCacheRepository $traceTreeCacheRepository,
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository
+    ) {
     }
 
     /**

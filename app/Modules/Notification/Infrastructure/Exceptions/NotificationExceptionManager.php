@@ -4,23 +4,41 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Infrastructure\Exceptions;
 
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerInterface;
 use App\Modules\Notification\Domain\Exceptions\NotificationChannelNotFoundException;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
 use Throwable;
 
-readonly class NotificationExceptionManager implements ExceptionManagerInterface
+class NotificationExceptionManager extends BaseExceptionManager
 {
-    public function map(Throwable $exception): Response|HttpException|null
+    public function makeJsonHttpResponse(Throwable $exception): ?JsonHttpExceptionResponseObject
     {
-        return match (true) {
-            $exception instanceof NotificationChannelNotFoundException => new HttpException(
-                statusCode: 404,
-                message: $exception->getMessage(),
-                previous: $exception,
-            ),
-            default => null,
-        };
+        $exception = $this->detectException($exception);
+
+        if (!$this->isHandlingException($exception)) {
+            return null;
+        }
+
+        $httpStatus = 404;
+
+        return new JsonHttpExceptionResponseObject(
+            message: $this->onMakeMessage($exception),
+            httpStatus: $httpStatus,
+        );
+    }
+
+    protected function isHandlingException(Throwable $exception): bool
+    {
+        return $exception instanceof NotificationChannelNotFoundException;
+    }
+
+    protected function getDontReport(): array
+    {
+        return [NotificationChannelNotFoundException::class];
+    }
+
+    protected function onMakeMessage(Throwable $exception): string
+    {
+        return $exception->getMessage();
     }
 }

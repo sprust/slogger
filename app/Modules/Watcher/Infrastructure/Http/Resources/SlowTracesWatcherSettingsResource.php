@@ -21,6 +21,8 @@ class SlowTracesWatcherSettingsResource extends AbstractApiResource
         $this->id             = $id;
         $this->duration       = $resource->duration;
         $this->window_minutes = $resource->windowMinutes;
-        $this->filter         = new WatcherTraceFilterResource($resource->traceFilter());
+        $this->filter         = new WatcherTraceFilterResource(
+            $resource->traceFilter()
+        );
     }
 }

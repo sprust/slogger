@@ -40,8 +40,12 @@ readonly class LogErrorStatCounter
     /**
      * @param list<int> $levels
      */
-    public function count(LogTypeEnum $type, array $levels, Carbon $since, Carbon $until): LogLevelStatObject
-    {
+    public function count(
+        LogTypeEnum $type,
+        array $levels,
+        Carbon $since,
+        Carbon $until
+    ): LogLevelStatObject {
         $sinceTime = $since->getTimestamp();
         $untilTime = $until->getTimestamp();
 
@@ -51,7 +55,10 @@ readonly class LogErrorStatCounter
         $lastRecord = null;
 
         foreach ($this->logFileFinder->findAll() as $file) {
-            if ($file->type !== $type || intdiv($file->modifiedAtMs, 1000) < $sinceTime) {
+            if (
+                $file->type !== $type
+                || intdiv($file->modifiedAtMs, 1000) < $sinceTime
+            ) {
                 continue;
             }
 
@@ -81,7 +88,10 @@ readonly class LogErrorStatCounter
 
                         ++$count;
 
-                        if ($lastRecord === null || $this->isLater($record, $file, $lastRecord, $lastFile)) {
+                        if (
+                            $lastRecord === null
+                            || $this->isLater($record, $file, $lastRecord, $lastFile)
+                        ) {
                             $lastFile   = $file;
                             $lastRecord = $record;
                         }
@@ -92,7 +102,10 @@ readonly class LogErrorStatCounter
 
         return new LogLevelStatObject(
             count: $count,
-            lastMessage: $lastFile === null || $lastRecord === null ? null : $this->readMessage($lastFile, $lastRecord)
+            lastMessage: $lastFile === null || $lastRecord === null ? null : $this->readMessage(
+                $lastFile,
+                $lastRecord
+            )
         );
     }
 
@@ -130,7 +143,9 @@ readonly class LogErrorStatCounter
     private function readMessage(LogFileObject $file, LogIndexRecordObject $record): ?string
     {
         foreach ($this->logTextReader->read($file->path, [$record], self::MAX_MESSAGE_BYTES) as $entryText) {
-            return $this->logFormatRegistry->get($file->type)->parseEntry($entryText->text)->message;
+            return $this->logFormatRegistry
+                ->get($file->type)
+                ->parseEntry($entryText->text)->message;
         }
 
         return null;

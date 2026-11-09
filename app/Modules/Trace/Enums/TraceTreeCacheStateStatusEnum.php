@@ -7,7 +7,7 @@ namespace App\Modules\Trace\Enums;
 enum TraceTreeCacheStateStatusEnum: string
 {
     case InProcess = 'inProcess';
-    case Finished = 'finished';
-    case Failed = 'failed';
-    case Canceled = 'canceled';
+    case Finished  = 'finished';
+    case Failed    = 'failed';
+    case Canceled  = 'canceled';
 }

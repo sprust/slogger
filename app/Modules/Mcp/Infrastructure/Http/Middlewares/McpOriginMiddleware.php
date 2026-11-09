@@ -27,7 +27,10 @@ readonly class McpOriginMiddleware
         $appHost    = parse_url($this->findMcpSettingsAction->handle()->appUrl, PHP_URL_HOST);
         $originHost = parse_url($origin, PHP_URL_HOST);
 
-        if (!is_string($originHost) || !is_string($appHost) || strcasecmp($originHost, $appHost) !== 0) {
+        if (
+            !is_string($originHost) || !is_string($appHost)
+            || strcasecmp($originHost, $appHost) !== 0
+        ) {
             abort(Response::HTTP_FORBIDDEN);
         }
 

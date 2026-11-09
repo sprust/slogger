@@ -8,8 +8,10 @@ use App\Modules\Dashboard\Repositories\DatabaseStatCacheRepository;
 
 readonly class RefreshDatabaseStatCacheAction
 {
-    public function __construct(private FindDatabaseStatAction $findDatabaseStatAction, private DatabaseStatCacheRepository $cacheRepository)
-    {
+    public function __construct(
+        private FindDatabaseStatAction $findDatabaseStatAction,
+        private DatabaseStatCacheRepository $cacheRepository
+    ) {
     }
 
     public function handle(): void

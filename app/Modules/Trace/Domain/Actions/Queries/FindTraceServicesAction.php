@@ -21,10 +21,14 @@ readonly class FindTraceServicesAction
     public function handle(?array $serviceIds = null): TraceServicesObject
     {
         if (!is_null($serviceIds) && !count($serviceIds)) {
-            return new TraceServicesObject(services: []);
+            return new TraceServicesObject(
+                services: []
+            );
         }
 
-        $services = $this->findServicesAction->handle(ids: $serviceIds);
+        $services = $this->findServicesAction->handle(
+            ids: $serviceIds
+        );
 
         return new TraceServicesObject(
             services: array_map(

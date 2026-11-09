@@ -25,7 +25,9 @@ readonly class MutexManager implements MutexManagerInterface
         private Application $app,
         CacheFactory $cacheFactory
     ) {
-        $store = $cacheFactory->store(config('cache.mutex_store'))->getStore();
+        $store = $cacheFactory->store(
+            config('cache.mutex_store')
+        )->getStore();
 
         if (!$store instanceof LockProvider) {
             throw new LogicException(
@@ -58,7 +60,9 @@ readonly class MutexManager implements MutexManagerInterface
         $lock = $this->store->lock("mutex:$key", $mutex->getMaxLockSec());
 
         try {
-            $lock->block($mutex->getWaitForBlockSec());
+            $lock->block(
+                $mutex->getWaitForBlockSec()
+            );
         } catch (LockTimeoutException) {
             throw new MutexLockTimeoutException($key);
         }
@@ -75,7 +79,11 @@ readonly class MutexManager implements MutexManagerInterface
             }
         }
 
-        $this->saveHolder(key: $key, lock: $lock, level: 1);
+        $this->saveHolder(
+            key: $key,
+            lock: $lock,
+            level: 1
+        );
     }
 
     public function unlock(AbstractMutex $mutex): void
@@ -91,7 +99,11 @@ readonly class MutexManager implements MutexManagerInterface
         $level = $holder->level - 1;
 
         if ($level > 0) {
-            $this->saveHolder(key: $key, lock: $holder->lock, level: $level);
+            $this->saveHolder(
+                key: $key,
+                lock: $holder->lock,
+                level: $level
+            );
 
             return;
         }
@@ -105,13 +117,17 @@ readonly class MutexManager implements MutexManagerInterface
         } finally {
             $holder->lock->release();
 
-            Context::current()->forget($this->makeContextKey($key));
+            Context::current()->forget(
+                $this->makeContextKey($key)
+            );
         }
     }
 
     private function findOwnHolder(string $key): ?MutexHolder
     {
-        $holder = Context::current()->find($this->makeContextKey($key));
+        $holder = Context::current()->find(
+            $this->makeContextKey($key)
+        );
 
         if (!$holder instanceof MutexHolder || $holder->fiberId !== $this->currentFiberId()) {
             return null;
@@ -122,15 +138,16 @@ readonly class MutexManager implements MutexManagerInterface
 
     private function saveHolder(string $key, Lock $lock, int $level): void
     {
-        Context::current()->set(
-            key: $this->makeContextKey($key),
-            value: new MutexHolder(
-                lock: $lock,
-                level: $level,
-                fiberId: $this->currentFiberId()
-            ),
-            replace: true
-        );
+        Context::current()
+            ->set(
+                key: $this->makeContextKey($key),
+                value: new MutexHolder(
+                    lock: $lock,
+                    level: $level,
+                    fiberId: $this->currentFiberId()
+                ),
+                replace: true
+            );
     }
 
     private function makeContextKey(string $key): string

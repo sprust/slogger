@@ -17,6 +17,7 @@ use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Services\OpenApi\Fixtures\CreatedController;
+use Tests\Services\OpenApi\Fixtures\UnwrappedController;
 use Tests\Services\OpenApi\Fixtures\IntegerKind;
 use Tests\Services\OpenApi\Fixtures\PublicAdminApiRoutesParser;
 use Tests\Services\OpenApi\Fixtures\StringKind;
@@ -48,8 +49,11 @@ class OpenApiGeneratorTest extends TestCase
     }
 
     #[DataProvider('enums')]
-    public function testEnum(string $class, string $type, bool $nullable): void
-    {
+    public function testEnum(
+        string $class,
+        string $type,
+        bool $nullable
+    ): void {
         $property            = $this->app->make(OaEnumProperty::class);
         $property->enumClass = $class;
         $property->enum      = array_column($class::cases(), 'value');
@@ -69,9 +73,7 @@ class OpenApiGeneratorTest extends TestCase
                 [
                     'type'     => $type,
                     'nullable' => true,
-                    'enum'     => [
-                        null,
-                    ],
+                    'enum'     => [null],
                 ],
                 $schema['oneOf'][1]
             );
@@ -140,9 +142,7 @@ class OpenApiGeneratorTest extends TestCase
         );
 
         self::assertSame(
-            [
-                'id',
-            ],
+            ['id'],
             $schema['items']['required']
         );
     }
@@ -168,9 +168,7 @@ class OpenApiGeneratorTest extends TestCase
         $path = $parser->parse();
 
         self::assertSame(
-            [
-                201,
-            ],
+            [201],
             array_keys($path->responses)
         );
 
@@ -179,13 +177,41 @@ class OpenApiGeneratorTest extends TestCase
         );
 
         config([
-            'oa-generator.security_middlewares' => [
-                'fixture-auth',
-            ],
+            'oa-generator.security_middlewares' => ['fixture-auth'],
         ]);
 
         self::assertTrue(
             RouterConfigs::isSecurityRoute($route)
+        );
+    }
+
+    public function testExplicitlyUnwrappedCollection(): void
+    {
+        $route = new Route(
+            methods: 'GET',
+            uri: 'unwrapped-fixture',
+            action: [
+                'uses' => UnwrappedController::class . '@__invoke',
+            ],
+        );
+        $route->setContainer($this->app);
+        $parser = $this->app->make(
+            abstract: RouterParser::class,
+            parameters: [
+                'route' => $route,
+            ],
+        );
+
+        $path     = $parser->parse();
+        $response = $path->responses[200]->toArray();
+
+        self::assertSame(
+            expected: 'array',
+            actual: $response['type']
+        );
+        self::assertArrayNotHasKey(
+            key: 'properties',
+            array: $response
         );
     }
 

@@ -30,10 +30,12 @@ readonly class UpdateChannelAction
             throw new NotificationChannelNotFoundException($parameters->id);
         }
 
-        $settings = $this->types->for($channel->type)->makeUpdatedSettings(
-            submitted: $parameters->settings,
-            stored: $channel->settings
-        );
+        $settings = $this->types
+            ->for($channel->type)
+            ->makeUpdatedSettings(
+                submitted: $parameters->settings,
+                stored: $channel->settings
+            );
 
         $this->channelRepository->update(
             id: $parameters->id,

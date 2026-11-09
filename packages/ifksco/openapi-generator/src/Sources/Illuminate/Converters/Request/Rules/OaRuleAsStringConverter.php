@@ -59,7 +59,10 @@ class OaRuleAsStringConverter extends BaseOaRuleConverter
             return $object;
         }
 
-        if (in_array('int', $ruleNames) || in_array('integer', $ruleNames)) {
+        if (
+            in_array('int', $ruleNames)
+            || in_array('integer', $ruleNames)
+        ) {
             return new OaIntegerProperty();
         }
 
@@ -74,7 +77,10 @@ class OaRuleAsStringConverter extends BaseOaRuleConverter
             return new OaArrayProperty();
         }
 
-        if (in_array('bool', $ruleNames) || in_array('boolean', $ruleNames)) {
+        if (
+            in_array('bool', $ruleNames)
+            || in_array('boolean', $ruleNames)
+        ) {
             return new OaBooleanProperty();
         }
 
@@ -181,8 +187,12 @@ class OaRuleAsStringConverter extends BaseOaRuleConverter
             switch (get_class($object)) {
                 case OaNumberProperty::class:
                 case OaIntegerProperty::class:
-                    $object->minimum = Str::of('1')->padRight($parameters, '0')->toInteger();
-                    $object->maximum = Str::of('')->padRight($parameters, '9')->toInteger();
+                    $object->minimum = Str::of('1')
+                        ->padRight($parameters, '0')
+                        ->toInteger();
+                    $object->maximum = Str::of('')
+                        ->padRight($parameters, '9')
+                        ->toInteger();
                     break;
                 default:
                     throw new RuntimeException(
@@ -211,7 +221,12 @@ class OaRuleAsStringConverter extends BaseOaRuleConverter
             return;
         }
 
-        if (in_array($ruleName, ['required_without', 'required_with', 'required_without_all'])) {
+        if (
+            in_array(
+                $ruleName,
+                ['required_without', 'required_with', 'required_without_all']
+            )
+        ) {
             $object->requiredWithout = explode(',', $parameters);
 
             return;

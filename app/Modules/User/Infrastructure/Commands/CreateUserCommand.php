@@ -49,20 +49,28 @@ class CreateUserCommand extends Command
             return self::FAILURE;
         }
 
-        $email = $this->askAndCheck('Email *', true, [
-            'email',
-            'unique:users,email',
-        ]);
+        $email = $this->askAndCheck(
+            'Email *',
+            true,
+            [
+                'email',
+                'unique:users,email',
+            ]
+        );
 
         if (!is_string($email) || !$email) {
             return self::FAILURE;
         }
 
-        $password = $this->askAndCheck('Password [8-10] *', true, [
-            'string',
-            'min:8',
-            'max:10',
-        ]);
+        $password = $this->askAndCheck(
+            'Password [8-10] *',
+            true,
+            [
+                'string',
+                'min:8',
+                'max:10',
+            ]
+        );
 
         if (!is_string($password) || !$password) {
             return self::FAILURE;
@@ -78,7 +86,9 @@ class CreateUserCommand extends Command
                 )
             );
         } catch (UserAlreadyExistsException $exception) {
-            $this->error($exception->getMessage());
+            $this->error(
+                $exception->getMessage()
+            );
 
             return self::FAILURE;
         }
@@ -135,7 +145,9 @@ class CreateUserCommand extends Command
             );
 
             if ($validator->fails()) {
-                $this->error(json_encode($validator->errors()->all(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+                $this->error(
+                    json_encode($validator->errors()->all(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
+                );
 
                 return false;
             }

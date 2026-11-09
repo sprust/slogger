@@ -70,7 +70,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->make(GeneralConfig::class)->isEnabled()) {
-            $this->app->make(TraceDataComplementer::class)
+            $this->app
+                ->make(TraceDataComplementer::class)
                 ->add(
                     key: '__context',
                     value: static function (Processor $processor) {

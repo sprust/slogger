@@ -17,8 +17,10 @@ use App\Modules\Mcp\Enums\McpIncidentStatusEnum;
 
 readonly class GetIncidentsTool implements McpToolInterface
 {
-    public function __construct(private FindMcpIncidentsAction $findMcpIncidentsAction, private McpToolFormatter $formatter)
-    {
+    public function __construct(
+        private FindMcpIncidentsAction $findMcpIncidentsAction,
+        private McpToolFormatter $formatter
+    ) {
     }
 
     public function name(): string
@@ -33,7 +35,12 @@ readonly class GetIncidentsTool implements McpToolInterface
 
     public function description(): string
     {
-        return sprintf('Incidents raised by SLogger watchers, open ones first, then newest first, %d per page. ' . 'Each incident carries its watcher with the service ids the watcher is limited to ' . '(empty means all services): filter by service yourself.', FindMcpIncidentsAction::PER_PAGE);
+        return sprintf(
+            'Incidents raised by SLogger watchers, open ones first, then newest first, %d per page. '
+                . 'Each incident carries its watcher with the service ids the watcher is limited to '
+                . '(empty means all services): filter by service yourself.',
+            FindMcpIncidentsAction::PER_PAGE
+        );
     }
 
     public function schema(): McpToolSchema
@@ -44,7 +51,12 @@ readonly class GetIncidentsTool implements McpToolInterface
                     name: 'status',
                     type: McpToolPropertyTypeEnum::String,
                     description: 'Only incidents in this status.',
-                    enum: array_map(static fn(McpIncidentStatusEnum $status) => $status->value, McpIncidentStatusEnum::cases()),
+                    enum: array_map(
+                        static fn(
+                            McpIncidentStatusEnum $status
+                        ) => $status->value,
+                        McpIncidentStatusEnum::cases()
+                    ),
                 ),
                 new McpToolProperty(
                     name: 'watcher_id',
@@ -76,7 +88,12 @@ readonly class GetIncidentsTool implements McpToolInterface
 
         return new McpToolResult(
             data: [
-                'incidents' => array_map(fn(McpIncidentObject $incident) => $this->formatter->incident($incident), $result->items),
+                'incidents' => array_map(
+                    fn(
+                        McpIncidentObject $incident
+                    ) => $this->formatter->incident($incident),
+                    $result->items
+                ),
                 'page'      => $page,
                 'has_more'  => $result->hasMore,
             ],

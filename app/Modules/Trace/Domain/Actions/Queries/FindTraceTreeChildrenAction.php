@@ -23,8 +23,12 @@ readonly class FindTraceTreeChildrenAction
     ) {
     }
 
-    public function handle(string $rootTraceId, ?string $parentTraceId, ?string $cursor, int $limit): TraceTreeChildrenObject
-    {
+    public function handle(
+        string $rootTraceId,
+        ?string $parentTraceId,
+        ?string $cursor,
+        int $limit
+    ): TraceTreeChildrenObject {
         if ($parentTraceId === null) {
             $items = $this->traceTreeCacheRepository->findTopNodes($rootTraceId);
 

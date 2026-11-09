@@ -10,9 +10,7 @@ class ModuleStructure
     public function errors(string $root): array
     {
         if (!is_dir($root)) {
-            return [
-                "Modules directory not found: $root",
-            ];
+            return ["Modules directory not found: $root"];
         }
 
         $template = [
@@ -84,7 +82,8 @@ class ModuleStructure
 
                 foreach (glob($directory . '/*', GLOB_ONLYDIR) ?: [] as $child) {
                     if (!in_array(basename($child), $template[$name], true)) {
-                        $errors[] = 'Unexpected directory: ' . basename($module) . '/' . $name . '/' . basename($child);
+                        $errors[] = 'Unexpected directory: ' . basename($module) . '/' . $name . '/'
+                            . basename($child);
                     }
                 }
             }

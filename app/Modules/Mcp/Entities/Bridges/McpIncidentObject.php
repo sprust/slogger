@@ -6,7 +6,9 @@ namespace App\Modules\Mcp\Entities\Bridges;
 
 readonly class McpIncidentObject
 {
-    public function __construct(public McpIncidentDataObject $incident, public ?McpIncidentWatcherObject $watcher)
-    {
+    public function __construct(
+        public McpIncidentDataObject $incident,
+        public ?McpIncidentWatcherObject $watcher
+    ) {
     }
 }

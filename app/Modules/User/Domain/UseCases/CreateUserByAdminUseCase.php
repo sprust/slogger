@@ -13,8 +13,10 @@ use App\Modules\User\Parameters\UserCreateParameters;
 
 readonly class CreateUserByAdminUseCase
 {
-    public function __construct(private CreateUserAction $createUserAction, private FindUserAction $findUserAction)
-    {
+    public function __construct(
+        private CreateUserAction $createUserAction,
+        private FindUserAction $findUserAction
+    ) {
     }
 
     /**

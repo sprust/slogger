@@ -12,8 +12,11 @@ use App\Modules\Notification\Entities\SendResultObject;
 
 readonly class SendNotificationUseCase
 {
-    public function __construct(private SendNotificationAction $sendNotificationAction, private FindNotificationAction $findNotificationAction, private FindChannelAction $findChannelAction)
-    {
+    public function __construct(
+        private SendNotificationAction $sendNotificationAction,
+        private FindNotificationAction $findNotificationAction,
+        private FindChannelAction $findChannelAction
+    ) {
     }
 
     public function handle(string $notificationId): ?SendResultObject

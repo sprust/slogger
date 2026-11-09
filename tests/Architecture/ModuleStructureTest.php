@@ -36,7 +36,10 @@ class ModuleStructureTest extends TestCase
         );
 
         try {
-            self::assertSame([], (new ModuleStructure())->errors($root));
+            self::assertSame(
+                [],
+                (new ModuleStructure())->errors($root)
+            );
 
             $filesystem->mkdir(
                 dirs: [
@@ -72,13 +75,25 @@ class ModuleStructureTest extends TestCase
 
             $process->run();
 
-            self::assertSame(1, $process->getExitCode());
+            self::assertSame(
+                1,
+                $process->getExitCode()
+            );
 
-            self::assertStringContainsString('Full/Domain/Typo', $process->getErrorOutput());
+            self::assertStringContainsString(
+                'Full/Domain/Typo',
+                $process->getErrorOutput()
+            );
 
-            self::assertStringContainsString('Minimal/Unknown', $process->getErrorOutput());
+            self::assertStringContainsString(
+                'Minimal/Unknown',
+                $process->getErrorOutput()
+            );
 
-            self::assertStringContainsString('Unowned.php', $process->getErrorOutput());
+            self::assertStringContainsString(
+                'Unowned.php',
+                $process->getErrorOutput()
+            );
 
             self::assertStringContainsString(
                 'Minimal/BadAction.php',

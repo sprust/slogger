@@ -22,32 +22,44 @@ class WatcherFactoryTest extends TestCase
 
     public function testTheStoredTypeDecidesHowTheSettingsAreRead(): void
     {
-        $watcher = $this->factory()->make(
-            $this->dto(
-                type: WatcherTypeEnum::SlowTraces->value,
-                settings: ['duration' => 15, 'window_minutes' => 3]
-            )
-        );
+        $watcher = $this
+            ->factory()
+            ->make(
+                $this->dto(
+                    type: WatcherTypeEnum::SlowTraces->value,
+                    settings: ['duration' => 15, 'window_minutes' => 3]
+                )
+            );
 
-        $this->assertSame(WatcherTypeEnum::SlowTraces, $watcher->type);
+        $this->assertSame(
+            WatcherTypeEnum::SlowTraces,
+            $watcher->type
+        );
         $this->assertInstanceOf(
             SlowTracesSettingsObject::class,
             $watcher->settings
         );
-        $this->assertSame(15.0, $watcher->settings->duration);
+        $this->assertSame(
+            15.0,
+            $watcher->settings->duration
+        );
     }
 
     public function testAStoredMatchReadsBackAsItWasWritten(): void
     {
-        $watcher = $this->factory()->make(
-            $this->dto(traceMatch: [
-                'v'           => 2,
-                'service_ids' => [3],
-                'types'       => ['http'],
-                'tags'        => [],
-                'statuses'    => ['failed'],
-            ])
-        );
+        $watcher = $this
+            ->factory()
+            ->make(
+                $this->dto(
+                    traceMatch: [
+                        'v'           => 2,
+                        'service_ids' => [3],
+                        'types'       => ['http'],
+                        'tags'        => [],
+                        'statuses'    => ['failed'],
+                    ]
+                )
+            );
 
         $this->assertEquals(
             new WatcherMatchObject(
@@ -62,7 +74,15 @@ class WatcherFactoryTest extends TestCase
 
     public function testAWatcherTheReceiverIgnoresHasNoMatch(): void
     {
-        $this->assertNull($this->factory()->make($this->dto(traceMatch: null))->match);
+        $this->assertNull(
+            $this
+                ->factory()
+                ->make(
+                    $this->dto(
+                        traceMatch: null
+                    )
+                )->match
+        );
     }
 
     /**
@@ -72,36 +92,72 @@ class WatcherFactoryTest extends TestCase
      */
     public function testAnUnknownVersionIsKeptRatherThanReplaced(): void
     {
-        $watcher = $this->factory()->make($this->dto(traceMatch: ['v' => 99]));
+        $watcher = $this
+            ->factory()
+            ->make(
+                $this->dto(
+                    traceMatch: ['v' => 99]
+                )
+            );
 
-        $this->assertNotNull($watcher->match);
-        $this->assertSame(99, $watcher->match->version);
+        $this->assertNotNull(
+            $watcher->match
+        );
+        $this->assertSame(
+            99,
+            $watcher->match->version
+        );
     }
 
     /** A column written before a key existed still has to load. */
     public function testMissingMatchKeysReadAsEmpty(): void
     {
-        $watcher = $this->factory()->make($this->dto(traceMatch: ['v' => 1]));
+        $watcher = $this
+            ->factory()
+            ->make(
+                $this->dto(
+                    traceMatch: ['v' => 1]
+                )
+            );
 
-        $this->assertNotNull($watcher->match);
-        $this->assertSame([], $watcher->match->serviceIds);
-        $this->assertSame([], $watcher->match->types);
-        $this->assertSame([], $watcher->match->tags);
+        $this->assertNotNull(
+            $watcher->match
+        );
+        $this->assertSame(
+            [],
+            $watcher->match->serviceIds
+        );
+        $this->assertSame(
+            [],
+            $watcher->match->types
+        );
+        $this->assertSame(
+            [],
+            $watcher->match->tags
+        );
     }
 
     public function testTheNotifySwitchesComeBackAsTheyWereStored(): void
     {
-        $watcher = $this->factory()->make(
-            $this->dto(
-                notifyOnOpened: false,
-                notifyOnEvent: true,
-                notifyOnClosed: false
-            )
-        );
+        $watcher = $this
+            ->factory()
+            ->make(
+                $this->dto(
+                    notifyOnOpened: false,
+                    notifyOnEvent: true,
+                    notifyOnClosed: false
+                )
+            );
 
-        $this->assertFalse($watcher->notifyOnOpened);
-        $this->assertTrue($watcher->notifyOnEvent);
-        $this->assertFalse($watcher->notifyOnClosed);
+        $this->assertFalse(
+            $watcher->notifyOnOpened
+        );
+        $this->assertTrue(
+            $watcher->notifyOnEvent
+        );
+        $this->assertFalse(
+            $watcher->notifyOnClosed
+        );
     }
 
     /**
@@ -111,7 +167,11 @@ class WatcherFactoryTest extends TestCase
      */
     public function testARowOfAnUnknownTypeIsSkippedRatherThanFatal(): void
     {
-        $this->assertNull($this->factory()->make($this->dto('somethingElse')));
+        $this->assertNull(
+            $this->factory()->make(
+                $this->dto('somethingElse')
+            )
+        );
     }
 
     /**

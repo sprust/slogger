@@ -24,9 +24,17 @@ class LogsHttpTest extends TestCase
 
         config()->set('cache.mutex_store', 'array');
 
-        config()->set('module-logs.sources', [
-            ['name' => 'Laravel', 'folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel],
-        ]);
+        config()->set(
+            'module-logs.sources',
+            [
+                [
+                    'name'    => 'Laravel',
+                    'folder'  => $this->tempDir . '/logs',
+                    'pattern' => '*.log',
+                    'type'    => LogTypeEnum::Laravel,
+                ],
+            ]
+        );
 
         $this->path = $this->tempDir . '/logs/laravel.log';
 
@@ -48,10 +56,22 @@ class LogsHttpTest extends TestCase
         $this
             ->getJson('/admin-api/logs/files')
             ->assertOk()
-            ->assertJsonPath('data.0.id', sha1($this->path))
-            ->assertJsonPath('data.0.name', 'laravel.log')
-            ->assertJsonPath('data.0.source', 'Laravel')
-            ->assertJsonPath('data.0.type', 'laravel');
+            ->assertJsonPath(
+                'data.0.id',
+                sha1($this->path)
+            )
+            ->assertJsonPath(
+                'data.0.name',
+                'laravel.log'
+            )
+            ->assertJsonPath(
+                'data.0.source',
+                'Laravel'
+            )
+            ->assertJsonPath(
+                'data.0.type',
+                'laravel'
+            );
     }
 
     public function testEntriesAreFound(): void
@@ -62,14 +82,38 @@ class LogsHttpTest extends TestCase
                 ['files' => [sha1($this->path)]]
             )
             ->assertOk()
-            ->assertJsonPath('data.total', 2)
-            ->assertJsonPath('data.items.0.level', 'laravel.INFO')
-            ->assertJsonPath('data.items.1.message', 'boom')
-            ->assertJsonPath('data.items.1.context', '{"a":"б"}')
-            ->assertJsonPath('data.items.1.fields.0.key', 'env')
-            ->assertJsonPath('data.items.1.logged_at', '2026-09-25 05:35:29')
-            ->assertJsonPath('data.level_counts.0.key', 'laravel.ERROR')
-            ->assertJsonPath('data.older_cursor', null);
+            ->assertJsonPath(
+                'data.total',
+                2
+            )
+            ->assertJsonPath(
+                'data.items.0.level',
+                'laravel.INFO'
+            )
+            ->assertJsonPath(
+                'data.items.1.message',
+                'boom'
+            )
+            ->assertJsonPath(
+                'data.items.1.context',
+                '{"a":"б"}'
+            )
+            ->assertJsonPath(
+                'data.items.1.fields.0.key',
+                'env'
+            )
+            ->assertJsonPath(
+                'data.items.1.logged_at',
+                '2026-09-25 05:35:29'
+            )
+            ->assertJsonPath(
+                'data.level_counts.0.key',
+                'laravel.ERROR'
+            )
+            ->assertJsonPath(
+                'data.older_cursor',
+                null
+            );
     }
 
     public function testTheRequestIsValidated(): void
@@ -95,7 +139,9 @@ class LogsHttpTest extends TestCase
 
     public function testAFileIsDownloaded(): void
     {
-        $response = $this->get(sprintf('/admin-api/logs/files/%s/download', sha1($this->path)));
+        $response = $this->get(
+            sprintf('/admin-api/logs/files/%s/download', sha1($this->path))
+        );
 
         $response->assertOk();
 
@@ -114,7 +160,11 @@ class LogsHttpTest extends TestCase
     {
         config()->set('module-logs.download.max_bytes', 10);
 
-        $this->get(sprintf('/admin-api/logs/files/%s/download', sha1($this->path)))->assertUnprocessable();
+        $this
+            ->get(
+                sprintf('/admin-api/logs/files/%s/download', sha1($this->path))
+            )
+            ->assertUnprocessable();
     }
 
     public function testAFileOutsideTheSourcesIsNotDownloaded(): void
@@ -124,6 +174,9 @@ class LogsHttpTest extends TestCase
         $this
             ->getJson("/admin-api/logs/files/$fileId/download")
             ->assertNotFound()
-            ->assertJsonPath('message', "Log file [$fileId] not found");
+            ->assertJsonPath(
+                'message',
+                "Log file [$fileId] not found"
+            );
     }
 }

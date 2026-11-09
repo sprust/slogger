@@ -13,8 +13,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class InvalidBufferGrownIncidentEventController extends AbstractIncidentEventController
 {
     #[OaListItemTypeAttribute(InvalidBufferGrownIncidentEventResource::class)]
-    public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
-    {
+    public function index(
+        string $id,
+        IndexIncidentEventsRequest $request
+    ): AnonymousResourceCollection {
         return InvalidBufferGrownIncidentEventResource::collection(
             $this->incidentEvents(
                 WatcherTypeEnum::InvalidBufferGrown,

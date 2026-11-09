@@ -8,7 +8,10 @@ abstract class BaseOaRuleConverter
 {
     abstract protected static function canHandleRule(mixed $rule): bool;
 
-    abstract protected static function onDetectObject(array $ruleNames, mixed $rule): ?BaseOaProperty;
+    abstract protected static function onDetectObject(
+        array $ruleNames,
+        mixed $rule
+    ): ?BaseOaProperty;
 
     abstract protected static function onFillProperty(BaseOaProperty $object, mixed $rule): void;
 

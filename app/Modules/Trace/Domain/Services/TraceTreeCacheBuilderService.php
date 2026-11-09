@@ -55,15 +55,26 @@ readonly class TraceTreeCacheBuilderService
      */
     private const int ANCESTOR_DEPTH = -1;
 
-    public function __construct(private TraceRepository $traceRepository, private TraceTreeRepository $traceTreeRepository, private TraceTreeCacheRepository $traceTreeCacheRepository, private TraceTreeCacheStateRepository $traceTreeCacheStateRepository, private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction, private DispatcherInterface $dispatcher, private float $sliceTimeBudgetSeconds = 5.0)
-    {
+    public function __construct(
+        private TraceRepository $traceRepository,
+        private TraceTreeRepository $traceTreeRepository,
+        private TraceTreeCacheRepository $traceTreeCacheRepository,
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
+        private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
+        private DispatcherInterface $dispatcher,
+        private float $sliceTimeBudgetSeconds = 5.0
+    ) {
     }
 
     /**
      * @throws ClickhouseQueryException
      */
-    public function handleSlice(string $rootTraceId, string $version, int $depth, ?string $afterId): TraceTreeCacheSliceObject
-    {
+    public function handleSlice(
+        string $rootTraceId,
+        string $version,
+        int $depth,
+        ?string $afterId
+    ): TraceTreeCacheSliceObject {
         $lastProgressAt = 0.0;
         $startedAt      = microtime(true);
         $writtenCount   = 0;
@@ -131,7 +142,8 @@ readonly class TraceTreeCacheBuilderService
             $afterId = $lastId;
 
             if (
-                $writtenCount >= self::SLICE_TARGET_CHILDREN || microtime(true) - $startedAt >= $this->sliceTimeBudgetSeconds
+                $writtenCount >= self::SLICE_TARGET_CHILDREN
+                || microtime(true) - $startedAt >= $this->sliceTimeBudgetSeconds
             ) {
                 return new TraceTreeCacheSliceObject(
                     stopped: false,
@@ -264,7 +276,9 @@ readonly class TraceTreeCacheBuilderService
             return;
         }
 
-        $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
+        $this->dispatcher->event(
+            new TraceTreeCacheStateChangedEvent($state)
+        );
     }
 
     /**
@@ -274,8 +288,12 @@ readonly class TraceTreeCacheBuilderService
      *
      * @throws ClickhouseQueryException
      */
-    private function createTraceTree(string $rootTraceId, string $version, array $childIdsChunk, int $depth): int
-    {
+    private function createTraceTree(
+        string $rootTraceId,
+        string $version,
+        array $childIdsChunk,
+        int $depth
+    ): int {
         $foundNodes = $this->traceRepository->findTreeNodesByTraceIds(
             traceIds: $childIdsChunk,
         );

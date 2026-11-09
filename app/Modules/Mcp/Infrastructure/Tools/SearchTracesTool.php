@@ -26,8 +26,11 @@ readonly class SearchTracesTool implements McpToolInterface
 
     private const int MAX_DATA_FIELDS   = 10;
 
-    public function __construct(private FindMcpTracesAction $findMcpTracesAction, private McpToolTraceScopeReader $scopeReader, private McpToolFormatter $formatter)
-    {
+    public function __construct(
+        private FindMcpTracesAction $findMcpTracesAction,
+        private McpToolTraceScopeReader $scopeReader,
+        private McpToolFormatter $formatter
+    ) {
     }
 
     public function name(): string
@@ -42,7 +45,13 @@ readonly class SearchTracesTool implements McpToolInterface
 
     public function description(): string
     {
-        return sprintf('Traces of the chosen services (all when omitted) over a period, newest first, %d per page, ' . 'with filters, a filter by fields of their data and chosen data fields returned with each ' . 'trace. Use ' . 'get_trace_data_fields to learn the data keys first.', FindMcpTracesAction::PER_PAGE);
+        return sprintf(
+            'Traces of the chosen services (all when omitted) over a period, newest first, %d per page, '
+                . 'with filters, a filter by fields of their data and chosen data fields returned with each '
+                . 'trace. Use '
+                . 'get_trace_data_fields to learn the data keys first.',
+            FindMcpTracesAction::PER_PAGE
+        );
     }
 
     public function schema(): McpToolSchema
@@ -85,7 +94,8 @@ readonly class SearchTracesTool implements McpToolInterface
                 new McpToolProperty(
                     name: 'data_filter',
                     type: McpToolPropertyTypeEnum::StringList,
-                    description: 'Conditions on the trace data, all must hold. ' . McpTraceDataFilterParser::FORMAT,
+                    description: 'Conditions on the trace data, all must hold. '
+                        . McpTraceDataFilterParser::FORMAT,
                     max: self::MAX_DATA_FILTER,
                 ),
                 new McpToolProperty(
@@ -132,7 +142,11 @@ readonly class SearchTracesTool implements McpToolInterface
         } catch (McpTraceDataFilterInvalidException $exception) {
             return $this->formatter->error(
                 error: 'invalid_data_filter',
-                hint: sprintf('Condition "%s" is not valid. Format: %s', $exception->condition, McpTraceDataFilterParser::FORMAT),
+                hint: sprintf(
+                    'Condition "%s" is not valid. Format: %s',
+                    $exception->condition,
+                    McpTraceDataFilterParser::FORMAT
+                ),
             );
         }
 

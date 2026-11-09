@@ -19,6 +19,8 @@ class NoNewTracesWatcherSettingsResource extends AbstractApiResource
 
         $this->id             = $id;
         $this->period_minutes = $resource->periodMinutes;
-        $this->filter         = new WatcherTraceFilterResource($resource->traceFilter());
+        $this->filter         = new WatcherTraceFilterResource(
+            $resource->traceFilter()
+        );
     }
 }

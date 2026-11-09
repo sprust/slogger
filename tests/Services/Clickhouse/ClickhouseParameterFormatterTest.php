@@ -28,16 +28,27 @@ class ClickhouseParameterFormatterTest extends TestCase
             'float'                    => [0.137, '0.137'],
             'plain string'             => ['request', 'request'],
             'string escapes'           => ["a\\b\tc\nd'e", 'a\\\\b\\tc\\nd\'e'],
-            'int array'                => [[1, 2, 3], '[1,2,3]'],
-            'string array is quoted'   => [["x'y", 'b\\c'], "['x\\'y','b\\\\c']"],
+            'int array'                => [
+                [1, 2, 3],
+                '[1,2,3]',
+            ],
+            'string array is quoted'   => [
+                ["x'y", 'b\\c'],
+                "['x\\'y','b\\\\c']",
+            ],
             'empty array'              => [[], '[]'],
-            'keys are dropped'         => [['a' => 'x', 'b' => 'y'], "['x','y']"],
+            'keys are dropped'         => [
+                ['a' => 'x', 'b' => 'y'],
+                "['x','y']",
+            ],
         ];
     }
 
     #[DataProvider('valuesProvider')]
-    public function testFormatsValue(mixed $value, string $expected): void
-    {
+    public function testFormatsValue(
+        mixed $value,
+        string $expected
+    ): void {
         self::assertSame(
             $expected,
             new ClickhouseParameterFormatter()->format($value)
@@ -70,13 +81,16 @@ class ClickhouseParameterFormatterTest extends TestCase
             'infinity'          => [INF],
             'negative infinity' => [-INF],
             'not a number'      => [NAN],
-            'inside an array'   => [[1.5, INF]],
+            'inside an array'   => [
+                [1.5, INF],
+            ],
         ];
     }
 
     #[DataProvider('nonFiniteProvider')]
-    public function testRefusesNonFiniteFloat(mixed $value): void
-    {
+    public function testRefusesNonFiniteFloat(
+        mixed $value
+    ): void {
         $this->expectException(InvalidArgumentException::class);
 
         new ClickhouseParameterFormatter()->format($value);
@@ -86,6 +100,8 @@ class ClickhouseParameterFormatterTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new ClickhouseParameterFormatter()->format(new stdClass());
+        new ClickhouseParameterFormatter()->format(
+            new stdClass()
+        );
     }
 }

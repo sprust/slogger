@@ -9,12 +9,15 @@ use App\Modules\Watcher\Parameters\CloseIncidentByAdminParameters;
 
 readonly class FindClosingUserIdAction
 {
-    public function __construct(private FindUserByTokenAction $findUserByTokenAction)
-    {
+    public function __construct(
+        private FindUserByTokenAction $findUserByTokenAction
+    ) {
     }
 
     public function handle(CloseIncidentByAdminParameters $parameters): ?int
     {
-        return $parameters->token ? $this->findUserByTokenAction->handle($parameters->token)?->id : null;
+        return $parameters->token
+            ? $this->findUserByTokenAction->handle($parameters->token)?->id
+            : null;
     }
 }

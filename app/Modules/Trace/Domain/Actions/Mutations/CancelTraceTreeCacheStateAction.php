@@ -13,8 +13,10 @@ use Illuminate\Support\Carbon;
 
 readonly class CancelTraceTreeCacheStateAction
 {
-    public function __construct(private TraceTreeCacheStateRepository $traceTreeCacheStateRepository, private DispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
+        private DispatcherInterface $dispatcher
+    ) {
     }
 
     public function handle(string $rootTraceId): ?TraceTreeCacheStateObject
@@ -34,7 +36,9 @@ readonly class CancelTraceTreeCacheStateAction
         // The tab that pressed cancel already has the answer in the response; this is for
         // every other tab watching the same tree.
         if ($state !== null) {
-            $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
+            $this->dispatcher->event(
+                new TraceTreeCacheStateChangedEvent($state)
+            );
         }
 
         return $state;

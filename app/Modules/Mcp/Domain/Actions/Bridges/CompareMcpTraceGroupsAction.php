@@ -21,8 +21,11 @@ readonly class CompareMcpTraceGroupsAction
 
     private const string DATA_PREFIX = 'data.';
 
-    public function __construct(private CompareTraceGroupsAction $compareTraceGroupsAction, private McpTracePeriodTransport $mcpTracePeriodTransport, private TraceObjectTransport $traceObjectTransport)
-    {
+    public function __construct(
+        private CompareTraceGroupsAction $compareTraceGroupsAction,
+        private McpTracePeriodTransport $mcpTracePeriodTransport,
+        private TraceObjectTransport $traceObjectTransport
+    ) {
     }
 
     /**
@@ -40,24 +43,11 @@ readonly class CompareMcpTraceGroupsAction
 
         $dataKey = null;
 
-        if (
-            str_starts_with(
-                $parameters->by,
-                self::DATA_PREFIX,
-            )
-        ) {
-            $dataKey = substr(
-                $parameters->by,
-                strlen(self::DATA_PREFIX),
-            );
+        if (str_starts_with($parameters->by, self::DATA_PREFIX)) {
+            $dataKey = substr($parameters->by, strlen(self::DATA_PREFIX));
 
             // the key is written into the query: names joined by dots and nothing else
-            if (
-                preg_match(
-                    '/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*\z/',
-                    $dataKey,
-                ) !== 1
-            ) {
+            if (preg_match('/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*\z/', $dataKey) !== 1) {
                 throw new McpTraceGroupByInvalidException(
                     message: "Invalid data key in [{$parameters->by}].",
                 );

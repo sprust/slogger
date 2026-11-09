@@ -29,7 +29,9 @@ class DomainDependencyRule implements Rule
         }
         $targets = match (true) {
             $node instanceof Name                                            => [$scope->resolveName($node)],
-            $node instanceof MethodCall, $node instanceof NullsafeMethodCall => $scope->getType($node->var)->getReferencedClasses(),
+            $node instanceof MethodCall, $node instanceof NullsafeMethodCall => $scope
+                ->getType($node->var)
+                ->getReferencedClasses(),
             default                                                          => [],
         };
         $errors = [];
@@ -39,15 +41,28 @@ class DomainDependencyRule implements Rule
                 continue;
             }
             $useCase          = str_contains($source, '\\Domain\\UseCases\\');
-            $repository       = str_contains($source, '\\Repositories\\') && str_ends_with($source, 'Repository');
-            $targetRepository = str_contains($target, '\\Repositories\\') && str_ends_with($target, 'Repository');
+            $repository       =
+                str_contains($source, '\\Repositories\\')
+                && str_ends_with($source, 'Repository');
+            $targetRepository =
+                str_contains($target, '\\Repositories\\')
+                && str_ends_with($target, 'Repository');
 
             if (
-                ($useCase && ($targetRepository || str_contains($target, '\\Domain\\UseCases\\')) && $source !== $target)
+                (
+                    $useCase
+                    && ($targetRepository
+                        || str_contains($target, '\\Domain\\UseCases\\'))
+                    && $source !== $target
+                )
                 || ($repository && $targetRepository && $source !== $target)
             ) {
-                $errors[] = RuleErrorBuilder::message("$source must not depend on $target; extract a shared Action or mapping service.")
-                    ->identifier('architecture.domainDependency')->build();
+                $errors[] =
+                    RuleErrorBuilder::message(
+                        "$source must not depend on $target; extract a shared Action or mapping service."
+                    )
+                        ->identifier('architecture.domainDependency')
+                        ->build();
             }
         }
 

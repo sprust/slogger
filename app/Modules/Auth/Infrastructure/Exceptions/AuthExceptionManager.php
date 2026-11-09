@@ -4,23 +4,41 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Infrastructure\Exceptions;
 
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerInterface;
 use App\Modules\Auth\Domain\Exceptions\AuthenticationFailedException;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
 use Throwable;
 
-readonly class AuthExceptionManager implements ExceptionManagerInterface
+class AuthExceptionManager extends BaseExceptionManager
 {
-    public function map(Throwable $exception): Response|HttpException|null
+    public function makeJsonHttpResponse(Throwable $exception): ?JsonHttpExceptionResponseObject
     {
-        return match (true) {
-            $exception instanceof AuthenticationFailedException => new HttpException(
-                statusCode: 401,
-                message: $exception->getMessage(),
-                previous: $exception,
-            ),
-            default => null,
-        };
+        $exception = $this->detectException($exception);
+
+        if (!$this->isHandlingException($exception)) {
+            return null;
+        }
+
+        $httpStatus = 401;
+
+        return new JsonHttpExceptionResponseObject(
+            message: $this->onMakeMessage($exception),
+            httpStatus: $httpStatus,
+        );
+    }
+
+    protected function isHandlingException(Throwable $exception): bool
+    {
+        return $exception instanceof AuthenticationFailedException;
+    }
+
+    protected function getDontReport(): array
+    {
+        return [AuthenticationFailedException::class];
+    }
+
+    protected function onMakeMessage(Throwable $exception): string
+    {
+        return $exception->getMessage();
     }
 }

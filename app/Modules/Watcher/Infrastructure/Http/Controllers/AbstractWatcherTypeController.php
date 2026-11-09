@@ -26,8 +26,11 @@ use App\Modules\Watcher\Parameters\UpdateWatcherParameters;
  */
 abstract readonly class AbstractWatcherTypeController
 {
-    public function __construct(private CreateWatcherByAdminUseCase $createWatcherByAdminUseCase, private UpdateWatcherByAdminUseCase $updateWatcherByAdminUseCase, private FindWatcherByAdminUseCase $findWatcherByAdminUseCase)
-    {
+    public function __construct(
+        private CreateWatcherByAdminUseCase $createWatcherByAdminUseCase,
+        private UpdateWatcherByAdminUseCase $updateWatcherByAdminUseCase,
+        private FindWatcherByAdminUseCase $findWatcherByAdminUseCase
+    ) {
     }
 
     /**

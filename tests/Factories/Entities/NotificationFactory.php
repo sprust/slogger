@@ -37,7 +37,9 @@ readonly class NotificationFactory
             incidentId: $incidentId ?? $this->incidentFactory->create(
                 watcherId: $watcherId,
             ),
-            kind: $kind ?? fake()->randomElement(NotificationKindEnum::cases()),
+            kind: $kind ?? fake()->randomElement(
+                NotificationKindEnum::cases()
+            ),
             text: $text ?? fake()->sentence(),
             createdAt: $createdAt ?? Carbon::now(),
         )->id;

@@ -17,12 +17,25 @@ class RegenerateMcpTokenActionTest extends TestCase
     {
         $repository = $this->createMock(McpRepository::class);
 
-        $repository->method('findOneById')->willReturn($this->mcpObject(token: 'old-token'));
-        $repository->expects($this->once())
+        $repository
+            ->method('findOneById')
+            ->willReturn(
+                $this->mcpObject(
+                    token: 'old-token'
+                )
+            );
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method('updateToken')
             ->with(
                 1,
-                $this->callback(static fn(string $token): bool => strlen($token) === 50 && $token !== 'old-token')
+                $this->callback(
+                    static fn(
+                        string $token
+                    ): bool => strlen($token) === 50 && $token !== 'old-token'
+                )
             );
 
         $this->action($repository)->handle(1);
@@ -33,7 +46,9 @@ class RegenerateMcpTokenActionTest extends TestCase
         $repository = $this->createMock(McpRepository::class);
 
         $repository->method('findOneById')->willReturn(null);
-        $repository->expects($this->never())->method('updateToken');
+        $repository->expects(
+            $this->never()
+        )->method('updateToken');
 
         $this->expectException(McpNotFoundException::class);
 
@@ -42,9 +57,6 @@ class RegenerateMcpTokenActionTest extends TestCase
 
     private function action(McpRepository $repository): RegenerateMcpTokenAction
     {
-        return new RegenerateMcpTokenAction(
-            $repository,
-            new FindMcpAction($repository)
-        );
+        return new RegenerateMcpTokenAction($repository, new FindMcpAction($repository));
     }
 }

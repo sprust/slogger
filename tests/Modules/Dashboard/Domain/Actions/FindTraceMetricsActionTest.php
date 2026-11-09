@@ -11,26 +11,36 @@ class FindTraceMetricsActionTest extends TestCase
 {
     public function testTheWindowIsTheLastDayOfSlotsEndingWithTheCurrentOne(): void
     {
-        $this->assertWindowStartsAt('2026-09-10 12:15:00', now: '2026-09-11 12:07:42');
+        $this->assertWindowStartsAt(
+            '2026-09-10 12:15:00',
+            now: '2026-09-11 12:07:42'
+        );
     }
 
     public function testASlotBoundaryIsTheStartOfTheCurrentSlot(): void
     {
-        $this->assertWindowStartsAt('2026-09-10 12:30:00', now: '2026-09-11 12:15:00');
+        $this->assertWindowStartsAt(
+            '2026-09-10 12:30:00',
+            now: '2026-09-11 12:15:00'
+        );
     }
 
     public function testTheWindowIsCountedInUtc(): void
     {
         $this->assertWindowStartsAt(
             '2026-09-10 12:15:00',
-            now: Carbon::parse('2026-09-11 15:07:42', 'Europe/Moscow')->toIso8601String()
+            now: Carbon::parse('2026-09-11 15:07:42', 'Europe/Moscow')
+                ->toIso8601String()
         );
     }
 
     private function assertWindowStartsAt(string $expected, string $now): void
     {
         $repository = $this->createMock(TraceMetricRepository::class);
-        $repository->expects($this->once())
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method('find')
             ->with(
                 7,

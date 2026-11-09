@@ -23,9 +23,7 @@ class ServiceServiceProvider extends BaseServiceProvider
 
     protected function getCommands(): array
     {
-        return [
-            CreateServiceCommand::class,
-        ];
+        return [CreateServiceCommand::class];
     }
 
     protected function getContracts(): array

@@ -89,9 +89,7 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceTreeCacheDeleteRequestedEvent::class => [
                 DispatchTraceTreeCacheDeleteListener::class,
             ],
-            TraceTreeCacheStateChangedEvent::class => [
-                BroadcastTraceTreeStateListener::class,
-            ],
+            TraceTreeCacheStateChangedEvent::class => [BroadcastTraceTreeStateListener::class],
         ];
     }
 

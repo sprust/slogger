@@ -39,9 +39,10 @@ return static function (DeptracConfig $config): void {
         $name = basename($directory);
 
         foreach ($patterns as $layer => $pattern) {
-            $modules[$name][$layer] = Layer::withName("$name.$layer")->collectors(
-                DirectoryConfig::create("/app/Modules/$name/$pattern")
-            );
+            $modules[$name][$layer] = Layer::withName("$name.$layer")
+                ->collectors(
+                    DirectoryConfig::create("/app/Modules/$name/$pattern")
+                );
         }
     }
 
@@ -60,9 +61,10 @@ return static function (DeptracConfig $config): void {
 
     foreach ($modelPatterns as $owner => $pattern) {
         if (isset($modules[$owner])) {
-            $modules[$owner]['Models'] = Layer::withName("$owner.Models")->collectors(
-                DirectoryConfig::create("/app/Models/$pattern")
-            );
+            $modules[$owner]['Models'] = Layer::withName("$owner.Models")
+                ->collectors(
+                    DirectoryConfig::create("/app/Models/$pattern")
+                );
         }
     }
 
@@ -91,7 +93,13 @@ return static function (DeptracConfig $config): void {
                             $allowed[] = $other[$target];
                         }
                     }
-                } elseif (in_array($layerName, ['UseCases', 'Infrastructure', 'Providers'], true)) {
+                } elseif (
+                    in_array(
+                        $layerName,
+                        ['UseCases', 'Infrastructure', 'Providers'],
+                        true
+                    )
+                ) {
                     foreach (['Events', 'Exceptions'] as $target) {
                         if (isset($other[$target])) {
                             $allowed[] = $other[$target];
@@ -103,7 +111,10 @@ return static function (DeptracConfig $config): void {
         }
     }
 
-    $config->paths('../app/Modules', '../app/Models')
-        ->layers(...array_merge(...array_map(array_values(...), array_values($modules))))
+    $config
+        ->paths('../app/Modules', '../app/Models')
+        ->layers(
+            ...array_merge(...array_map(array_values(...), array_values($modules)))
+        )
         ->rulesets(...$rules);
 };

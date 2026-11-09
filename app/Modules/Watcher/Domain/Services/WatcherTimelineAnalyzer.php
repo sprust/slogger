@@ -121,6 +121,7 @@ readonly class WatcherTimelineAnalyzer
 
         sort($tags);
 
-        return $group->serviceId . "\0" . $group->type . "\0" . implode("\0", $tags);
+        return $group->serviceId . "\0" . $group->type . "\0"
+            . implode("\0", $tags);
     }
 }

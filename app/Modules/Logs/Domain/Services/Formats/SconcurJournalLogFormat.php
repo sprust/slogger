@@ -17,14 +17,19 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
 {
     private const string LINE_PATTERN = '/^(?:\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\.\d+\] ([A-Z]+) )?[^\n]*$/m';
 
-    private const string ENTRY_PATTERN = '/^\[[^\]]+\] [A-Z]+ \[(master|worker): (\d+)(?: (?:(\S+) )?#(\d+))?\]: (.*)$/';
+    private const string ENTRY_PATTERN = ('/^\[[^\]]+\] [A-Z]+ \[(master|worker): (\d+)(?: (?:(\S+) '
+        . ')?#(\d+))?\]: (.*)$/');
 
     public function parseEntry(string $text): LogEntryDetailsObject
     {
         $line = rtrim($text, "\r\n");
 
         if (preg_match(self::ENTRY_PATTERN, $line, $match) !== 1) {
-            return new LogEntryDetailsObject(message: $line, context: null, fields: []);
+            return new LogEntryDetailsObject(
+                message: $line,
+                context: null,
+                fields: []
+            );
         }
 
         [$message, $context] = $this->splitContext($match[5]);
@@ -39,9 +44,18 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
             message: $message,
             context: $context,
             fields: [
-                new LogEntryFieldObject(key: 'process', value: $match[1]),
-                new LogEntryFieldObject(key: 'pid', value: $match[2]),
-                new LogEntryFieldObject(key: 'worker', value: $worker),
+                new LogEntryFieldObject(
+                    key: 'process',
+                    value: $match[1]
+                ),
+                new LogEntryFieldObject(
+                    key: 'pid',
+                    value: $match[2]
+                ),
+                new LogEntryFieldObject(
+                    key: 'worker',
+                    value: $worker
+                ),
             ]
         );
     }
@@ -51,7 +65,10 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
         $names = [];
 
         foreach (SconcurJournalLogLevelEnum::cases() as $case) {
-            $names[] = new LogLevelNameObject(level: $case->value, name: strtoupper($case->name));
+            $names[] = new LogLevelNameObject(
+                level: $case->value,
+                name: strtoupper($case->name)
+            );
         }
 
         return $names;

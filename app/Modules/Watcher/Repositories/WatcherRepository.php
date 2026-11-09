@@ -21,10 +21,7 @@ readonly class WatcherRepository
     public function find(?bool $enabled = null): array
     {
         return Watcher::query()
-            ->when(
-                !is_null($enabled),
-                fn(Builder $query) => $query->where('enabled', $enabled)
-            )
+            ->when(!is_null($enabled), fn(Builder $query) => $query->where('enabled', $enabled))
             ->orderBy('id')
             ->get()
             ->map(fn(Watcher $watcher) => $this->makeDto($watcher))
@@ -139,7 +136,9 @@ readonly class WatcherRepository
 
     public function delete(int $id): void
     {
-        Watcher::query()->where('id', $id)->delete();
+        Watcher::query()
+            ->where('id', $id)
+            ->delete();
     }
 
     private function makeDto(Watcher $watcher): WatcherDto

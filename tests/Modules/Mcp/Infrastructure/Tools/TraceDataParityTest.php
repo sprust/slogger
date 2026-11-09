@@ -18,21 +18,14 @@ class TraceDataParityTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function cases(): iterable
     {
-        yield 'null' => [
-            'null',
-        ];
+        yield 'null' => ['null'];
 
-        yield 'empty children' => [
-            '[]',
-        ];
+        yield 'empty children' => ['[]'];
 
         yield 'nested values' => [
             json_encode(
                 [
-                    'long' => str_repeat(
-                        'payload',
-                        10000,
-                    ),
+                    'long'   => str_repeat('payload', 10000),
                     'null'   => null,
                     'empty'  => [],
                     'bool'   => false,
@@ -48,8 +41,9 @@ class TraceDataParityTest extends TestCase
     }
 
     #[DataProvider('cases')]
-    public function test(string $rawData): void
-    {
+    public function test(
+        string $rawData
+    ): void {
         $row = [
             'sid'    => 0,
             'tid'    => 'trace-parity',
@@ -68,12 +62,8 @@ class TraceDataParityTest extends TestCase
         ];
         $fakeClickhouseClient = new FakeClickhouseClient(
             answers: [
-                [
-                    $row,
-                ],
-                [
-                    $row,
-                ],
+                [$row],
+                [$row],
             ],
         );
 
@@ -84,34 +74,46 @@ class TraceDataParityTest extends TestCase
 
         $trace = $this->app->make(FindTraceDetailAction::class)->handle('trace-parity');
         $http  = json_decode(
-            json_encode(
-                new TraceDataResource($trace->data),
-                JSON_THROW_ON_ERROR,
-            ),
+            json_encode(new TraceDataResource($trace->data), JSON_THROW_ON_ERROR),
             true,
             512,
             JSON_THROW_ON_ERROR,
         );
         $result = $this->app
             ->make(GetTraceDataTool::class)
-            ->call(new McpToolArguments([
-                'trace_id' => 'trace-parity',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'trace_id' => 'trace-parity',
+                ])
+            );
 
-        $this->assertFalse($result->truncate);
+        $this->assertFalse(
+            $result->truncate
+        );
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
 
-        $this->assertSame($http, $result->data['data']);
+        $this->assertSame(
+            $http,
+            $result->data['data']
+        );
 
-        $this->assertSame([
-            'key',
-            'value',
-            'children',
-            'filter_key',
-            'can_be_filtered',
-        ], array_keys($result->data['data']));
+        $this->assertSame(
+            [
+                'key',
+                'value',
+                'children',
+                'filter_key',
+                'can_be_filtered',
+            ],
+            array_keys($result->data['data'])
+        );
 
-        $this->assertCount(2, $fakeClickhouseClient->selects);
+        $this->assertCount(
+            2,
+            $fakeClickhouseClient->selects
+        );
     }
 }

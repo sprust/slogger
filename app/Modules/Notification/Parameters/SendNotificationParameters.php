@@ -10,8 +10,10 @@ use JsonSerializable;
 
 readonly class SendNotificationParameters implements JsonSerializable
 {
-    public function __construct(public NotificationObject $notification, public ?ChannelObject $channel)
-    {
+    public function __construct(
+        public NotificationObject $notification,
+        public ?ChannelObject $channel
+    ) {
     }
 
     /** @return array{notificationId: string} */

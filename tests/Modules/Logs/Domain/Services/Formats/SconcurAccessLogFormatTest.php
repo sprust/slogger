@@ -35,7 +35,10 @@ class SconcurAccessLogFormatTest extends TestCase
             '2026-10-28T11:36:42.035377 POST /c 422 0.96ms http#0 pid=22',
         ];
 
-        $starts = $this->find(implode("\n", $lines) . "\n");
+        $starts = $this->find(
+            implode("\n", $lines)
+                . "\n"
+        );
 
         $this->assertSame(
             [
@@ -45,7 +48,10 @@ class SconcurAccessLogFormatTest extends TestCase
             ],
             array_map(static fn(LogEntryStartObject $start): int => $start->level, $starts)
         );
-        $this->assertSame(strlen($lines[0]) + 1, $starts[1]->offset);
+        $this->assertSame(
+            strlen($lines[0]) + 1,
+            $starts[1]->offset
+        );
     }
 
     public function testAnEntryIsIndexedAtTheEndOfTheRequest(): void
@@ -63,7 +69,7 @@ class SconcurAccessLogFormatTest extends TestCase
     {
         $starts = $this->find(
             "2026-10-28T12:00:05.000000 GET /fast 200 1.00ms http#1 pid=23\n"
-            . "2026-10-28T12:00:00.000000 GET /slow 200 20000.00ms http#0 pid=22\n"
+                . "2026-10-28T12:00:00.000000 GET /slow 200 20000.00ms http#0 pid=22\n"
         );
 
         $this->assertSame(
@@ -74,9 +80,14 @@ class SconcurAccessLogFormatTest extends TestCase
 
     public function testTheFieldsAreRead(): void
     {
-        $details = $this->format()->parseEntry("2026-10-28T11:36:40.037168 GET /admin-api/logs?page=1 200 15.45ms http#1 pid=23\n");
+        $details = $this
+            ->format()
+            ->parseEntry("2026-10-28T11:36:40.037168 GET /admin-api/logs?page=1 200 15.45ms http#1 pid=23\n");
 
-        $this->assertSame('GET /admin-api/logs?page=1', $details->message);
+        $this->assertSame(
+            'GET /admin-api/logs?page=1',
+            $details->message
+        );
         $this->assertSame(
             [
                 'method'      => 'GET',
@@ -95,8 +106,12 @@ class SconcurAccessLogFormatTest extends TestCase
     {
         $details = $this->format()->parseEntry('2026-10-28T11:36:40.037168 GET / 200 2.59ms');
 
-        $this->assertNull($this->fields($details->fields)['worker']);
-        $this->assertNull($this->fields($details->fields)['pid']);
+        $this->assertNull(
+            $this->fields($details->fields)['worker']
+        );
+        $this->assertNull(
+            $this->fields($details->fields)['pid']
+        );
     }
 
     public function testALabelWithoutASlotIsNotAWorker(): void
@@ -107,7 +122,11 @@ class SconcurAccessLogFormatTest extends TestCase
             HttpStatusClassEnum::Success->value,
             $this->find($line)[0]->level
         );
-        $this->assertNull($this->fields($this->format()->parseEntry($line)->fields)['worker']);
+        $this->assertNull(
+            $this->fields(
+                $this->format()->parseEntry($line)->fields
+            )['worker']
+        );
     }
 
     public function testALineThatDoesNotParseIsAnEntryWithoutLevelAndTime(): void
@@ -148,6 +167,8 @@ class SconcurAccessLogFormatTest extends TestCase
 
     private function format(): SconcurAccessLogFormat
     {
-        return new SconcurAccessLogFormat(new LogTimeParser());
+        return new SconcurAccessLogFormat(
+            new LogTimeParser()
+        );
     }
 }

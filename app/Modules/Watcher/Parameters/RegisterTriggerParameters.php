@@ -10,7 +10,10 @@ use Illuminate\Support\Carbon;
 
 readonly class RegisterTriggerParameters
 {
-    public function __construct(public WatcherObject $watcher, public WatcherEventPayloadInterface $payload, public Carbon $occurredAt)
-    {
+    public function __construct(
+        public WatcherObject $watcher,
+        public WatcherEventPayloadInterface $payload,
+        public Carbon $occurredAt
+    ) {
     }
 }

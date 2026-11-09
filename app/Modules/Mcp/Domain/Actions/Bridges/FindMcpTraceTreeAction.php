@@ -17,15 +17,24 @@ use App\Modules\Mcp\Enums\TraceTreeCacheStateStatusEnum as McpTraceTreeCacheStat
 
 readonly class FindMcpTraceTreeAction
 {
-    public function __construct(private FindTraceTreeStateAction $findTraceTreeStateAction, private FindTraceTreeAction $findTraceTreeAction, private FindTraceTreeChildrenAction $findTraceTreeChildrenAction, private McpTraceTreeNodeFactory $nodeFactory, private TraceObjectTransport $traceObjectTransport)
-    {
+    public function __construct(
+        private FindTraceTreeStateAction $findTraceTreeStateAction,
+        private FindTraceTreeAction $findTraceTreeAction,
+        private FindTraceTreeChildrenAction $findTraceTreeChildrenAction,
+        private McpTraceTreeNodeFactory $nodeFactory,
+        private TraceObjectTransport $traceObjectTransport
+    ) {
     }
 
     /**
      * @throws ClickhouseQueryException
      */
-    public function handle(string $traceId, ?string $parentTraceId, ?string $cursor, int $limit): ?McpTraceTreeObject
-    {
+    public function handle(
+        string $traceId,
+        ?string $parentTraceId,
+        ?string $cursor,
+        int $limit
+    ): ?McpTraceTreeObject {
         $tree = $this->findTraceTreeStateAction->handle($traceId);
 
         if (is_null($tree)) {
@@ -72,7 +81,12 @@ readonly class FindMcpTraceTreeAction
             status: McpTraceTreeCacheStateStatusEnum::from($state->status->value),
             error: null,
             nodes: $this->nodeFactory->make(
-                nodes: array_map(fn(TraceTreeRawObject $node) => $this->traceObjectTransport->toTraceTreeNodeParameters($node), $children->items),
+                nodes: array_map(
+                    fn(
+                        TraceTreeRawObject $node
+                    ) => $this->traceObjectTransport->toTraceTreeNodeParameters($node),
+                    $children->items
+                ),
                 childrenCounts: $children->childrenCounts,
             ),
             nextCursor: $children->nextCursor,

@@ -35,10 +35,7 @@ readonly class CreateChannelAction
 
         if (is_null($channel)) {
             throw new LogicException(
-                sprintf(
-                    "Notification channel of type [%s] could not be read back",
-                    $parameters->type->value
-                )
+                sprintf("Notification channel of type [%s] could not be read back", $parameters->type->value)
             );
         }
 

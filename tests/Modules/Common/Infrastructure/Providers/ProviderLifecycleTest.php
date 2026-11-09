@@ -9,7 +9,7 @@ use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
 use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
 use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Common\Infrastructure\CommonServiceProvider;
-use App\Modules\Common\Infrastructure\Exceptions\ExceptionManagerRegistry;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
 use App\Modules\Trace\Domain\Exceptions\TraceNotFoundException;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Infrastructure\Jobs\BuildTraceTreeCacheJob;
@@ -28,18 +28,15 @@ class ProviderLifecycleTest extends TestCase
     /** @return iterable<string, array{bool}> */
     public static function environments(): iterable
     {
-        yield 'console registers module commands' => [
-            true,
-        ];
+        yield 'console registers module commands' => [true];
 
-        yield 'http does not register console commands' => [
-            false,
-        ];
+        yield 'http does not register console commands' => [false];
     }
 
     #[DataProvider('environments')]
-    public function testRegistrationIsLocalToEachApplication(bool $console): void
-    {
+    public function testRegistrationIsLocalToEachApplication(
+        bool $console
+    ): void {
         $previousContainer = Container::getInstance();
         $recorders         = [];
 
@@ -98,9 +95,7 @@ class ProviderLifecycleTest extends TestCase
                 $cleanerServiceProvider->boot();
 
                 self::assertSame(
-                    $console ? [
-                        ClearTracesCommand::class,
-                    ] : [],
+                    $console ? [ClearTracesCommand::class] : [],
                     $cleanerServiceProvider->registeredCommands
                 );
 
@@ -109,15 +104,17 @@ class ProviderLifecycleTest extends TestCase
                     $eventDispatcher->getRawListeners()
                 );
 
-                $exceptionManagerRegistry = $application->make(ExceptionManagerRegistry::class);
-                $mappedException          = $exceptionManagerRegistry->map(new TraceNotFoundException('trace not found'));
+                $exceptionManagers        = $application->make(ExceptionManagers::class);
+                $mappedException          = $exceptionManagers->makeJsonHttpResponse(
+                    new TraceNotFoundException('trace not found')
+                );
 
                 self::assertNotNull(
                     $mappedException
                 );
                 self::assertSame(
                     404,
-                    $mappedException->getStatusCode()
+                    $mappedException->httpStatus
                 );
             }
 

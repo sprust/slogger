@@ -74,37 +74,53 @@ class FindMcpTraceDataFieldsActionTest extends TestCase
                     ),
                 ],
             )
-            ->handle($this->parameters());
+            ->handle(
+                $this->parameters()
+            );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'request.uri',
-                '/api/pay',
+                [
+                    'request.uri',
+                    '/api/pay',
+                ],
+                [
+                    'request.method',
+                    'POST',
+                ],
+                [
+                    'response.status',
+                    500,
+                ],
             ],
-            [
-                'request.method',
-                'POST',
-            ],
-            [
-                'response.status',
-                500,
-            ],
-        ], array_map(static fn(McpTraceDataFieldObject $field) => [
-            $field->key,
-            $field->example,
-        ], $result->fields));
+            array_map(
+                static fn(McpTraceDataFieldObject $field) => [
+                    $field->key,
+                    $field->example,
+                ],
+                $result->fields
+            )
+        );
 
-        $this->assertSame(2, $result->tracesCount);
-
-        $this->assertSame([
-            'request',
-        ], $this->captured?->types);
-
-        $this->assertSame(5, $this->captured->perPage);
-
-        $this->assertSame([
+        $this->assertSame(
             2,
-        ], $this->captured->serviceIds);
+            $result->tracesCount
+        );
+
+        $this->assertSame(
+            ['request'],
+            $this->captured?->types
+        );
+
+        $this->assertSame(
+            5,
+            $this->captured->perPage
+        );
+
+        $this->assertSame(
+            [2],
+            $this->captured->serviceIds
+        );
     }
 
     public function testFieldsAreLimited(): void
@@ -114,16 +130,11 @@ class FindMcpTraceDataFieldsActionTest extends TestCase
                 key: "k{$i}",
                 value: $i,
             ),
-            range(
-                1,
-                250,
-            )
+            range(1, 250)
         );
         $result = $this
             ->action(
-                traceIds: [
-                    't1',
-                ],
+                traceIds: ['t1'],
                 details: [
                     't1' => $this->detailWithData(
                         traceId: 't1',
@@ -131,9 +142,14 @@ class FindMcpTraceDataFieldsActionTest extends TestCase
                     ),
                 ],
             )
-            ->handle($this->parameters());
+            ->handle(
+                $this->parameters()
+            );
 
-        $this->assertCount(200, $result->fields);
+        $this->assertCount(
+            200,
+            $result->fields
+        );
     }
 
     public function testNoTraces(): void
@@ -143,19 +159,25 @@ class FindMcpTraceDataFieldsActionTest extends TestCase
                 traceIds: [],
                 details: [],
             )
-            ->handle($this->parameters());
+            ->handle(
+                $this->parameters()
+            );
 
-        $this->assertSame([], $result->fields);
+        $this->assertSame(
+            [],
+            $result->fields
+        );
 
-        $this->assertSame(0, $result->tracesCount);
+        $this->assertSame(
+            0,
+            $result->tracesCount
+        );
     }
 
     private function parameters(): FindMcpTraceDataFieldsParameters
     {
         return new FindMcpTraceDataFieldsParameters(
-            serviceIds: [
-                2,
-            ],
+            serviceIds: [2],
             period: $this->period(),
             type: 'request',
         );
@@ -171,17 +193,21 @@ class FindMcpTraceDataFieldsActionTest extends TestCase
 
         $search
             ->method('handle')
-            ->willReturnCallback(function (TraceFindParameters $parameters) use ($traceIds) {
-                $this->captured = $parameters;
+            ->willReturnCallback(
+                function (TraceFindParameters $parameters) use ($traceIds) {
+                    $this->captured = $parameters;
 
-                return $this->traceItems(
-                    traceIds: $traceIds,
-                );
-            });
+                    return $this->traceItems(
+                        traceIds: $traceIds,
+                    );
+                }
+            );
 
         $detail = $this->createMock(FindTraceDetailAction::class);
 
-        $detail->method('handle')->willReturnCallback(static fn(string $traceId) => $details[$traceId] ?? null);
+        $detail
+            ->method('handle')
+            ->willReturnCallback(static fn(string $traceId) => $details[$traceId] ?? null);
 
         return new FindMcpTraceDataFieldsAction(
             findTracesAction: $search,

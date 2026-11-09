@@ -32,12 +32,18 @@ readonly class LogIndexer
     ) {
     }
 
-    public function ensureFresh(LogFileObject $file, int $timeBudgetMs = 0, int $waitForLockSec = 20): LogIndexMetaObject
-    {
+    public function ensureFresh(
+        LogFileObject $file,
+        int $timeBudgetMs = 0,
+        int $waitForLockSec = 20
+    ): LogIndexMetaObject {
         $stat = $this->findStat($file);
         $meta = $this->logIndexRepository->findMeta($file->id);
 
-        if ($meta !== null && $this->isFresh($meta, $file, $stat)) {
+        if (
+            $meta !== null
+            && $this->isFresh($meta, $file, $stat)
+        ) {
             return $meta;
         }
 
@@ -52,7 +58,10 @@ readonly class LogIndexer
             $stat = $this->findStat($file);
             $meta = $this->logIndexRepository->findMeta($file->id);
 
-            if ($meta !== null && $this->isFresh($meta, $file, $stat)) {
+            if (
+                $meta !== null
+                && $this->isFresh($meta, $file, $stat)
+            ) {
                 return $meta;
             }
 
@@ -78,8 +87,11 @@ readonly class LogIndexer
         return $stat;
     }
 
-    private function isFresh(LogIndexMetaObject $meta, LogFileObject $file, LogFileStatObject $stat): bool
-    {
+    private function isFresh(
+        LogIndexMetaObject $meta,
+        LogFileObject $file,
+        LogFileStatObject $stat
+    ): bool {
         return $this->isCompatible($meta, $file)
             && $meta->indexedBytes === $stat->sizeBytes;
     }
@@ -101,7 +113,10 @@ readonly class LogIndexer
 
         $size = $stat->sizeBytes;
 
-        if ($meta !== null && !$this->canContinue($meta, $file, $size)) {
+        if (
+            $meta !== null
+            && !$this->canContinue($meta, $file, $size)
+        ) {
             $meta = null;
         }
 
@@ -247,7 +262,11 @@ readonly class LogIndexer
 
     private function canContinue(LogIndexMetaObject $meta, LogFileObject $file, int $size): bool
     {
-        if (!$this->isCompatible($meta, $file) || $size < $meta->indexedBytes || $size < $meta->headLength) {
+        if (
+            !$this->isCompatible($meta, $file)
+            || $size < $meta->indexedBytes
+            || $size < $meta->headLength
+        ) {
             return false;
         }
 
@@ -277,7 +296,14 @@ readonly class LogIndexer
         $starts = $format->findEntryStarts($chunk);
 
         if (count($starts) === 0 || $starts[0]->offset > 0) {
-            array_unshift($starts, new LogEntryStartObject(offset: 0, loggedAt: null, level: 0));
+            array_unshift(
+                $starts,
+                new LogEntryStartObject(
+                    offset: 0,
+                    loggedAt: null,
+                    level: 0
+                )
+            );
         }
 
         return $starts;

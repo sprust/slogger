@@ -11,8 +11,10 @@ use App\Modules\Watcher\Parameters\CloseIncidentByAdminParameters;
 
 readonly class CloseIncidentByAdminUseCase
 {
-    public function __construct(private CloseIncidentAction $closeIncidentAction, private FindClosingUserIdAction $findClosingUserIdAction)
-    {
+    public function __construct(
+        private CloseIncidentAction $closeIncidentAction,
+        private FindClosingUserIdAction $findClosingUserIdAction
+    ) {
     }
 
     /** @throws WatcherIncidentNotFoundException */

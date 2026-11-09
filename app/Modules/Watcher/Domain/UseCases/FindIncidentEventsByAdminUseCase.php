@@ -25,8 +25,12 @@ readonly class FindIncidentEventsByAdminUseCase
      *
      * @throws WatcherIncidentNotFoundException
      */
-    public function handle(WatcherTypeEnum $type, string $incidentId, int $page, int $perPage): array
-    {
+    public function handle(
+        WatcherTypeEnum $type,
+        string $incidentId,
+        int $page,
+        int $perPage
+    ): array {
         $incident = $this->findIncidentAction->handle($incidentId);
 
         if ($incident === null) {

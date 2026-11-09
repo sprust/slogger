@@ -22,7 +22,12 @@ class ClickhouseClientTest extends TestCase
 
     public function testSelectSendsSqlInBodyAndValuesAsParameters(): void
     {
-        $client = $this->makeClient(new Response(200, body: ''));
+        $client = $this->makeClient(
+            new Response(
+                200,
+                body: ''
+            )
+        );
 
         $client->select(
             sql: 'SELECT tid FROM traces WHERE sid IN {sids:Array(UInt32)} AND tp = {type:String}',
@@ -36,8 +41,13 @@ class ClickhouseClientTest extends TestCase
 
         $request = $this->sentRequest;
 
-        self::assertNotNull($request);
-        self::assertSame('POST', $request->getMethod());
+        self::assertNotNull(
+            $request
+        );
+        self::assertSame(
+            'POST',
+            $request->getMethod()
+        );
         self::assertSame(
             'slogger',
             $request->getHeaderLine('X-ClickHouse-User')
@@ -50,17 +60,41 @@ class ClickhouseClientTest extends TestCase
             'SELECT tid FROM traces WHERE sid IN {sids:Array(UInt32)} AND tp = {type:String}',
             (string) $request->getBody()
         );
-        self::assertSame('clickhouse', $request->getUri()->getHost());
-        self::assertSame(8123, $request->getUri()->getPort());
+        self::assertSame(
+            'clickhouse',
+            $request->getUri()->getHost()
+        );
+        self::assertSame(
+            8123,
+            $request->getUri()->getPort()
+        );
 
         parse_str($request->getUri()->getQuery(), $query);
 
-        self::assertSame('slogger', $query['database']);
-        self::assertSame('JSONEachRow', $query['default_format']);
-        self::assertSame('30', $query['max_execution_time']);
-        self::assertSame('[1,2]', $query['param_sids']);
-        self::assertSame("it's", $query['param_type']);
-        self::assertMatchesRegularExpression('/^trace-list-[0-9a-f]{16}$/', $query['query_id']);
+        self::assertSame(
+            'slogger',
+            $query['database']
+        );
+        self::assertSame(
+            'JSONEachRow',
+            $query['default_format']
+        );
+        self::assertSame(
+            '30',
+            $query['max_execution_time']
+        );
+        self::assertSame(
+            '[1,2]',
+            $query['param_sids']
+        );
+        self::assertSame(
+            "it's",
+            $query['param_type']
+        );
+        self::assertMatchesRegularExpression(
+            '/^trace-list-[0-9a-f]{16}$/',
+            $query['query_id']
+        );
     }
 
     public function testSelectDecodesRowsSplitAcrossChunks(): void
@@ -73,7 +107,14 @@ class ClickhouseClientTest extends TestCase
             }
         );
 
-        $rows = $this->makeClient(new Response(200, body: $body))->select('SELECT a, b');
+        $rows = $this
+            ->makeClient(
+                new Response(
+                    200,
+                    body: $body
+                )
+            )
+            ->select('SELECT a, b');
 
         self::assertSame(
             [
@@ -96,15 +137,24 @@ class ClickhouseClientTest extends TestCase
         );
 
         try {
-            $client->select('SELECT 1 FROM nothing', queryIdPrefix: 'probe');
+            $client->select(
+                'SELECT 1 FROM nothing',
+                queryIdPrefix: 'probe'
+            );
             self::fail('No exception');
         } catch (ClickhouseQueryException $exception) {
-            self::assertSame(60, $exception->getCode());
+            self::assertSame(
+                60,
+                $exception->getCode()
+            );
             self::assertSame(
                 'Code: 60. DB::Exception: Unknown table',
                 $exception->getMessage()
             );
-            self::assertStringStartsWith('probe-', (string) $exception->queryId);
+            self::assertStringStartsWith(
+                'probe-',
+                (string) $exception->queryId
+            );
         }
     }
 
@@ -125,18 +175,31 @@ class ClickhouseClientTest extends TestCase
 
     public function testSelectStopsOnTheServerWhenTheClientGivesUp(): void
     {
-        $client = $this->makeClient(new Response(200, body: ''));
+        $client = $this->makeClient(
+            new Response(
+                200,
+                body: ''
+            )
+        );
 
         $client->select('SELECT 1');
 
         parse_str((string) $this->sentRequest?->getUri()->getQuery(), $query);
 
-        self::assertSame('60', $query['max_execution_time']);
+        self::assertSame(
+            '60',
+            $query['max_execution_time']
+        );
     }
 
     public function testCommandSendsStatement(): void
     {
-        $client = $this->makeClient(new Response(200, body: ''));
+        $client = $this->makeClient(
+            new Response(
+                200,
+                body: ''
+            )
+        );
 
         $client->command(
             'ALTER TABLE traces DROP PARTITION {p:String}',

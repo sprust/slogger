@@ -6,7 +6,12 @@ namespace App\Modules\Mcp\Entities\Trace\Groups;
 
 readonly class TraceGroupComparisonRowObject
 {
-    public function __construct(public string|int|float|bool|null $value, public int $groupACount, public float $groupAShare, public int $groupBCount, public float $groupBShare)
-    {
+    public function __construct(
+        public string|int|float|bool|null $value,
+        public int $groupACount,
+        public float $groupAShare,
+        public int $groupBCount,
+        public float $groupBShare
+    ) {
     }
 }

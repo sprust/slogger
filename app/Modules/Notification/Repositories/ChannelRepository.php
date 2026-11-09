@@ -16,10 +16,7 @@ readonly class ChannelRepository
     public function find(?bool $enabled = null): array
     {
         return NotificationChannel::query()
-            ->when(
-                !is_null($enabled),
-                fn(Builder $query) => $query->where('enabled', $enabled)
-            )
+            ->when(!is_null($enabled), fn(Builder $query) => $query->where('enabled', $enabled))
             ->orderBy('id')
             ->get()
             ->map(fn(NotificationChannel $channel) => $this->makeDto($channel))
@@ -78,7 +75,9 @@ readonly class ChannelRepository
 
     public function delete(int $id): void
     {
-        NotificationChannel::query()->where('id', $id)->delete();
+        NotificationChannel::query()
+            ->where('id', $id)
+            ->delete();
     }
 
     private function makeDto(NotificationChannel $channel): ChannelDto

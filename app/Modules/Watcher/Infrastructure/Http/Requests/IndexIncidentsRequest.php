@@ -18,13 +18,14 @@ class IndexIncidentsRequest extends FormRequest
                 'sometimes',
                 'nullable',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(WatcherIncidentStatusEnum $status): string => $status->value,
-                        WatcherIncidentStatusEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(
+                            fn(WatcherIncidentStatusEnum $status): string => $status->value,
+                            WatcherIncidentStatusEnum::cases()
+                        )
+                    ),
             ],
             'watcher_id' => ['sometimes', 'nullable', 'integer'],
         ];

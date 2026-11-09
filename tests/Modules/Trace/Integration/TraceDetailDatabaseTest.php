@@ -13,8 +13,9 @@ use Tests\Factories\Entities\ServiceFactory;
 class TraceDetailDatabaseTest extends BaseModuleTestCase
 {
     #[DataProvider('dataProvider')]
-    public function test(bool $withParent): void
-    {
+    public function test(
+        bool $withParent
+    ): void {
         $serviceId     = $this->appMake(ServiceFactory::class)->create();
         $traceFactory  = $this->appMake(TraceFactory::class);
         $parentTraceId = $withParent ? $traceFactory->create(
@@ -52,12 +53,8 @@ class TraceDetailDatabaseTest extends BaseModuleTestCase
     public static function dataProvider(): array
     {
         return [
-            'root trace' => [
-                false,
-            ],
-            'child trace' => [
-                true,
-            ],
+            'root trace'  => [false],
+            'child trace' => [true],
         ];
     }
 }

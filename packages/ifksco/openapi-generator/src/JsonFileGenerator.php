@@ -38,7 +38,8 @@ class JsonFileGenerator
         $hasSecurity = false;
 
         foreach ($this->source->getPaths() as $path) {
-            $uri = '/' . trim($path->uri, '/');
+            $uri = '/'
+                . trim($path->uri, '/');
 
             if (!array_key_exists($uri, $paths)) {
                 $paths[$uri] = [];
@@ -93,7 +94,9 @@ class JsonFileGenerator
             $paths[$uri][$method]['responses'] = (object) $this->defineResponses($path, $isDeleteMethod);
 
             if ($isDeleteMethod && ($paths[$uri][$method]['requestBody'] ?? false)) {
-                throw new RuntimeException('DELETE operations cannot have a requestBody.');
+                throw new RuntimeException(
+                    'DELETE operations cannot have a requestBody.',
+                );
             }
 
             foreach ($path->extensions as $extensionName => $extensionValue) {
@@ -138,16 +141,14 @@ class JsonFileGenerator
         foreach ($enumProperties as $enumProperty) {
             if (!$enumProperty->enumClass) {
                 throw new RuntimeException(
-                    "Enum class is not defined for enum property"
+                    "Enum class is not defined for enum property",
                 );
             }
 
             $enumClassBasename = class_basename($enumProperty->enumClass);
 
             if (array_key_exists($enumClassBasename, $schemas)) {
-                throw new RuntimeException(
-                    "Enum '$enumClassBasename' already exists in the schema"
-                );
+                throw new RuntimeException("Enum '$enumClassBasename' already exists in the schema");
             }
 
             $schemas[$enumClassBasename] = [
@@ -233,7 +234,10 @@ class JsonFileGenerator
 
     public function saveToDisk(Filesystem $filesystem, string $fileName): void
     {
-        $json = json_encode($this->jsonData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $json = json_encode(
+            $this->jsonData,
+            JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+        );
 
         $filesystem->put("$fileName.json", $json);
     }
@@ -261,7 +265,10 @@ class JsonFileGenerator
     {
         foreach ($properties as $schema) {
             if ($schema instanceof OaEnumProperty) {
-                if (!is_null($schema->enumClass) && !array_key_exists($schema->enumClass, $enums)) {
+                if (
+                    !is_null($schema->enumClass)
+                    && !array_key_exists($schema->enumClass, $enums)
+                ) {
                     $enums[$schema->enumClass] = $schema;
                 }
 
@@ -270,7 +277,10 @@ class JsonFileGenerator
 
             if ($schema instanceof OaArrayProperty) {
                 if (!is_null($schema->items)) {
-                    $this->detectEnums([$schema->items], $enums);
+                    $this->detectEnums(
+                        [$schema->items],
+                        $enums
+                    );
                 }
 
                 continue;
@@ -293,7 +303,9 @@ class JsonFileGenerator
 
         foreach ($parsedRoute->responses ?: [200 => null] as $statusCode => $schema) {
             if ($isDeleteMethod && $schema) {
-                throw new RuntimeException('DELETE operations cannot have a responseBody.');
+                throw new RuntimeException(
+                    'DELETE operations cannot have a responseBody.',
+                );
             }
 
             $responses[$statusCode] = [

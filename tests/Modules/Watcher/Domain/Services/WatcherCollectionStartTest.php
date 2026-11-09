@@ -24,6 +24,9 @@ class WatcherCollectionStartTest extends TestCase
 
         new WatcherCollectionStart()->afterNextReload($now);
 
-        $this->assertSame('2026-09-08 23:43:18', $now->toDateTimeString());
+        $this->assertSame(
+            '2026-09-08 23:43:18',
+            $now->toDateTimeString()
+        );
     }
 }

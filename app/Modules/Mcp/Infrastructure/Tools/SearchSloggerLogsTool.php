@@ -95,7 +95,9 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
         $to   = null;
 
         if ($arguments->has('from')) {
-            $from = $this->timeParser->parse($arguments->string('from'));
+            $from = $this->timeParser->parse(
+                $arguments->string('from')
+            );
 
             if (is_null($from)) {
                 return $this->formatter->invalidTime('from');
@@ -103,7 +105,9 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
         }
 
         if ($arguments->has('to')) {
-            $to = $this->timeParser->parse($arguments->string('to'));
+            $to = $this->timeParser->parse(
+                $arguments->string('to')
+            );
 
             if (is_null($to)) {
                 return $this->formatter->invalidTime('to');
@@ -124,7 +128,9 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
         } catch (McpLogSourceNotFoundException $exception) {
             return $this->formatter->error(
                 error: 'source_not_found',
-                hint: 'Known sources: ' . implode(', ', $exception->sources) . '.'
+                hint: 'Known sources: '
+                    . implode(', ', $exception->sources)
+                    . '.'
             );
         } catch (McpLogLevelNotFoundException $exception) {
             return $this->formatter->error(
@@ -142,7 +148,8 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
                 data: [
                     'status'              => 'indexing',
                     'retry_after_seconds' => 5,
-                    'hint'                => 'The log files of this source are being indexed. Repeat the SAME call later.',
+                    'hint'                => ('The log files of this source are being indexed. Repeat the SAME '
+                        . 'call later.'),
                 ]
             );
         }

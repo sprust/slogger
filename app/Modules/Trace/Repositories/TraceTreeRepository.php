@@ -112,12 +112,12 @@ readonly class TraceTreeRepository
     public function findTraceIdsInTreeByParentTraceId(string $traceId, int $batchCount): iterable
     {
         if ($batchCount <= 0) {
-            throw new InvalidArgumentException('Batch count must be greater than 0');
+            throw new InvalidArgumentException(
+                'Batch count must be greater than 0',
+            );
         }
 
-        $frontier = [
-            $traceId,
-        ];
+        $frontier = [$traceId];
 
         /** @var array<string, true> $visited */
         $visited = [
@@ -175,7 +175,9 @@ readonly class TraceTreeRepository
     public function findChildrenTraceIds(array $parentTraceIds, int $batchCount): iterable
     {
         if ($batchCount <= 0) {
-            throw new InvalidArgumentException('Batch count must be greater than 0');
+            throw new InvalidArgumentException(
+                'Batch count must be greater than 0',
+            );
         }
 
         $childIds = [];

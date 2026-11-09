@@ -10,8 +10,9 @@ use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 
 readonly class FindMcpSettingsByAdminUseCase
 {
-    public function __construct(private FindMcpSettingsAction $findMcpSettingsAction)
-    {
+    public function __construct(
+        private FindMcpSettingsAction $findMcpSettingsAction
+    ) {
     }
 
     /**

@@ -51,10 +51,7 @@ readonly class OaService
             $jsonGenerator->generate($isPublic);
 
             if (!App::runningUnitTests()) {
-                $jsonGenerator->saveToDisk(
-                    $disk,
-                    "{$source->getName()}-openapi-scheme"
-                );
+                $jsonGenerator->saveToDisk($disk, "{$source->getName()}-openapi-scheme");
             }
         }
     }

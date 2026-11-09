@@ -16,8 +16,11 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class TraceTreeStateController
 {
-    public function __construct(private FindTraceTreeCacheStatesByAdminUseCase $findTraceTreeCacheStatesByAdminUseCase, private CancelTraceTreeCacheStateByAdminUseCase $cancelTraceTreeCacheStateByAdminUseCase, private DeleteTraceTreeCacheStateByAdminUseCase $deleteTraceTreeCacheStateByAdminUseCase)
-    {
+    public function __construct(
+        private FindTraceTreeCacheStatesByAdminUseCase $findTraceTreeCacheStatesByAdminUseCase,
+        private CancelTraceTreeCacheStateByAdminUseCase $cancelTraceTreeCacheStateByAdminUseCase,
+        private DeleteTraceTreeCacheStateByAdminUseCase $deleteTraceTreeCacheStateByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(TraceTreeStateResource::class)]

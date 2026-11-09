@@ -28,31 +28,71 @@ class LogTextReaderTest extends TestCase
 
     public function testNearAndFarRecordsAreReadByTheirOwnBytes(): void
     {
-        $contents = 'aaaa' . 'bbbb' . str_repeat('.', 200 * 1024) . 'cccc' . str_repeat('.', 100) . 'dddd';
+        $contents = 'aaaa' . 'bbbb'
+            . str_repeat('.', 200 * 1024)
+            . 'cccc'
+            . str_repeat('.', 100)
+            . 'dddd';
 
         $file = $this->writeLogFile('laravel.log', $contents);
 
         $far = 8 + 200 * 1024;
 
-        $texts = $this->app->make(LogTextReader::class)->read(
-            path: $file->path,
-            records: [
-                $this->record(entryNo: 3, offset: $far + 104, length: 4),
-                $this->record(entryNo: 0, offset: 0, length: 4),
-                $this->record(entryNo: 2, offset: $far, length: 4),
-                $this->record(entryNo: 1, offset: 4, length: 4),
-            ],
-            maxEntryBytes: 1024
-        );
+        $texts = $this->app
+            ->make(LogTextReader::class)
+            ->read(
+                path: $file->path,
+                records: [
+                    $this->record(
+                        entryNo: 3,
+                        offset: $far + 104,
+                        length: 4
+                    ),
+                    $this->record(
+                        entryNo: 0,
+                        offset: 0,
+                        length: 4
+                    ),
+                    $this->record(
+                        entryNo: 2,
+                        offset: $far,
+                        length: 4
+                    ),
+                    $this->record(
+                        entryNo: 1,
+                        offset: 4,
+                        length: 4
+                    ),
+                ],
+                maxEntryBytes: 1024
+            );
 
-        usort($texts, static fn(LogEntryTextObject $left, LogEntryTextObject $right): int => $left->entryNo <=> $right->entryNo);
+        usort(
+            $texts,
+            static fn(
+                LogEntryTextObject $left,
+                LogEntryTextObject $right
+            ): int => $left->entryNo <=> $right->entryNo
+        );
 
         $this->assertEquals(
             [
-                new LogEntryTextObject(entryNo: 0, text: 'aaaa'),
-                new LogEntryTextObject(entryNo: 1, text: 'bbbb'),
-                new LogEntryTextObject(entryNo: 2, text: 'cccc'),
-                new LogEntryTextObject(entryNo: 3, text: 'dddd'),
+                new LogEntryTextObject(
+                    entryNo: 0,
+                    text: 'aaaa'
+                ),
+                new LogEntryTextObject(
+                    entryNo: 1,
+                    text: 'bbbb'
+                ),
+                new LogEntryTextObject(
+                    entryNo: 2,
+                    text: 'cccc'
+                ),
+                new LogEntryTextObject(
+                    entryNo: 3,
+                    text: 'dddd'
+                ),
             ],
             $texts
         );
@@ -62,11 +102,13 @@ class LogTextReaderTest extends TestCase
     {
         $file = $this->writeLogFile('laravel.log', 'abcdefgh');
 
-        $texts = $this->app->make(LogTextReader::class)->read(
-            path: $file->path,
-            records: [$this->record(entryNo: 0, offset: 0, length: 8)],
-            maxEntryBytes: 3
-        );
+        $texts = $this->app
+            ->make(LogTextReader::class)
+            ->read(
+                path: $file->path,
+                records: [$this->record(entryNo: 0, offset: 0, length: 8)],
+                maxEntryBytes: 3
+            );
 
         $this->assertEquals(
             [new LogEntryTextObject(entryNo: 0, text: 'abc')],
@@ -78,7 +120,13 @@ class LogTextReaderTest extends TestCase
     {
         $this->assertSame(
             [],
-            $this->app->make(LogTextReader::class)->read('/missing', [], 10)
+            $this->app
+                ->make(LogTextReader::class)
+                ->read(
+                    '/missing',
+                    [],
+                    10
+                )
         );
     }
 

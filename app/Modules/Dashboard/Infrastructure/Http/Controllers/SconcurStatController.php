@@ -9,12 +9,15 @@ use App\Modules\Dashboard\Infrastructure\Http\Resources\SconcurStatResource;
 
 readonly class SconcurStatController
 {
-    public function __construct(private FindSconcurStatByAdminUseCase $findSconcurStatByAdminUseCase)
-    {
+    public function __construct(
+        private FindSconcurStatByAdminUseCase $findSconcurStatByAdminUseCase
+    ) {
     }
 
     public function index(): SconcurStatResource
     {
-        return new SconcurStatResource($this->findSconcurStatByAdminUseCase->handle());
+        return new SconcurStatResource(
+            $this->findSconcurStatByAdminUseCase->handle()
+        );
     }
 }

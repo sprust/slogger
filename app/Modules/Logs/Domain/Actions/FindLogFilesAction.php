@@ -29,7 +29,10 @@ readonly class FindLogFilesAction
 
         usort(
             $files,
-            static fn(LogFileObject $left, LogFileObject $right): int => [$sourceOrder[$left->source], $right->modifiedAtMs, $left->name]
+            static fn(
+                LogFileObject $left,
+                LogFileObject $right
+            ): int => [$sourceOrder[$left->source], $right->modifiedAtMs, $left->name]
                 <=> [$sourceOrder[$right->source], $left->modifiedAtMs, $right->name]
         );
 

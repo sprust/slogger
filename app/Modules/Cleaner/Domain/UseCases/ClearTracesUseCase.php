@@ -9,12 +9,16 @@ use App\Modules\Cleaner\Domain\Actions\FindTraceLifetimeAction;
 
 readonly class ClearTracesUseCase
 {
-    public function __construct(private ClearTracesAction $clearTracesAction, private FindTraceLifetimeAction $findTraceLifetimeAction)
-    {
+    public function __construct(
+        private ClearTracesAction $clearTracesAction,
+        private FindTraceLifetimeAction $findTraceLifetimeAction
+    ) {
     }
 
     public function handle(): void
     {
-        $this->clearTracesAction->handle($this->findTraceLifetimeAction->handle());
+        $this->clearTracesAction->handle(
+            $this->findTraceLifetimeAction->handle()
+        );
     }
 }

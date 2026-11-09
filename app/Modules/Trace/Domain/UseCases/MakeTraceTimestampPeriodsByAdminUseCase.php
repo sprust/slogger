@@ -9,8 +9,9 @@ use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 
 readonly class MakeTraceTimestampPeriodsByAdminUseCase
 {
-    public function __construct(private MakeTraceTimestampPeriodsAction $makeTraceTimestampPeriodsAction)
-    {
+    public function __construct(
+        private MakeTraceTimestampPeriodsAction $makeTraceTimestampPeriodsAction
+    ) {
     }
 
     /**

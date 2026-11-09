@@ -9,8 +9,9 @@ use App\Modules\Dashboard\Domain\Actions\FindSconcurStatAction;
 
 readonly class FindSconcurStatByAdminUseCase
 {
-    public function __construct(private FindSconcurStatAction $findSconcurStatAction)
-    {
+    public function __construct(
+        private FindSconcurStatAction $findSconcurStatAction
+    ) {
     }
 
     public function handle(): SconcurStatObject

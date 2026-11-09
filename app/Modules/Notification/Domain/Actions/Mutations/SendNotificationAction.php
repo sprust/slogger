@@ -12,8 +12,10 @@ use Illuminate\Support\Carbon;
 
 readonly class SendNotificationAction
 {
-    public function __construct(private NotificationChannelTypeRegistry $types, private NotificationRepository $notificationRepository)
-    {
+    public function __construct(
+        private NotificationChannelTypeRegistry $types,
+        private NotificationRepository $notificationRepository
+    ) {
     }
 
     public function handle(SendNotificationParameters $parameters): SendResultObject
@@ -25,7 +27,10 @@ readonly class SendNotificationAction
             $result = new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: sprintf(is_null($channel) ? 'Channel [%d] is gone' : 'Channel [%d] is disabled', $notification->channelId),
+                error: sprintf(
+                    is_null($channel) ? 'Channel [%d] is gone' : 'Channel [%d] is disabled',
+                    $notification->channelId
+                ),
             );
 
             $this->notificationRepository->markFailed(

@@ -15,7 +15,8 @@ readonly class LaravelLogFormat implements LogFormatInterface
     private const string ENTRY_HEADER_PATTERN = '/^\[[^\]]+\] (\S+?)\.[A-Z]+: /';
     private const int MAX_CONTEXT_CANDIDATES  = 20;
 
-    private const string HEADER_PATTERN = '/^\[(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\] \S+?\.([A-Z]+): /m';
+    private const string HEADER_PATTERN = ('/^\[(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{'
+        . '2}:?\d{2})?)\] \S+?\.([A-Z]+): /m');
 
     public function __construct(
         private LogTimeParser $timeParser
@@ -61,7 +62,10 @@ readonly class LaravelLogFormat implements LogFormatInterface
 
         $body = rtrim(substr($text, strlen($match[0])));
 
-        for ($index = 0; $index < 2 && str_ends_with($body, ' []'); ++$index) {
+        for (
+            $index = 0; $index < 2
+            && str_ends_with($body, ' []'); ++$index
+        ) {
             $body = substr($body, 0, -3);
         }
 
@@ -69,9 +73,14 @@ readonly class LaravelLogFormat implements LogFormatInterface
 
         return new LogEntryDetailsObject(
             message: $contextPosition === null ? $body : rtrim(substr($body, 0, $contextPosition)),
-            context: $contextPosition === null ? null : $this->normalizeJson(substr($body, $contextPosition)),
+            context: $contextPosition === null ? null : $this->normalizeJson(
+                substr($body, $contextPosition)
+            ),
             fields: [
-                new LogEntryFieldObject(key: 'env', value: $match[1]),
+                new LogEntryFieldObject(
+                    key: 'env',
+                    value: $match[1]
+                ),
             ]
         );
     }
@@ -81,7 +90,10 @@ readonly class LaravelLogFormat implements LogFormatInterface
         $names = [];
 
         foreach (LaravelLogLevelEnum::cases() as $case) {
-            $names[] = new LogLevelNameObject(level: $case->value, name: strtoupper($case->name));
+            $names[] = new LogLevelNameObject(
+                level: $case->value,
+                name: strtoupper($case->name)
+            );
         }
 
         return $names;
@@ -89,7 +101,10 @@ readonly class LaravelLogFormat implements LogFormatInterface
 
     private function findContextPosition(string $body): ?int
     {
-        if (!str_ends_with($body, '}') && !str_ends_with($body, ']')) {
+        if (
+            !str_ends_with($body, '}')
+            && !str_ends_with($body, ']')
+        ) {
             return null;
         }
 
@@ -98,7 +113,11 @@ readonly class LaravelLogFormat implements LogFormatInterface
         foreach (array_slice($candidates[0], 0, self::MAX_CONTEXT_CANDIDATES) as $candidate) {
             $position = $candidate[1] + 1;
 
-            if ($this->normalizeJson(substr($body, $position)) !== null) {
+            if (
+                $this->normalizeJson(
+                    substr($body, $position)
+                ) !== null
+            ) {
                 return $position;
             }
         }
@@ -108,13 +127,23 @@ readonly class LaravelLogFormat implements LogFormatInterface
 
     private function normalizeJson(string $json): ?string
     {
-        $decoded = json_decode(str_replace(["\r", "\n"], ['\r', '\n'], $json), true);
+        $decoded = json_decode(
+            str_replace(
+                ["\r", "\n"],
+                ['\r', '\n'],
+                $json
+            ),
+            true
+        );
 
         if (!is_array($decoded)) {
             return null;
         }
 
-        return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE) ?: null;
+        return json_encode(
+            $decoded,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+        ) ?: null;
     }
 
     private function parseTime(string $text): ?int

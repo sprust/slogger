@@ -69,58 +69,47 @@ class DispatcherTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function cases(): iterable
     {
-        foreach (
-            [
-                'registered',
-                'unregistered',
-                'duplicate registration',
-                'job route override',
-                'connection queue fallback',
-                'default queue fallback',
-                'sync without topology',
-                'unknown connection',
-                'unknown queue',
-                'unsupported async driver',
-                'transport failure',
-                'parallel dispatch',
-                'event identity',
-                'listener failure',
-                'report original exception',
-                'report expected exception',
-            ] as $case
-        ) {
-            yield $case => [
-                $case,
-            ];
+        $cases = [
+            'registered',
+            'unregistered',
+            'duplicate registration',
+            'job route override',
+            'connection queue fallback',
+            'default queue fallback',
+            'sync without topology',
+            'unknown connection',
+            'unknown queue',
+            'unsupported async driver',
+            'transport failure',
+            'parallel dispatch',
+            'event identity',
+            'listener failure',
+            'report original exception',
+            'report expected exception',
+        ];
+
+        foreach ($cases as $case) {
+            yield $case => [$case];
         }
     }
 
     #[DataProvider('cases')]
-    public function test(string $case): void
-    {
-        if (
-            str_starts_with(
-                $case,
-                'report ',
-            )
-        ) {
-            $exception = $case === 'report expected exception' ? new DatabaseStatCacheNotFoundException() : new RuntimeException(
-                message: 'test report',
-            );
+    public function test(
+        string $case
+    ): void {
+        if (str_starts_with($case, 'report ')) {
+            $exception = $case === 'report expected exception'
+                ? new DatabaseStatCacheNotFoundException()
+                : new RuntimeException(
+                    message: 'test report',
+                );
 
             $this->dispatcher->report($exception);
 
-            if ($case === 'report expected exception') {
-                self::assertCount(
-                    0,
-                    $this->recordingLogger->records
-                );
-            } else {
-                self::assertSame(
-                    $exception,
-                    $this->recordingLogger->records[0]['context']['exception']
-                );
-            }
+            self::assertSame(
+                $exception,
+                $this->recordingLogger->records[0]['context']['exception']
+            );
 
             return;
         }
@@ -161,9 +150,7 @@ class DispatcherTest extends TestCase
             $this->dispatcher->event($event);
 
             self::assertSame(
-                [
-                    $event,
-                ],
+                [$event],
                 $received
             );
 
@@ -175,9 +162,7 @@ class DispatcherTest extends TestCase
         $dispatchJob->delay(45)->afterCommit();
 
         if ($case !== 'unregistered') {
-            $this->dispatcher->registerJobs([
-                DispatchJob::class,
-            ]);
+            $this->dispatcher->registerJobs([DispatchJob::class]);
         }
 
         switch ($case) {
@@ -252,8 +237,12 @@ class DispatcherTest extends TestCase
 
                 $otherDispatchJob->onQueue('trace-tree')->delay(90)->beforeCommit();
 
-                $firstFiber  = new Fiber(fn() => $this->dispatcher->dispatch($dispatchJob));
-                $secondFiber = new Fiber(fn() => $this->dispatcher->dispatch($otherDispatchJob));
+                $firstFiber  = new Fiber(
+                    fn() => $this->dispatcher->dispatch($dispatchJob)
+                );
+                $secondFiber = new Fiber(
+                    fn() => $this->dispatcher->dispatch($otherDispatchJob)
+                );
 
                 $firstFiber->start();
 
@@ -276,7 +265,9 @@ class DispatcherTest extends TestCase
                     $otherDispatchJob->queue
                 );
 
-                self::assertFalse($otherDispatchJob->afterCommit);
+                self::assertFalse(
+                    $otherDispatchJob->afterCommit
+                );
 
                 return;
         }
@@ -295,9 +286,7 @@ class DispatcherTest extends TestCase
         );
 
         self::assertSame(
-            $refused ? [] : [
-                $dispatchJob,
-            ],
+            $refused ? [] : [$dispatchJob],
             $this->recordingBusDispatcher->jobs
         );
 
@@ -306,7 +295,9 @@ class DispatcherTest extends TestCase
             $dispatchJob->delay
         );
 
-        self::assertTrue($dispatchJob->afterCommit);
+        self::assertTrue(
+            $dispatchJob->afterCommit
+        );
 
         self::assertCount(
             $refused ? 1 : 0,
@@ -315,10 +306,7 @@ class DispatcherTest extends TestCase
 
         self::assertStringNotContainsString(
             'secret payload',
-            json_encode(
-                $this->recordingLogger->records,
-                JSON_THROW_ON_ERROR,
-            )
+            json_encode($this->recordingLogger->records, JSON_THROW_ON_ERROR)
         );
     }
 }

@@ -17,5 +17,8 @@ use App\Modules\Watcher\Entities\WatcherObject;
  */
 interface WatcherCheckerInterface
 {
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface;
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface;
 }

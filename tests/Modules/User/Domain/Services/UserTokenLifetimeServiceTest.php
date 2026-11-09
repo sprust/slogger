@@ -26,6 +26,9 @@ class UserTokenLifetimeServiceTest extends TestCase
 
         // Carbon mutates in place. The caller writes this same instance as `last_used_at`
         // beside the expiry, and a shifted one would date the session five days ahead.
-        $this->assertSame('2026-09-06 10:00:00', $now->toDateTimeString());
+        $this->assertSame(
+            '2026-09-06 10:00:00',
+            $now->toDateTimeString()
+        );
     }
 }

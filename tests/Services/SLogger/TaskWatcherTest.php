@@ -21,7 +21,10 @@ class TaskWatcherTest extends TestCase
     {
         $processor = $this->createMock(Processor::class);
 
-        $processor->expects($this->once())
+        $processor
+            ->expects(
+                $this->once()
+            )
             ->method('startAndGetTraceId')
             ->with(
                 'task',
@@ -32,7 +35,10 @@ class TaskWatcherTest extends TestCase
             )
             ->willReturn('trace-1');
 
-        $processor->expects($this->once())
+        $processor
+            ->expects(
+                $this->once()
+            )
             ->method('stop')
             ->with(
                 'trace-1',
@@ -45,7 +51,11 @@ class TaskWatcherTest extends TestCase
 
         $watcher = $this->watcher($processor);
 
-        $watcher->handleTickStarted(new TaskTickStarted(name: 'check-watchers'));
+        $watcher->handleTickStarted(
+            new TaskTickStarted(
+                name: 'check-watchers'
+            )
+        );
         $watcher->handleTickFinished(
             new TaskTickFinished(
                 name: 'check-watchers',
@@ -62,17 +72,29 @@ class TaskWatcherTest extends TestCase
 
         $stopped = null;
 
-        $processor->expects($this->once())
+        $processor
+            ->expects(
+                $this->once()
+            )
             ->method('stop')
             ->willReturnCallback(
-                function (string $traceId, string $status, ?array $tags, ?array $data) use (&$stopped): void {
+                function (
+                    string $traceId,
+                    string $status,
+                    ?array $tags,
+                    ?array $data
+                ) use (&$stopped): void {
                     $stopped = ['status' => $status, 'data' => $data];
                 }
             );
 
         $watcher = $this->watcher($processor);
 
-        $watcher->handleTickStarted(new TaskTickStarted(name: 'cron'));
+        $watcher->handleTickStarted(
+            new TaskTickStarted(
+                name: 'cron'
+            )
+        );
         $watcher->handleTickFinished(
             new TaskTickFinished(
                 name: 'cron',
@@ -81,8 +103,14 @@ class TaskWatcherTest extends TestCase
             )
         );
 
-        self::assertSame(TraceStatusEnum::Failed->value, $stopped['status']);
-        self::assertSame('failed', $stopped['data']['result']);
+        self::assertSame(
+            TraceStatusEnum::Failed->value,
+            $stopped['status']
+        );
+        self::assertSame(
+            'failed',
+            $stopped['data']['result']
+        );
         self::assertSame(
             RuntimeException::class,
             $stopped['data']['exception']['class']
@@ -97,15 +125,23 @@ class TaskWatcherTest extends TestCase
     {
         $processor = $this->createMock(Processor::class);
 
-        $processor->expects($this->never())->method('startAndGetTraceId');
-        $processor->expects($this->never())->method('stop');
+        $processor->expects(
+            $this->never()
+        )->method('startAndGetTraceId');
+        $processor->expects(
+            $this->never()
+        )->method('stop');
 
         $watcher = $this->watcher(
             $processor,
             ['excepted' => ['build-trace-dynamic-indexes']]
         );
 
-        $watcher->handleTickStarted(new TaskTickStarted(name: 'build-trace-dynamic-indexes'));
+        $watcher->handleTickStarted(
+            new TaskTickStarted(
+                name: 'build-trace-dynamic-indexes'
+            )
+        );
         $watcher->handleTickFinished(
             new TaskTickFinished(
                 name: 'build-trace-dynamic-indexes',
@@ -119,27 +155,33 @@ class TaskWatcherTest extends TestCase
     {
         $processor = $this->createMock(Processor::class);
 
-        $processor->expects($this->never())->method('stop');
+        $processor->expects(
+            $this->never()
+        )->method('stop');
 
-        $this->watcher($processor)->handleTickFinished(
-            new TaskTickFinished(
-                name: 'cron',
-                result: TickResultEnum::Idle,
-                exception: null
-            )
-        );
+        $this
+            ->watcher($processor)
+            ->handleTickFinished(
+                new TaskTickFinished(
+                    name: 'cron',
+                    result: TickResultEnum::Idle,
+                    exception: null
+                )
+            );
     }
 
     public function testATickClosesItsOwnTraceWhileAnotherTaskIsRunning(): void
     {
         $processor = $this->createMock(Processor::class);
 
-        $processor->method('startAndGetTraceId')
+        $processor
+            ->method('startAndGetTraceId')
             ->willReturnOnConsecutiveCalls('trace-cron', 'trace-watchers');
 
         $stoppedTraceIds = [];
 
-        $processor->method('stop')
+        $processor
+            ->method('stop')
             ->willReturnCallback(
                 function (string $traceId) use (&$stoppedTraceIds): void {
                     $stoppedTraceIds[] = $traceId;
@@ -148,8 +190,16 @@ class TaskWatcherTest extends TestCase
 
         $watcher = $this->watcher($processor);
 
-        $watcher->handleTickStarted(new TaskTickStarted(name: 'cron'));
-        $watcher->handleTickStarted(new TaskTickStarted(name: 'check-watchers'));
+        $watcher->handleTickStarted(
+            new TaskTickStarted(
+                name: 'cron'
+            )
+        );
+        $watcher->handleTickStarted(
+            new TaskTickStarted(
+                name: 'check-watchers'
+            )
+        );
 
         $watcher->handleTickFinished(
             new TaskTickFinished(
@@ -166,7 +216,10 @@ class TaskWatcherTest extends TestCase
             )
         );
 
-        self::assertSame(['trace-watchers', 'trace-cron'], $stoppedTraceIds);
+        self::assertSame(
+            ['trace-watchers', 'trace-cron'],
+            $stoppedTraceIds
+        );
     }
 
     /**

@@ -16,12 +16,17 @@ use App\Modules\Notification\Parameters\UpdateChannelParameters;
 
 abstract readonly class AbstractChannelTypeController
 {
-    public function __construct(private CreateChannelByAdminUseCase $createChannelByAdminUseCase, private UpdateChannelByAdminUseCase $updateChannelByAdminUseCase, private FindChannelByAdminUseCase $findChannelByAdminUseCase)
-    {
+    public function __construct(
+        private CreateChannelByAdminUseCase $createChannelByAdminUseCase,
+        private UpdateChannelByAdminUseCase $updateChannelByAdminUseCase,
+        private FindChannelByAdminUseCase $findChannelByAdminUseCase
+    ) {
     }
 
-    protected function channelSettings(NotificationChannelTypeEnum $type, int $id): ChannelSettingsInterface
-    {
+    protected function channelSettings(
+        NotificationChannelTypeEnum $type,
+        int $id
+    ): ChannelSettingsInterface {
         return $this->findChannelByAdminUseCase->handle(
             id: $id,
             type: $type,
@@ -31,8 +36,10 @@ abstract readonly class AbstractChannelTypeController
     /**
      * @param array<string, mixed> $validated
      */
-    protected function createChannel(NotificationChannelTypeEnum $type, array $validated): ChannelResource
-    {
+    protected function createChannel(
+        NotificationChannelTypeEnum $type,
+        array $validated
+    ): ChannelResource {
         return new ChannelResource(
             $this->createChannelByAdminUseCase->handle(
                 new CreateChannelParameters(
@@ -54,8 +61,11 @@ abstract readonly class AbstractChannelTypeController
     /**
      * @param array<string, mixed> $validated
      */
-    protected function updateChannel(NotificationChannelTypeEnum $type, int $id, array $validated): void
-    {
+    protected function updateChannel(
+        NotificationChannelTypeEnum $type,
+        int $id,
+        array $validated
+    ): void {
         $this->updateChannelByAdminUseCase->handle(
             parameters: new UpdateChannelParameters(
                 id: $id,

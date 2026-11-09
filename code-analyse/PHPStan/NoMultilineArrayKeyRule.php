@@ -36,7 +36,9 @@ class NoMultilineArrayKeyRule implements Rule
         return [
             RuleErrorBuilder::message('Array key spans several lines; extract it into a variable.')
                 ->identifier('ifksco.multilineArrayKey')
-                ->line($key->getStartLine())
+                ->line(
+                    $key->getStartLine()
+                )
                 ->build(),
         ];
     }

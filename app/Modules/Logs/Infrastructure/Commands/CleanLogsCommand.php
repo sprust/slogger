@@ -16,7 +16,9 @@ class CleanLogsCommand extends Command
 
     public function handle(CleanLogsAction $cleanLogsAction): int
     {
-        $result = $cleanLogsAction->handle(Carbon::now());
+        $result = $cleanLogsAction->handle(
+            Carbon::now()
+        );
 
         foreach ($result->deletedFiles as $path) {
             $this->components->twoColumnDetail('deleted', $path);

@@ -22,8 +22,10 @@ readonly class AuthMiddleware
      */
     private const string AUTHENTICATED = 'slogger.authenticated';
 
-    public function __construct(private FindUserByTokenAction $findUserByTokenAction, private TouchUserTokenAction $touchUserTokenAction)
-    {
+    public function __construct(
+        private FindUserByTokenAction $findUserByTokenAction,
+        private TouchUserTokenAction $touchUserTokenAction
+    ) {
     }
 
     /**
@@ -75,7 +77,8 @@ readonly class AuthMiddleware
         // whether handle() returned or aborted — and a token that was rejected has no
         // business moving the row it was rejected against.
         if (
-            !$token || !$request->attributes->getBoolean(
+            !$token
+            || !$request->attributes->getBoolean(
                 key: self::AUTHENTICATED,
             )
         ) {
@@ -84,6 +87,8 @@ readonly class AuthMiddleware
 
         // Answers false for a session that ended during the request — a logout, most of
         // all, which must not be undone by the renewal of the very request that did it.
-        $this->touchUserTokenAction->handle(new TokenParameters($token));
+        $this->touchUserTokenAction->handle(
+            new TokenParameters($token)
+        );
     }
 }

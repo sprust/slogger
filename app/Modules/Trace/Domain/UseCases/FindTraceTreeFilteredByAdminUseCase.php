@@ -10,12 +10,15 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeFilteredAction;
 
 readonly class FindTraceTreeFilteredByAdminUseCase
 {
-    public function __construct(private FindTraceTreeFilteredAction $findTraceTreeFilteredAction)
-    {
+    public function __construct(
+        private FindTraceTreeFilteredAction $findTraceTreeFilteredAction
+    ) {
     }
 
-    public function handle(string $rootTraceId, TraceTreeFilterParameters $parameters): TraceTreeFilteredObject
-    {
+    public function handle(
+        string $rootTraceId,
+        TraceTreeFilterParameters $parameters
+    ): TraceTreeFilteredObject {
         return $this->findTraceTreeFilteredAction->handle(
             rootTraceId: $rootTraceId,
             parameters: $parameters,

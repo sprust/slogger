@@ -19,14 +19,25 @@ class UpdateMcpActionTest extends TestCase
     {
         $repository = $this->createMock(McpRepository::class);
 
-        $repository->method('findOneById')->willReturn($this->mcpObject());
-        $repository->expects($this->once())
+        $repository->method('findOneById')->willReturn(
+            $this->mcpObject()
+        );
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method('update')
             ->with(1, 'CI agent', false);
 
-        $this->action($repository)->handle(
-            new UpdateMcpParameters(id: 1, name: 'CI agent', enabled: false)
-        );
+        $this
+            ->action($repository)
+            ->handle(
+                new UpdateMcpParameters(
+                    id: 1,
+                    name: 'CI agent',
+                    enabled: false
+                )
+            );
     }
 
     public function testUpdatingUnknownMcpThrows(): void
@@ -34,13 +45,21 @@ class UpdateMcpActionTest extends TestCase
         $repository = $this->createMock(McpRepository::class);
 
         $repository->method('findOneById')->willReturn(null);
-        $repository->expects($this->never())->method('update');
+        $repository->expects(
+            $this->never()
+        )->method('update');
 
         $this->expectException(McpNotFoundException::class);
 
-        $this->action($repository)->handle(
-            new UpdateMcpParameters(id: 1, name: 'CI agent', enabled: false)
-        );
+        $this
+            ->action($repository)
+            ->handle(
+                new UpdateMcpParameters(
+                    id: 1,
+                    name: 'CI agent',
+                    enabled: false
+                )
+            );
     }
 
     public function testDeletingUnknownMcpThrows(): void
@@ -56,9 +75,6 @@ class UpdateMcpActionTest extends TestCase
 
     private function action(McpRepository $repository): UpdateMcpAction
     {
-        return new UpdateMcpAction(
-            $repository,
-            new FindMcpAction($repository)
-        );
+        return new UpdateMcpAction($repository, new FindMcpAction($repository));
     }
 }

@@ -61,7 +61,9 @@ class CheckWatcherActionTest extends TestCase
     {
         $watchers = $this->createMock(WatcherRepository::class);
 
-        $watchers->expects($this->never())->method('updateCheckedAt');
+        $watchers->expects(
+            $this->never()
+        )->method('updateCheckedAt');
 
         $this
             ->action(
@@ -88,7 +90,9 @@ class CheckWatcherActionTest extends TestCase
     {
         $watchers = $this->createMock(WatcherRepository::class);
 
-        $watchers->expects($this->once())->method('updateCheckedAt');
+        $watchers->expects(
+            $this->once()
+        )->method('updateCheckedAt');
 
         $this
             ->action(
@@ -109,8 +113,10 @@ class CheckWatcherActionTest extends TestCase
             );
     }
 
-    private function action(?RuntimeException $failure, ?WatcherRepository $watchers = null): CheckWatcherAction
-    {
+    private function action(
+        ?RuntimeException $failure,
+        ?WatcherRepository $watchers = null
+    ): CheckWatcherAction {
         $checker = $this->createMock(BufferOverflowChecker::class);
 
         if ($failure) {

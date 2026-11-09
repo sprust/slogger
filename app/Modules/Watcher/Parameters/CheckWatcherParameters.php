@@ -9,7 +9,9 @@ use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 
 readonly class CheckWatcherParameters
 {
-    public function __construct(public WatcherObject $watcher, public WatcherCheckContextObject $context)
-    {
+    public function __construct(
+        public WatcherObject $watcher,
+        public WatcherCheckContextObject $context
+    ) {
     }
 }

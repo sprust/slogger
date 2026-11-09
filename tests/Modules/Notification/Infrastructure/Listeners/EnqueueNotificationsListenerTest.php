@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Notification\Infrastructure\Listeners;
 
+use App\Modules\Notification\Domain\UseCases\EnqueueIncidentNotificationsUseCase;
 use App\Modules\Notification\Domain\Actions\Mutations\EnqueueNotificationsAction;
 use App\Modules\Notification\Infrastructure\Listeners\EnqueueNotificationsListener;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentEventsAction;
@@ -37,18 +38,22 @@ class EnqueueNotificationsListenerTest extends TestCase
                 1,
                 1
             )
-            ->willReturn([
-                $event,
-            ]);
+            ->willReturn([$event]);
 
         $enqueueAction = $this->createMock(EnqueueNotificationsAction::class);
 
         $enqueueAction
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with(
-                $this->notificationWatcher($this->watcher()),
-                $this->notificationIncident($this->incident()),
+                $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                $this->notificationIncident(
+                    $this->incident()
+                ),
                 $this->notificationEvent(
                     event: $event,
                     type: $this->watcher()->type,
@@ -61,7 +66,11 @@ class EnqueueNotificationsListenerTest extends TestCase
                 eventsAction: $eventsAction,
                 enqueueAction: $enqueueAction,
             )
-            ->handle(new WatcherIncidentChangedEvent($this->incident()));
+            ->handle(
+                new WatcherIncidentChangedEvent(
+                    $this->incident()
+                )
+            );
     }
 
     public function testAnIncidentWithNoEventsYetIsStillHandedOver(): void
@@ -73,11 +82,17 @@ class EnqueueNotificationsListenerTest extends TestCase
         $enqueueAction = $this->createMock(EnqueueNotificationsAction::class);
 
         $enqueueAction
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with(
-                $this->notificationWatcher($this->watcher()),
-                $this->notificationIncident($this->incident()),
+                $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                $this->notificationIncident(
+                    $this->incident()
+                ),
                 $this->notificationEvent(
                     event: null,
                     type: $this->watcher()->type,
@@ -90,14 +105,20 @@ class EnqueueNotificationsListenerTest extends TestCase
                 eventsAction: $eventsAction,
                 enqueueAction: $enqueueAction,
             )
-            ->handle(new WatcherIncidentChangedEvent($this->incident()));
+            ->handle(
+                new WatcherIncidentChangedEvent(
+                    $this->incident()
+                )
+            );
     }
 
     public function testAnIncidentOfADeletedWatcherSaysNothing(): void
     {
         $enqueueAction = $this->createMock(EnqueueNotificationsAction::class);
 
-        $enqueueAction->expects($this->never())->method('handle');
+        $enqueueAction->expects(
+            $this->never()
+        )->method('handle');
 
         $this
             ->listener(
@@ -105,7 +126,11 @@ class EnqueueNotificationsListenerTest extends TestCase
                 eventsAction: $this->createMock(FindIncidentEventsAction::class),
                 enqueueAction: $enqueueAction,
             )
-            ->handle(new WatcherIncidentChangedEvent($this->incident()));
+            ->handle(
+                new WatcherIncidentChangedEvent(
+                    $this->incident()
+                )
+            );
     }
 
     public function testAFailureToEnqueueDoesNotEscapeIntoTheCheck(): void
@@ -122,12 +147,16 @@ class EnqueueNotificationsListenerTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        $logger->expects($this->once())->method('error');
+        $logger->expects(
+            $this->once()
+        )->method('error');
 
         $listener = new EnqueueNotificationsListener(
-            enqueueIncidentNotificationsUseCase: new \App\Modules\Notification\Domain\UseCases\EnqueueIncidentNotificationsUseCase(
+            enqueueIncidentNotificationsUseCase: new EnqueueIncidentNotificationsUseCase(
                 new \App\Modules\Notification\Domain\Actions\Mutations\EnqueueIncidentNotificationsAction(
-                    findWatcherAction: $this->findWatcherAction($this->watcher()),
+                    findWatcherAction: $this->findWatcherAction(
+                        $this->watcher()
+                    ),
                     findIncidentEventsAction: $this->createMock(FindIncidentEventsAction::class),
                     watcherTypeRegistry: $this->watcherTypeRegistry(),
                     incidentParametersTransport: new \App\Modules\Notification\Transports\IncidentParametersTransport(),
@@ -137,13 +166,20 @@ class EnqueueNotificationsListenerTest extends TestCase
             logger: $logger,
         );
 
-        $listener->handle(new WatcherIncidentChangedEvent($this->incident()));
+        $listener->handle(
+            new WatcherIncidentChangedEvent(
+                $this->incident()
+            )
+        );
     }
 
-    private function listener(?WatcherObject $watcher, FindIncidentEventsAction $eventsAction, EnqueueNotificationsAction $enqueueAction): EnqueueNotificationsListener
-    {
+    private function listener(
+        ?WatcherObject $watcher,
+        FindIncidentEventsAction $eventsAction,
+        EnqueueNotificationsAction $enqueueAction
+    ): EnqueueNotificationsListener {
         return new EnqueueNotificationsListener(
-            enqueueIncidentNotificationsUseCase: new \App\Modules\Notification\Domain\UseCases\EnqueueIncidentNotificationsUseCase(
+            enqueueIncidentNotificationsUseCase: new EnqueueIncidentNotificationsUseCase(
                 new \App\Modules\Notification\Domain\Actions\Mutations\EnqueueIncidentNotificationsAction(
                     findWatcherAction: $this->findWatcherAction($watcher),
                     findIncidentEventsAction: $eventsAction,

@@ -54,12 +54,15 @@ readonly class TelegramSender implements NotificationSenderInterface
         }
 
         try {
-            $body = json_encode([
-                'chat_id'                  => $settings->chatId,
-                'text'                     => $this->cut($text),
-                'parse_mode'               => 'HTML',
-                'disable_web_page_preview' => true,
-            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $body = json_encode(
+                [
+                    'chat_id'                  => $settings->chatId,
+                    'text'                     => $this->cut($text),
+                    'parse_mode'               => 'HTML',
+                    'disable_web_page_preview' => true,
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
         } catch (JsonException $exception) {
             return new SendResultObject(
                 delivered: false,
@@ -89,7 +92,11 @@ readonly class TelegramSender implements NotificationSenderInterface
 
     public function escape(string $value): string
     {
-        return str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $value);
+        return str_replace(
+            ['&', '<', '>'],
+            ['&amp;', '&lt;', '&gt;'],
+            $value
+        );
     }
 
     public function bold(string $value): string
@@ -171,7 +178,9 @@ readonly class TelegramSender implements NotificationSenderInterface
         $payload = is_array($payload) ? $payload : [];
 
         if ($status === 200 && ($payload['ok'] ?? false) === true) {
-            return new SendResultObject(delivered: true);
+            return new SendResultObject(
+                delivered: true
+            );
         }
 
         $error = is_string($payload['description'] ?? null)
@@ -191,9 +200,16 @@ readonly class TelegramSender implements NotificationSenderInterface
         }
 
         if ($status >= 400 && $status < 500) {
-            return new SendResultObject(delivered: false, permanent: true, error: $error);
+            return new SendResultObject(
+                delivered: false,
+                permanent: true,
+                error: $error
+            );
         }
 
-        return new SendResultObject(delivered: false, error: $error);
+        return new SendResultObject(
+            delivered: false,
+            error: $error
+        );
     }
 }

@@ -12,13 +12,15 @@ use Illuminate\Support\Carbon;
 
 readonly class TraceMetricController
 {
-    public function __construct(private FindTraceMetricsByAdminUseCase $findTraceMetricsByAdminUseCase)
-    {
+    public function __construct(
+        private FindTraceMetricsByAdminUseCase $findTraceMetricsByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(TraceMetricResource::class)]
-    public function index(int $serviceId): AnonymousResourceCollection
-    {
+    public function index(
+        int $serviceId
+    ): AnonymousResourceCollection {
         return TraceMetricResource::collection(
             $this->findTraceMetricsByAdminUseCase->handle(
                 serviceId: $serviceId,

@@ -9,8 +9,9 @@ use App\Modules\Auth\Parameters\TokenParameters;
 
 readonly class DeleteUserTokenAction
 {
-    public function __construct(private UserDeleteUserTokenAction $userDeleteUserTokenAction)
-    {
+    public function __construct(
+        private UserDeleteUserTokenAction $userDeleteUserTokenAction
+    ) {
     }
 
     public function handle(TokenParameters $parameters): void

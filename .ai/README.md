@@ -59,6 +59,9 @@ make code-analise-stan
 # Architecture layer validation
 make code-analise-deptrac
 
+# PHP source line length check (120 characters)
+make code-analise-line-length
+
 # Code style check / fix
 make code-analise-cs-fixer-check
 make code-analise-cs-fixer-fix
@@ -694,13 +697,19 @@ When the spec is ready — output it and ask whether implementation can begin.
 
 ## Module Exception Managers
 
-Each module registers its HTTP exception manager through `getExceptionManagerClass()`
-on its provider. `Common/Infrastructure/Exceptions/ExceptionManagerRegistry` stores
-one manager per class. The application Handler uses the registry for reporting and
-rendering: mapped business errors are not reported; unknown errors follow Laravel's
-normal handling. Managers preserve existing status codes and response messages.
-Dashboard's unavailable cache keeps its `503` JSON body. MCP protocol and tool errors
-remain in the protocol/tool handlers and do not pass through these HTTP mappings.
+Each module registers its manager through `getExceptionManagerClass()` on its provider.
+`Common/Infrastructure/Exceptions/Manager` follows PMS: BaseExceptionManager,
+ExceptionManagerInterface, ExceptionManagers and JsonHttpExceptionResponseObject.
+Reportability (`isReportable`) and response mapping (`makeJsonHttpResponse`) are
+independent; an unhandled exception returns null, and the registry uses the first
+manager that handles it. The base unwraps StreamedResponseException.
+
+Handler filters ordinary reports through ExceptionManagers. Explicit Dispatcher::report
+wraps ReportableException and reports the original exception through Laravel, bypassing
+only the module's dontReport list, as PMS does. Laravel's own exclusions still apply.
+Mapped JSON errors keep SLogger statuses; non-JSON requests retain content negotiation.
+The DTO adds messageField solely to preserve Dashboard's existing `error` response and
+JSON 503 even without an Accept header. MCP protocol/tool errors stay in their handlers.
 
 Business controllers call one local UseCase per operation. Read-after-write and type
 guards belong to that scenario. UseCases return complete DTOs or throw domain errors;

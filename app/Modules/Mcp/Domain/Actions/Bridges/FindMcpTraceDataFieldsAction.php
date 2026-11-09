@@ -20,8 +20,11 @@ readonly class FindMcpTraceDataFieldsAction
 
     public const int FIELDS_LIMIT = 200;
 
-    public function __construct(private FindTracesAction $findTracesAction, private FindTraceDetailAction $findTraceDetailAction, private McpTracePeriodTransport $mcpTracePeriodTransport)
-    {
+    public function __construct(
+        private FindTracesAction $findTracesAction,
+        private FindTraceDetailAction $findTraceDetailAction,
+        private McpTracePeriodTransport $mcpTracePeriodTransport
+    ) {
     }
 
     /**
@@ -34,9 +37,7 @@ readonly class FindMcpTraceDataFieldsAction
                 perPage: self::TRACES_COUNT,
                 serviceIds: $parameters->serviceIds,
                 loggingPeriod: $this->mcpTracePeriodTransport->toLoggingPeriod($parameters->period),
-                types: [
-                    $parameters->type,
-                ],
+                types: [$parameters->type],
             )
         );
         /** @var array<string, McpTraceDataFieldObject> $fields */
@@ -59,11 +60,7 @@ readonly class FindMcpTraceDataFieldsAction
         }
 
         return new McpTraceDataFieldsObject(
-            fields: array_slice(
-                array_values($fields),
-                0,
-                self::FIELDS_LIMIT,
-            ),
+            fields: array_slice(array_values($fields), 0, self::FIELDS_LIMIT),
             tracesCount: $tracesCount,
         );
     }
@@ -77,10 +74,8 @@ readonly class FindMcpTraceDataFieldsAction
 
         if (count($children) === 0) {
             if (
-                $data->key !== '' && !array_key_exists(
-                    $data->key,
-                    $fields,
-                )
+                $data->key !== ''
+                && !array_key_exists($data->key, $fields)
             ) {
                 $fields[$data->key] = new McpTraceDataFieldObject(
                     key: $data->key,

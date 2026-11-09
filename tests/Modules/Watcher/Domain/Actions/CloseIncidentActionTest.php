@@ -23,10 +23,16 @@ class CloseIncidentActionTest extends TestCase
     {
         $incidents = $this->createMock(WatcherIncidentRepository::class);
 
-        $incidents->method('findById')->willReturn($this->incident(WatcherIncidentStatusEnum::Opened));
+        $incidents
+            ->method('findById')
+            ->willReturn(
+                $this->incident(WatcherIncidentStatusEnum::Opened)
+            );
 
         $incidents
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('updateStatus')
             ->with(
                 self::INCIDENT_ID,
@@ -49,13 +55,21 @@ class CloseIncidentActionTest extends TestCase
     {
         $incidents = $this->createMock(WatcherIncidentRepository::class);
 
-        $incidents->method('findById')->willReturn($this->incident(WatcherIncidentStatusEnum::Closed));
+        $incidents
+            ->method('findById')
+            ->willReturn(
+                $this->incident(WatcherIncidentStatusEnum::Closed)
+            );
 
-        $incidents->expects($this->never())->method('updateStatus');
+        $incidents->expects(
+            $this->never()
+        )->method('updateStatus');
 
         $events = $this->createMock(Dispatcher::class);
 
-        $events->expects($this->never())->method('event');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         (new CloseIncidentAction(
             incidentRepository: $incidents,
@@ -71,11 +85,22 @@ class CloseIncidentActionTest extends TestCase
     {
         $incidents = $this->createMock(WatcherIncidentRepository::class);
 
-        $incidents->method('findById')->willReturn($this->incident(WatcherIncidentStatusEnum::Opened));
+        $incidents
+            ->method('findById')
+            ->willReturn(
+                $this->incident(WatcherIncidentStatusEnum::Opened)
+            );
 
         $events = $this->createMock(Dispatcher::class);
 
-        $events->expects($this->once())->method('event')->with($this->isInstanceOf(WatcherIncidentChangedEvent::class));
+        $events
+            ->expects(
+                $this->once()
+            )
+            ->method('event')
+            ->with(
+                $this->isInstanceOf(WatcherIncidentChangedEvent::class)
+            );
 
         (new CloseIncidentAction(
             incidentRepository: $incidents,

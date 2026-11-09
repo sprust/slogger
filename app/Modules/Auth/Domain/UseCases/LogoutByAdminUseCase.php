@@ -9,8 +9,9 @@ use App\Modules\Auth\Parameters\TokenParameters;
 
 readonly class LogoutByAdminUseCase
 {
-    public function __construct(private DeleteUserTokenAction $deleteUserTokenAction)
-    {
+    public function __construct(
+        private DeleteUserTokenAction $deleteUserTokenAction
+    ) {
     }
 
     public function handle(TokenParameters $parameters): void

@@ -11,8 +11,10 @@ use App\Modules\Mcp\Transports\TraceObjectTransport;
 
 readonly class FindMcpTraceAction
 {
-    public function __construct(private FindTraceDetailAction $findTraceDetailAction, private TraceObjectTransport $traceObjectTransport)
-    {
+    public function __construct(
+        private FindTraceDetailAction $findTraceDetailAction,
+        private TraceObjectTransport $traceObjectTransport
+    ) {
     }
 
     /**
@@ -22,6 +24,8 @@ readonly class FindMcpTraceAction
     {
         $result = $this->findTraceDetailAction->handle($traceId);
 
-        return $result === null ? null : $this->traceObjectTransport->fromTraceDetailObject($result);
+        return $result === null
+            ? null
+            : $this->traceObjectTransport->fromTraceDetailObject($result);
     }
 }

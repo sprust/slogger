@@ -44,7 +44,10 @@ readonly class TraceMetricReader
 
         usort(
             $metrics,
-            static fn(TraceMetricObject $a, TraceMetricObject $b): int => [$a->timestamp->getTimestamp(), $a->type]
+            static fn(
+                TraceMetricObject $a,
+                TraceMetricObject $b
+            ): int => [$a->timestamp->getTimestamp(), $a->type]
                 <=> [$b->timestamp->getTimestamp(), $b->type]
         );
 

@@ -51,7 +51,9 @@ readonly class InvalidBufferGrownEventPayloadMapper implements WatcherEventPaylo
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof InvalidBufferGrownEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

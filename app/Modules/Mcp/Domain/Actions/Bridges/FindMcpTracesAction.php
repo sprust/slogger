@@ -20,8 +20,13 @@ readonly class FindMcpTracesAction
 {
     public const int PER_PAGE = 50;
 
-    public function __construct(private FindTracesAction $findTracesAction, private McpTraceDataFilterParser $dataFilterParser, private McpTracePeriodTransport $mcpTracePeriodTransport, private TraceObjectTransport $traceObjectTransport, private TraceParametersTransport $traceParametersTransport)
-    {
+    public function __construct(
+        private FindTracesAction $findTracesAction,
+        private McpTraceDataFilterParser $dataFilterParser,
+        private McpTracePeriodTransport $mcpTracePeriodTransport,
+        private TraceObjectTransport $traceObjectTransport,
+        private TraceParametersTransport $traceParametersTransport
+    ) {
     }
 
     /**
@@ -30,11 +35,15 @@ readonly class FindMcpTracesAction
      */
     public function handle(FindMcpTracesParameters $parameters): TraceItemObjects
     {
-        $filter = $this->traceParametersTransport->toTraceDataFilters($this->dataFilterParser->parse($parameters->dataFilter));
-        $data   = count($filter) > 0 || count($parameters->dataFields) > 0 ? new TraceDataFilterParameters(
-            filter: $filter,
-            fields: $parameters->dataFields,
-        ) : null;
+        $filter = $this->traceParametersTransport->toTraceDataFilters(
+            $this->dataFilterParser->parse($parameters->dataFilter)
+        );
+        $data   = count($filter) > 0 || count($parameters->dataFields) > 0
+            ? new TraceDataFilterParameters(
+                filter: $filter,
+                fields: $parameters->dataFields,
+            )
+            : null;
         $result = $this->findTracesAction->handle(
             new TraceFindParameters(
                 page: $parameters->page,

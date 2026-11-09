@@ -14,14 +14,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class LogFileController
 {
-    public function __construct(private FindLogFilesByAdminUseCase $findLogFilesByAdminUseCase, private StreamLogFileByAdminUseCase $streamLogFileByAdminUseCase, private DeleteLogFileByAdminUseCase $deleteLogFileByAdminUseCase)
-    {
+    public function __construct(
+        private FindLogFilesByAdminUseCase $findLogFilesByAdminUseCase,
+        private StreamLogFileByAdminUseCase $streamLogFileByAdminUseCase,
+        private DeleteLogFileByAdminUseCase $deleteLogFileByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(LogFileResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return LogFileResource::collection($this->findLogFilesByAdminUseCase->handle());
+        return LogFileResource::collection(
+            $this->findLogFilesByAdminUseCase->handle()
+        );
     }
 
     public function download(string $id): LogFileDownloadResponse

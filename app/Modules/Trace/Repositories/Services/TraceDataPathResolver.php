@@ -69,9 +69,7 @@ readonly class TraceDataPathResolver
             );
         }
 
-        return $this->resolve(
-            substr($field, strlen(self::FIELD_PREFIX))
-        );
+        return $this->resolve(substr($field, strlen(self::FIELD_PREFIX)));
     }
 
     /**
@@ -106,12 +104,6 @@ readonly class TraceDataPathResolver
      */
     private function join(array $segments): string
     {
-        return implode(
-            '.',
-            array_map(
-                static fn(string $segment): string => "`$segment`",
-                $segments
-            )
-        );
+        return implode('.', array_map(static fn(string $segment): string => "`$segment`", $segments));
     }
 }

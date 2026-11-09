@@ -26,13 +26,18 @@ class DeclareStrictFixCommand extends Command
     {
         $write = $this->option('write');
 
-        if ($write && !$this->confirm('Are you sure you want to fix declare(strict_types=1); in all files?')) {
+        if (
+            $write
+            && !$this->confirm('Are you sure you want to fix declare(strict_types=1); in all files?')
+        ) {
             return self::FAILURE;
         }
 
         /** @var string[] $filePaths */
         $filePaths = [
-            ...$this->findFilePaths(app_path() . '/Modules'),
+            ...$this->findFilePaths(
+                app_path() . '/Modules'
+            ),
         ];
 
         foreach ($filePaths as $filePath) {

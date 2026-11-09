@@ -23,19 +23,22 @@ class SconcurStatClientTest extends TestCase
     protected function setUp(): void
     {
         $container = new Container();
-        $container->instance('config', new Repository([
-            'sconcur' => [
-                'panel_host' => 'http://panel/api/stats',
-                'master'     => [
-                    'adminToken' => 'token',
-                    'groups'     => [
-                        ['name' => 'http'],
-                        ['name' => 'rabbitmq'],
-                        ['name' => 'tasks'],
+        $container->instance(
+            'config',
+            new Repository([
+                'sconcur' => [
+                    'panel_host' => 'http://panel/api/stats',
+                    'master'     => [
+                        'adminToken' => 'token',
+                        'groups'     => [
+                            ['name' => 'http'],
+                            ['name' => 'rabbitmq'],
+                            ['name' => 'tasks'],
+                        ],
                     ],
                 ],
-            ],
-        ]));
+            ])
+        );
 
         Container::setInstance($container);
     }
@@ -47,11 +50,17 @@ class SconcurStatClientTest extends TestCase
 
     public function testAGroupThePanelDoesNotReportIsShownWithZeros(): void
     {
-        $stat = $this->client([
-            'groups' => [
-                ['name' => 'http', 'workersTotal' => 2, 'totals' => ['cpuPercent' => 7.5]],
-            ],
-        ])->find();
+        $stat = $this
+            ->client([
+                'groups' => [
+                    [
+                        'name'         => 'http',
+                        'workersTotal' => 2,
+                        'totals'       => ['cpuPercent' => 7.5],
+                    ],
+                ],
+            ])
+            ->find();
 
         $this->assertSame(
             ['http', 'rabbitmq', 'tasks'],
@@ -60,27 +69,56 @@ class SconcurStatClientTest extends TestCase
 
         $tasks = $stat->groups[2];
 
-        $this->assertSame(0, $tasks->workersTotal);
-        $this->assertSame(0.0, $tasks->cpuPercent);
-        $this->assertSame(0, $tasks->memoryRssBytes);
-        $this->assertSame(0, $tasks->memoryPssBytes);
-        $this->assertSame(0, $tasks->runtimeTasks);
+        $this->assertSame(
+            0,
+            $tasks->workersTotal
+        );
+        $this->assertSame(
+            0.0,
+            $tasks->cpuPercent
+        );
+        $this->assertSame(
+            0,
+            $tasks->memoryRssBytes
+        );
+        $this->assertSame(
+            0,
+            $tasks->memoryPssBytes
+        );
+        $this->assertSame(
+            0,
+            $tasks->runtimeTasks
+        );
 
         // Absent rather than zeroed: the dashboard renders a dash for it, which says
         // "this pool does not count that" instead of "none happened".
-        $this->assertNull($tasks->work);
+        $this->assertNull(
+            $tasks->work
+        );
     }
 
     public function testAReportedGroupKeepsItsOwnNumbers(): void
     {
-        $stat = $this->client([
-            'groups' => [
-                ['name' => 'http', 'workersTotal' => 2, 'totals' => ['cpuPercent' => 7.5]],
-            ],
-        ])->find();
+        $stat = $this
+            ->client([
+                'groups' => [
+                    [
+                        'name'         => 'http',
+                        'workersTotal' => 2,
+                        'totals'       => ['cpuPercent' => 7.5],
+                    ],
+                ],
+            ])
+            ->find();
 
-        $this->assertSame(2, $stat->groups[0]->workersTotal);
-        $this->assertSame(7.5, $stat->groups[0]->cpuPercent);
+        $this->assertSame(
+            2,
+            $stat->groups[0]->workersTotal
+        );
+        $this->assertSame(
+            7.5,
+            $stat->groups[0]->cpuPercent
+        );
     }
 
     /**
@@ -91,13 +129,15 @@ class SconcurStatClientTest extends TestCase
      */
     public function testGroupsFollowTheOrderOfTheMasterConfig(): void
     {
-        $stat = $this->client([
-            'groups' => [
-                ['name' => 'tasks'],
-                ['name' => 'rabbitmq'],
-                ['name' => 'http'],
-            ],
-        ])->find();
+        $stat = $this
+            ->client([
+                'groups' => [
+                    ['name' => 'tasks'],
+                    ['name' => 'rabbitmq'],
+                    ['name' => 'http'],
+                ],
+            ])
+            ->find();
 
         $this->assertSame(
             ['http', 'rabbitmq', 'tasks'],
@@ -108,13 +148,15 @@ class SconcurStatClientTest extends TestCase
     /** A group renamed while the master kept running is still shown, after the known ones. */
     public function testAGroupTheConfigDoesNotNameGoesLast(): void
     {
-        $stat = $this->client([
-            'groups' => [
-                ['name' => 'legacy'],
-                ['name' => 'tasks'],
-                ['name' => 'http'],
-            ],
-        ])->find();
+        $stat = $this
+            ->client([
+                'groups' => [
+                    ['name' => 'legacy'],
+                    ['name' => 'tasks'],
+                    ['name' => 'http'],
+                ],
+            ])
+            ->find();
 
         $this->assertSame(
             ['http', 'rabbitmq', 'tasks', 'legacy'],
@@ -129,36 +171,64 @@ class SconcurStatClientTest extends TestCase
      */
     public function testAnHttpPoolsRequestsBecomeTheWorkSection(): void
     {
-        $stat = $this->client([
-            'groups' => [
-                [
-                    'name'         => 'http',
-                    'workersTotal' => 2,
-                    'totals'       => [
-                        'requests' => [
-                            'completed'       => 120,
-                            'avgMs'           => 12.5,
-                            'inFlight'        => 3,
-                            'inFlight1to5s'   => 2,
-                            'inFlight5to15s'  => 1,
-                            'inFlightOver15s' => 0,
+        $stat = $this
+            ->client([
+                'groups' => [
+                    [
+                        'name'         => 'http',
+                        'workersTotal' => 2,
+                        'totals'       => [
+                            'requests' => [
+                                'completed'       => 120,
+                                'avgMs'           => 12.5,
+                                'inFlight'        => 3,
+                                'inFlight1to5s'   => 2,
+                                'inFlight5to15s'  => 1,
+                                'inFlightOver15s' => 0,
+                            ],
                         ],
                     ],
                 ],
-            ],
-        ])->find();
+            ])
+            ->find();
 
         $work = $stat->groups[0]->work;
 
-        $this->assertNotNull($work);
-        $this->assertSame(120, $work->finished);
-        $this->assertSame(120, $work->measured);
-        $this->assertSame(12.5, $work->avgMs);
-        $this->assertSame(0, $work->refused);
-        $this->assertSame(3, $work->inProcess);
-        $this->assertSame(2, $work->inProcess1to5s);
-        $this->assertSame(1, $work->inProcess5to15s);
-        $this->assertSame(0, $work->inProcessOver15s);
+        $this->assertNotNull(
+            $work
+        );
+        $this->assertSame(
+            120,
+            $work->finished
+        );
+        $this->assertSame(
+            120,
+            $work->measured
+        );
+        $this->assertSame(
+            12.5,
+            $work->avgMs
+        );
+        $this->assertSame(
+            0,
+            $work->refused
+        );
+        $this->assertSame(
+            3,
+            $work->inProcess
+        );
+        $this->assertSame(
+            2,
+            $work->inProcess1to5s
+        );
+        $this->assertSame(
+            1,
+            $work->inProcess5to15s
+        );
+        $this->assertSame(
+            0,
+            $work->inProcessOver15s
+        );
     }
 
     /**
@@ -169,38 +239,60 @@ class SconcurStatClientTest extends TestCase
      */
     public function testAConsumerPoolsFinishedCountsRefusedDeliveriesToo(): void
     {
-        $stat = $this->client([
-            'groups' => [
-                [
-                    'name'         => 'rabbitmq',
-                    'workersTotal' => 1,
-                    'totals'       => [
-                        'consumers' => [
-                            'coroutines'    => 8,
-                            'delivered'     => 52,
-                            'acked'         => 47,
-                            'refused'       => 3,
-                            'timed'         => 50,
-                            'avgMs'         => 4.25,
-                            'inFlight'      => 2,
-                            'inFlight1to5s' => 1,
+        $stat = $this
+            ->client([
+                'groups' => [
+                    [
+                        'name'         => 'rabbitmq',
+                        'workersTotal' => 1,
+                        'totals'       => [
+                            'consumers' => [
+                                'coroutines'    => 8,
+                                'delivered'     => 52,
+                                'acked'         => 47,
+                                'refused'       => 3,
+                                'timed'         => 50,
+                                'avgMs'         => 4.25,
+                                'inFlight'      => 2,
+                                'inFlight1to5s' => 1,
+                            ],
                         ],
                     ],
                 ],
-            ],
-        ])->find();
+            ])
+            ->find();
 
         $work = $stat->groups[1]->work;
 
-        $this->assertNotNull($work);
-        $this->assertSame(50, $work->finished);
-        $this->assertSame(3, $work->refused);
+        $this->assertNotNull(
+            $work
+        );
+        $this->assertSame(
+            50,
+            $work->finished
+        );
+        $this->assertSame(
+            3,
+            $work->refused
+        );
         // Not `finished`: an auto-acked delivery settles with no duration to measure, and
         // avgMs is a mean over the ones that have it.
-        $this->assertSame(50, $work->measured);
-        $this->assertSame(4.25, $work->avgMs);
-        $this->assertSame(2, $work->inProcess);
-        $this->assertSame(1, $work->inProcess1to5s);
+        $this->assertSame(
+            50,
+            $work->measured
+        );
+        $this->assertSame(
+            4.25,
+            $work->avgMs
+        );
+        $this->assertSame(
+            2,
+            $work->inProcess
+        );
+        $this->assertSame(
+            1,
+            $work->inProcess1to5s
+        );
     }
 
     /**
@@ -210,27 +302,46 @@ class SconcurStatClientTest extends TestCase
      */
     public function testTheMasterTotalsWeighBothSectionsIntoOneAverage(): void
     {
-        $stat = $this->client([
-            'totals' => [
-                'requests'  => ['completed' => 100, 'avgMs' => 10.0, 'inFlight' => 4],
-                'consumers' => [
-                    'acked'    => 90,
-                    'refused'  => 10,
-                    'timed'    => 100,
-                    'avgMs'    => 20.0,
-                    'inFlight' => 6,
+        $stat = $this
+            ->client([
+                'totals' => [
+                    'requests'  => ['completed' => 100, 'avgMs' => 10.0, 'inFlight' => 4],
+                    'consumers' => [
+                        'acked'    => 90,
+                        'refused'  => 10,
+                        'timed'    => 100,
+                        'avgMs'    => 20.0,
+                        'inFlight' => 6,
+                    ],
                 ],
-            ],
-        ])->find();
+            ])
+            ->find();
 
         $work = $stat->work;
 
-        $this->assertNotNull($work);
-        $this->assertSame(200, $work->finished);
-        $this->assertSame(200, $work->measured);
-        $this->assertSame(15.0, $work->avgMs);
-        $this->assertSame(10, $work->inProcess);
-        $this->assertSame(10, $work->refused);
+        $this->assertNotNull(
+            $work
+        );
+        $this->assertSame(
+            200,
+            $work->finished
+        );
+        $this->assertSame(
+            200,
+            $work->measured
+        );
+        $this->assertSame(
+            15.0,
+            $work->avgMs
+        );
+        $this->assertSame(
+            10,
+            $work->inProcess
+        );
+        $this->assertSame(
+            10,
+            $work->refused
+        );
     }
 
     /**
@@ -239,63 +350,121 @@ class SconcurStatClientTest extends TestCase
      */
     public function testAWorkersCountersAreReadFromTheWorkerItself(): void
     {
-        $stat = $this->client([
-            'groups'  => [['name' => 'http', 'workersTotal' => 1]],
-            'workers' => [
-                [
-                    'pid'      => 4242,
-                    'group'    => 'http',
-                    'memory'   => ['rssBytes' => 1048576, 'pssBytes' => 524288],
-                    'requests' => ['completed' => 9, 'inFlight' => 1],
+        $stat = $this
+            ->client([
+                'groups'  => [
+                    ['name' => 'http', 'workersTotal' => 1],
                 ],
-            ],
-        ])->find();
+                'workers' => [
+                    [
+                        'pid'      => 4242,
+                        'group'    => 'http',
+                        'memory'   => ['rssBytes' => 1048576, 'pssBytes' => 524288],
+                        'requests' => ['completed' => 9, 'inFlight' => 1],
+                    ],
+                ],
+            ])
+            ->find();
 
         $worker = $stat->workers[0];
 
-        $this->assertSame(4242, $worker->pid);
-        $this->assertSame('http', $worker->group);
-        $this->assertSame(1048576, $worker->memoryRssBytes);
-        $this->assertSame(524288, $worker->memoryPssBytes);
-        $this->assertNotNull($worker->work);
-        $this->assertSame(9, $worker->work->finished);
-        $this->assertSame(1, $worker->work->inProcess);
+        $this->assertSame(
+            4242,
+            $worker->pid
+        );
+        $this->assertSame(
+            'http',
+            $worker->group
+        );
+        $this->assertSame(
+            1048576,
+            $worker->memoryRssBytes
+        );
+        $this->assertSame(
+            524288,
+            $worker->memoryPssBytes
+        );
+        $this->assertNotNull(
+            $worker->work
+        );
+        $this->assertSame(
+            9,
+            $worker->work->finished
+        );
+        $this->assertSame(
+            1,
+            $worker->work->inProcess
+        );
     }
 
     /** Workers are forks of the master and share its pages, so their RSS adds up to more than they hold. */
     public function testPssIsReadBesideRssForTheMasterAndTheGroups(): void
     {
-        $stat = $this->client([
-            'master' => ['memory' => ['rssBytes' => 600, 'pssBytes' => 200]],
-            'totals' => ['memory' => ['rssBytes' => 3000, 'pssBytes' => 900]],
-            'groups' => [
-                ['name' => 'http', 'totals' => ['memory' => ['rssBytes' => 1200, 'pssBytes' => 400]]],
-            ],
-        ])->find();
+        $stat = $this
+            ->client([
+                'master' => [
+                    'memory' => ['rssBytes' => 600, 'pssBytes' => 200],
+                ],
+                'totals' => [
+                    'memory' => ['rssBytes' => 3000, 'pssBytes' => 900],
+                ],
+                'groups' => [
+                    [
+                        'name'   => 'http',
+                        'totals' => [
+                            'memory' => ['rssBytes' => 1200, 'pssBytes' => 400],
+                        ],
+                    ],
+                ],
+            ])
+            ->find();
 
-        $this->assertSame(3000, $stat->memoryRssBytes);
-        $this->assertSame(900, $stat->memoryPssBytes);
-        $this->assertSame(600, $stat->masterMemoryRssBytes);
-        $this->assertSame(200, $stat->masterMemoryPssBytes);
-        $this->assertSame(1200, $stat->groups[0]->memoryRssBytes);
-        $this->assertSame(400, $stat->groups[0]->memoryPssBytes);
+        $this->assertSame(
+            3000,
+            $stat->memoryRssBytes
+        );
+        $this->assertSame(
+            900,
+            $stat->memoryPssBytes
+        );
+        $this->assertSame(
+            600,
+            $stat->masterMemoryRssBytes
+        );
+        $this->assertSame(
+            200,
+            $stat->masterMemoryPssBytes
+        );
+        $this->assertSame(
+            1200,
+            $stat->groups[0]->memoryRssBytes
+        );
+        $this->assertSame(
+            400,
+            $stat->groups[0]->memoryPssBytes
+        );
     }
 
     /** The two tables read in the same order, and a worker keeps its row between refreshes. */
     public function testWorkersFollowTheGroupOrderAndThenThePid(): void
     {
-        $stat = $this->client([
-            'workers' => [
-                ['pid' => 19, 'group' => 'tasks'],
-                ['pid' => 17, 'group' => 'http'],
-                ['pid' => 63, 'group' => 'rabbitmq'],
-                ['pid' => 16, 'group' => 'http'],
-            ],
-        ])->find();
+        $stat = $this
+            ->client([
+                'workers' => [
+                    ['pid' => 19, 'group' => 'tasks'],
+                    ['pid' => 17, 'group' => 'http'],
+                    ['pid' => 63, 'group' => 'rabbitmq'],
+                    ['pid' => 16, 'group' => 'http'],
+                ],
+            ])
+            ->find();
 
         $pids = array_map(static fn($worker): int => $worker->pid, $stat->workers);
 
-        $this->assertSame([16, 17, 63, 19], $pids);
+        $this->assertSame(
+            [16, 17, 63, 19],
+            $pids
+        );
     }
 
     /**
@@ -313,10 +482,18 @@ class SconcurStatClientTest extends TestCase
      */
     private function client(array $payload): SconcurStatClient
     {
-        $handler = HandlerStack::create(new MockHandler([
-            new Response(200, [], (string) json_encode($payload)),
-        ]));
+        $handler = HandlerStack::create(
+            new MockHandler([
+                new Response(
+                    200,
+                    [],
+                    (string) json_encode($payload)
+                ),
+            ])
+        );
 
-        return new SconcurStatClient(new Client(['handler' => $handler]));
+        return new SconcurStatClient(
+            new Client(['handler' => $handler])
+        );
     }
 }

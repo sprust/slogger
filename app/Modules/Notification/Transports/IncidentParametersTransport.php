@@ -28,8 +28,10 @@ readonly class IncidentParametersTransport
     }
 
     /** @param array<string, mixed>|null $document */
-    public function event(?WatcherIncidentEventObject $event, ?array $document): ?IncidentEventParameters
-    {
+    public function event(
+        ?WatcherIncidentEventObject $event,
+        ?array $document
+    ): ?IncidentEventParameters {
         if ($event === null) {
             return null;
         }
@@ -39,7 +41,9 @@ readonly class IncidentParametersTransport
         return new IncidentEventParameters(
             payload: $document,
             groups: array_map(
-                static fn(WatcherIncidentEventGroupObject $group): IncidentEventGroupObject => new IncidentEventGroupObject(
+                static fn(
+                    WatcherIncidentEventGroupObject $group
+                ): IncidentEventGroupObject => new IncidentEventGroupObject(
                     serviceId: $group->serviceId,
                     type: $group->type,
                     tags: $group->tags,

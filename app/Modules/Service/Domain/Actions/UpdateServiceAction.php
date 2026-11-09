@@ -29,7 +29,12 @@ readonly class UpdateServiceAction
 
         $uniqueKey = Str::slug($parameters->name);
 
-        if ($this->serviceRepository->isExistByUniqueKey($uniqueKey, exceptId: $parameters->id)) {
+        if (
+            $this->serviceRepository->isExistByUniqueKey(
+                $uniqueKey,
+                exceptId: $parameters->id
+            )
+        ) {
             throw new ServiceAlreadyExistsException($parameters->name);
         }
 

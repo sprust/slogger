@@ -17,14 +17,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 readonly class SettingController
 {
-    public function __construct(private FindSettingsByAdminUseCase $findSettingsByAdminUseCase, private UpdateSettingByAdminUseCase $updateSettingByAdminUseCase, private ResetSettingByAdminUseCase $resetSettingByAdminUseCase)
-    {
+    public function __construct(
+        private FindSettingsByAdminUseCase $findSettingsByAdminUseCase,
+        private UpdateSettingByAdminUseCase $updateSettingByAdminUseCase,
+        private ResetSettingByAdminUseCase $resetSettingByAdminUseCase
+    ) {
     }
 
     #[OaListItemTypeAttribute(SettingResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return SettingResource::collection($this->findSettingsByAdminUseCase->handle());
+        return SettingResource::collection(
+            $this->findSettingsByAdminUseCase->handle()
+        );
     }
 
     public function update(string $key, UpdateSettingRequest $request): void
@@ -44,6 +49,8 @@ readonly class SettingController
 
     public function reset(string $key): void
     {
-        $this->resetSettingByAdminUseCase->handle(SettingKeyEnum::from($key));
+        $this->resetSettingByAdminUseCase->handle(
+            SettingKeyEnum::from($key)
+        );
     }
 }

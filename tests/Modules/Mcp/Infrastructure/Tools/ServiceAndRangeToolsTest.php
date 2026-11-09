@@ -21,34 +21,44 @@ class ServiceAndRangeToolsTest extends TestCase
 {
     public function testListsAllServices(): void
     {
-        $result = $this->servicesTool()->call(new McpToolArguments([]));
+        $result = $this->servicesTool()->call(
+            new McpToolArguments([])
+        );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'id'   => 1,
-                'name' => 'billing',
+                [
+                    'id'   => 1,
+                    'name' => 'billing',
+                ],
+                [
+                    'id'   => 2,
+                    'name' => 'auth',
+                ],
             ],
-            [
-                'id'   => 2,
-                'name' => 'auth',
-            ],
-        ], $result->data['services']);
+            $result->data['services']
+        );
     }
 
     public function testSearchesServicesIgnoringCase(): void
     {
         $result = $this
             ->servicesTool()
-            ->call(new McpToolArguments([
-                'query' => 'BILL',
-            ]));
+            ->call(
+                new McpToolArguments([
+                    'query' => 'BILL',
+                ])
+            );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'id'   => 1,
-                'name' => 'billing',
+                [
+                    'id'   => 1,
+                    'name' => 'billing',
+                ],
             ],
-        ], $result->data['services']);
+            $result->data['services']
+        );
     }
 
     public function testDataRange(): void
@@ -76,12 +86,17 @@ class ServiceAndRangeToolsTest extends TestCase
                 traceObjectTransport: new TraceObjectTransport(),
             ),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([]));
+        ))->call(
+            new McpToolArguments([])
+        );
 
-        $this->assertSame([
-            'first_hour' => '2026-09-25T10:00:00Z',
-            'last_hour'  => '2026-09-28T14:00:00Z',
-        ], $result->data);
+        $this->assertSame(
+            [
+                'first_hour' => '2026-09-25T10:00:00Z',
+                'last_hour'  => '2026-09-28T14:00:00Z',
+            ],
+            $result->data
+        );
     }
 
     public function testEmptyDataRange(): void
@@ -103,12 +118,17 @@ class ServiceAndRangeToolsTest extends TestCase
                 traceObjectTransport: new TraceObjectTransport(),
             ),
             formatter: new McpToolFormatter(),
-        ))->call(new McpToolArguments([]));
+        ))->call(
+            new McpToolArguments([])
+        );
 
-        $this->assertSame([
-            'first_hour' => null,
-            'last_hour'  => null,
-        ], $result->data);
+        $this->assertSame(
+            [
+                'first_hour' => null,
+                'last_hour'  => null,
+            ],
+            $result->data
+        );
     }
 
     private function servicesTool(): GetServicesTool

@@ -13,8 +13,10 @@ use App\Modules\User\Parameters\UserUpdateParameters;
 
 readonly class UpdateUserByAdminUseCase
 {
-    public function __construct(private UpdateUserAction $updateUserAction, private FindUserAction $findUserAction)
-    {
+    public function __construct(
+        private UpdateUserAction $updateUserAction,
+        private FindUserAction $findUserAction
+    ) {
     }
 
     /**

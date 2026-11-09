@@ -9,13 +9,16 @@ use App\Modules\Mcp\Entities\Bridges\McpServiceObject;
 
 readonly class McpToolServiceFinder
 {
-    public function __construct(private FindMcpServicesAction $findMcpServicesAction)
-    {
+    public function __construct(
+        private FindMcpServicesAction $findMcpServicesAction
+    ) {
     }
 
     public function names(): McpToolServiceNames
     {
-        return new McpToolServiceNames($this->findMcpServicesAction->handle(null));
+        return new McpToolServiceNames(
+            $this->findMcpServicesAction->handle(null)
+        );
     }
 
     /**
@@ -29,7 +32,12 @@ readonly class McpToolServiceFinder
             return [];
         }
 
-        $knownIds = array_map(static fn(McpServiceObject $service) => $service->id, $this->findMcpServicesAction->handle(null));
+        $knownIds = array_map(
+            static fn(
+                McpServiceObject $service
+            ) => $service->id,
+            $this->findMcpServicesAction->handle(null)
+        );
 
         return array_values(array_diff($serviceIds, $knownIds));
     }

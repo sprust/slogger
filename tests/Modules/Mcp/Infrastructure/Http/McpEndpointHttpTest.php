@@ -8,6 +8,7 @@ use App\Modules\Mcp\Infrastructure\Tools\SearchTracesTool;
 use App\Modules\Mcp\Repositories\McpRepository;
 use App\Modules\Setting\Repositories\SettingRepository;
 use App\Services\Clickhouse\ClickhouseQueryException;
+use App\Modules\Common\Infrastructure\Exceptions\ReportableException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Testing\TestResponse;
@@ -47,23 +48,28 @@ class McpEndpointHttpTest extends TestCase
 
         config()->set('mcp.server_name', 'stand');
 
-        config()->set('app.url', 'https://slogger.stand.example.com');
+        config()->set(
+            'app.url',
+            'https://slogger.stand.example.com'
+        );
 
         $this->repository = $this->createMock(McpRepository::class);
 
         $this->repository
             ->method('findOneByToken')
-            ->willReturnCallback(fn(string $token) => match ($token) {
-                self::TOKEN => $this->mcpObject(
-                    id: 5,
-                    token: self::TOKEN,
-                ),
-                'disabled' => $this->mcpObject(
-                    enabled: false,
-                    token: 'disabled',
-                ),
-                default => null,
-            });
+            ->willReturnCallback(
+                fn(string $token) => match ($token) {
+                    self::TOKEN => $this->mcpObject(
+                        id: 5,
+                        token: self::TOKEN,
+                    ),
+                    'disabled' => $this->mcpObject(
+                        enabled: false,
+                        token: 'disabled',
+                    ),
+                    default => null,
+                }
+            );
 
         $this->app->instance(McpRepository::class, $this->repository);
 
@@ -72,10 +78,13 @@ class McpEndpointHttpTest extends TestCase
             $this->createMock(SettingRepository::class)
         );
 
-        $this->app->instance(McpToolRegistry::class, new McpToolRegistry([
-            new FakeMcpTool('get_thing'),
-            new FakeMcpTool('get_other'),
-        ]));
+        $this->app->instance(
+            McpToolRegistry::class,
+            new McpToolRegistry([
+                new FakeMcpTool('get_thing'),
+                new FakeMcpTool('get_other'),
+            ])
+        );
     }
 
     protected function tearDown(): void
@@ -92,36 +101,58 @@ class McpEndpointHttpTest extends TestCase
                 method: 'server/discover',
             )
             ->assertOk()
-            ->assertHeader('Content-Type', 'application/json')
-            ->assertJsonPath('jsonrpc', '2.0')
-            ->assertJsonPath('id', 1)
-            ->assertJsonPath('result.resultType', 'complete')
-            ->assertJsonPath('result.supportedVersions', [
-                '2026-07-28',
-            ])
-            ->assertJsonPath('result.cacheScope', 'private')
-            ->assertJsonPath('result.ttlMs', 3600000);
+            ->assertHeader(
+                'Content-Type',
+                'application/json'
+            )
+            ->assertJsonPath(
+                'jsonrpc',
+                '2.0'
+            )
+            ->assertJsonPath(
+                'id',
+                1
+            )
+            ->assertJsonPath(
+                'result.resultType',
+                'complete'
+            )
+            ->assertJsonPath(
+                'result.supportedVersions',
+                ['2026-07-28']
+            )
+            ->assertJsonPath(
+                'result.cacheScope',
+                'private'
+            )
+            ->assertJsonPath(
+                'result.ttlMs',
+                3600000
+            );
 
         $body = (string) $this
             ->rpc(
                 method: 'server/discover',
             )
             ->getContent();
-        $serverInfo = json_decode(
-            $body,
-            true,
-        )['result']['_meta']['io.modelcontextprotocol/serverInfo'];
+        $serverInfo = json_decode($body, true)['result']['_meta']['io.modelcontextprotocol/serverInfo'];
 
-        $this->assertSame('slogger-stand', $serverInfo['name']);
+        $this->assertSame(
+            'slogger-stand',
+            $serverInfo['name']
+        );
 
-        $this->assertSame('SLogger (stand)', $serverInfo['title']);
+        $this->assertSame(
+            'SLogger (stand)',
+            $serverInfo['title']
+        );
 
-        $this->assertStringContainsString('"capabilities":{"tools":{},"prompts":{}}', $body);
+        $this->assertStringContainsString(
+            '"capabilities":{"tools":{},"prompts":{}}',
+            $body
+        );
 
-        $instructions = (string) json_decode(
-            $body,
-            true,
-        )['result']['instructions'];
+        $instructions = (string) json_decode($body, true)['result']['instructions'];
 
         $this->assertStringStartsWith(
             'This is the SLogger installation "stand" at https://slogger.stand.example.com.',
@@ -143,13 +174,26 @@ class McpEndpointHttpTest extends TestCase
             ->assertOk();
 
         $first
-            ->assertJsonPath('result.tools.0.name', 'get_thing')
-            ->assertJsonPath('result.tools.1.name', 'get_other')
-            ->assertJsonPath('result.tools.0.annotations.readOnlyHint', true)
-            ->assertJsonPath('result.tools.0.inputSchema.required', [
-                'thing_id',
-            ])
-            ->assertJsonPath('result.cacheScope', 'private');
+            ->assertJsonPath(
+                'result.tools.0.name',
+                'get_thing'
+            )
+            ->assertJsonPath(
+                'result.tools.1.name',
+                'get_other'
+            )
+            ->assertJsonPath(
+                'result.tools.0.annotations.readOnlyHint',
+                true
+            )
+            ->assertJsonPath(
+                'result.tools.0.inputSchema.required',
+                ['thing_id']
+            )
+            ->assertJsonPath(
+                'result.cacheScope',
+                'private'
+            );
 
         $this->assertSame(
             $first->json('result.tools'),
@@ -170,17 +214,26 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('result.isError', false)
-            ->assertJsonPath('result.content.0.type', 'text')
-            ->assertJsonPath('result.structuredContent.installation', 'stand')
-            ->assertJsonPath('result.structuredContent.thing_id', 'a1');
+            ->assertJsonPath(
+                'result.isError',
+                false
+            )
+            ->assertJsonPath(
+                'result.content.0.type',
+                'text'
+            )
+            ->assertJsonPath(
+                'result.structuredContent.installation',
+                'stand'
+            )
+            ->assertJsonPath(
+                'result.structuredContent.thing_id',
+                'a1'
+            );
 
         $this->assertSame(
             $response->json('result.structuredContent'),
-            json_decode(
-                (string) $response->json('result.content.0.text'),
-                true,
-            )
+            json_decode((string) $response->json('result.content.0.text'), true)
         );
 
         $this->assertStringEndsWith(
@@ -202,9 +255,17 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('result.isError', true)
-            ->assertJsonPath('result.structuredContent.error', 'not_found')
-            ->assertJsonMissingPath('error');
+            ->assertJsonPath(
+                'result.isError',
+                true
+            )
+            ->assertJsonPath(
+                'result.structuredContent.error',
+                'not_found'
+            )
+            ->assertJsonMissingPath(
+                'error'
+            );
     }
 
     public function testFailedQueryIsAToolError(): void
@@ -224,12 +285,27 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('result.isError', true)
-            ->assertJsonPath('result.structuredContent.error', 'query_failed')
-            ->assertJsonPath('result.structuredContent.installation', 'stand')
-            ->assertJsonMissingPath('error');
+            ->assertJsonPath(
+                'result.isError',
+                true
+            )
+            ->assertJsonPath(
+                'result.structuredContent.error',
+                'query_failed'
+            )
+            ->assertJsonPath(
+                'result.structuredContent.installation',
+                'stand'
+            )
+            ->assertJsonMissingPath(
+                'error'
+            );
 
-        Exceptions::assertReported(ClickhouseQueryException::class);
+        Exceptions::assertReported(
+            static fn(
+                ReportableException $exception
+            ): bool => $exception->getException() instanceof ClickhouseQueryException
+        );
     }
 
     public function testUnknownToolIsInvalidParams(): void
@@ -243,7 +319,10 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('error.code', -32602);
+            ->assertJsonPath(
+                'error.code',
+                -32602
+            );
     }
 
     public function testArgumentsAreValidated(): void
@@ -257,7 +336,10 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('error.code', -32602);
+            ->assertJsonPath(
+                'error.code',
+                -32602
+            );
 
         $this->assertStringContainsString(
             'thing_id',
@@ -275,7 +357,10 @@ class McpEndpointHttpTest extends TestCase
                     ],
                 ],
             )
-            ->assertJsonPath('error.code', -32602);
+            ->assertJsonPath(
+                'error.code',
+                -32602
+            );
     }
 
     public function testToolsListOrder(): void
@@ -288,7 +373,9 @@ class McpEndpointHttpTest extends TestCase
 
         $this->app->instance(
             McpToolRegistry::class,
-            new McpToolRegistry(array_map(fn(string $tool) => $this->app->make($tool), $tools))
+            new McpToolRegistry(
+                array_map(fn(string $tool) => $this->app->make($tool), $tools)
+            )
         );
 
         $this->assertSame(
@@ -307,9 +394,10 @@ class McpEndpointHttpTest extends TestCase
 
     public function testTraceQueryArgumentsAreValidated(): void
     {
-        $this->app->instance(McpToolRegistry::class, new McpToolRegistry([
-            $this->app->make(SearchTracesTool::class),
-        ]));
+        $this->app->instance(
+            McpToolRegistry::class,
+            new McpToolRegistry([$this->app->make(SearchTracesTool::class)])
+        );
 
         $response = $this
             ->rpc(
@@ -322,9 +410,15 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('error.code', -32602);
+            ->assertJsonPath(
+                'error.code',
+                -32602
+            );
 
-        $this->assertStringContainsString('from', (string) $response->json('error.message'));
+        $this->assertStringContainsString(
+            'from',
+            (string) $response->json('error.message')
+        );
 
         $response = $this
             ->rpc(
@@ -339,7 +433,10 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('error.code', -32602);
+            ->assertJsonPath(
+                'error.code',
+                -32602
+            );
 
         $this->assertStringContainsString(
             'duration_from',
@@ -351,8 +448,14 @@ class McpEndpointHttpTest extends TestCase
                 method: 'tools/list',
             )
             ->assertOk()
-            ->assertJsonPath('result.tools.0.name', 'search_traces')
-            ->assertJsonPath('result.tools.0.annotations.readOnlyHint', true)
+            ->assertJsonPath(
+                'result.tools.0.name',
+                'search_traces'
+            )
+            ->assertJsonPath(
+                'result.tools.0.annotations.readOnlyHint',
+                true
+            )
             ->assertJsonPath(
                 'result.tools.0.inputSchema.properties.duration_from.type',
                 'number'
@@ -366,32 +469,41 @@ class McpEndpointHttpTest extends TestCase
                 method: 'prompts/list',
             )
             ->assertOk()
-            ->assertJsonPath('result.cacheScope', 'private');
+            ->assertJsonPath(
+                'result.cacheScope',
+                'private'
+            );
 
-        $this->assertSame([
-            'investigate_errors',
-            'investigate_latency',
-            'explain_incident',
-            'explain_trace',
-        ], array_column(
-            (array) $response->json('result.prompts'),
-            'name',
-        ));
-
-        $this->assertSame([
+        $this->assertSame(
             [
-                'type',
-                false,
+                'investigate_errors',
+                'investigate_latency',
+                'explain_incident',
+                'explain_trace',
             ],
-        ], array_map(static fn(array $argument) => [
-            $argument['name'],
-            $argument['required'],
-        ], array_values(
-            array_filter(
-                (array) $response->json('result.prompts.1.arguments'),
-                static fn(array $argument) => $argument['name'] === 'type',
+            array_column((array) $response->json('result.prompts'), 'name')
+        );
+
+        $this->assertSame(
+            [
+                [
+                    'type',
+                    false,
+                ],
+            ],
+            array_map(
+                static fn(array $argument) => [
+                    $argument['name'],
+                    $argument['required'],
+                ],
+                array_values(
+                    array_filter(
+                        (array) $response->json('result.prompts.1.arguments'),
+                        static fn(array $argument) => $argument['name'] === 'type',
+                    )
+                )
             )
-        )));
+        );
 
         $this
             ->rpc(
@@ -400,7 +512,10 @@ class McpEndpointHttpTest extends TestCase
                     'name' => 'drop_everything',
                 ],
             )
-            ->assertJsonPath('error.code', -32602);
+            ->assertJsonPath(
+                'error.code',
+                -32602
+            );
 
         $this
             ->rpc(
@@ -410,7 +525,10 @@ class McpEndpointHttpTest extends TestCase
                     'arguments' => [],
                 ],
             )
-            ->assertJsonPath('error.code', -32602);
+            ->assertJsonPath(
+                'error.code',
+                -32602
+            );
 
         $text = (string) $this
             ->rpc(
@@ -424,12 +542,21 @@ class McpEndpointHttpTest extends TestCase
                 ],
             )
             ->assertOk()
-            ->assertJsonPath('result.messages.0.role', 'user')
+            ->assertJsonPath(
+                'result.messages.0.role',
+                'user'
+            )
             ->json('result.messages.0.content.text');
 
-        $this->assertStringContainsString('"pms"', $text);
+        $this->assertStringContainsString(
+            '"pms"',
+            $text
+        );
 
-        $this->assertStringContainsString('last 3 hours', $text);
+        $this->assertStringContainsString(
+            'last 3 hours',
+            $text
+        );
     }
 
     public function testUnknownMethodIsNotFound(): void
@@ -439,14 +566,20 @@ class McpEndpointHttpTest extends TestCase
                 method: 'resources/list',
             )
             ->assertNotFound()
-            ->assertJsonPath('error.code', -32601);
+            ->assertJsonPath(
+                'error.code',
+                -32601
+            );
 
         $this
             ->rpc(
                 method: 'ping',
             )
             ->assertNotFound()
-            ->assertJsonPath('error.code', -32601);
+            ->assertJsonPath(
+                'error.code',
+                -32601
+            );
     }
 
     public function testLegacyInitializeIsRejectedWithTheSupportedVersion(): void
@@ -460,7 +593,12 @@ class McpEndpointHttpTest extends TestCase
             content: '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25"}}',
         );
 
-        $response->assertBadRequest()->assertJsonPath('error.code', -32020);
+        $response
+            ->assertBadRequest()
+            ->assertJsonPath(
+                'error.code',
+                -32020
+            );
 
         $this->assertStringContainsString(
             '2026-07-28',
@@ -476,11 +614,18 @@ class McpEndpointHttpTest extends TestCase
                 version: '2025-11-25',
             )
             ->assertBadRequest()
-            ->assertJsonPath('error.code', -32022)
-            ->assertJsonPath('error.data.supported', [
-                '2026-07-28',
-            ])
-            ->assertJsonPath('error.data.requested', '2025-11-25');
+            ->assertJsonPath(
+                'error.code',
+                -32022
+            )
+            ->assertJsonPath(
+                'error.data.supported',
+                ['2026-07-28']
+            )
+            ->assertJsonPath(
+                'error.data.requested',
+                '2025-11-25'
+            );
     }
 
     public function testNotificationIsAccepted(): void
@@ -494,9 +639,14 @@ class McpEndpointHttpTest extends TestCase
             content: '{"jsonrpc":"2.0","method":"notifications/initialized"}',
         );
 
-        $response->assertStatus(202);
+        $response->assertStatus(
+            202
+        );
 
-        $this->assertSame('', $response->getContent());
+        $this->assertSame(
+            '',
+            $response->getContent()
+        );
     }
 
     public function testParseErrors(): void
@@ -511,8 +661,14 @@ class McpEndpointHttpTest extends TestCase
                 content: '{',
             )
             ->assertBadRequest()
-            ->assertJsonPath('error.code', -32700)
-            ->assertJsonPath('id', null);
+            ->assertJsonPath(
+                'error.code',
+                -32700
+            )
+            ->assertJsonPath(
+                'id',
+                null
+            );
 
         $this
             ->call(
@@ -524,7 +680,10 @@ class McpEndpointHttpTest extends TestCase
                 content: '[]',
             )
             ->assertBadRequest()
-            ->assertJsonPath('error.code', -32600);
+            ->assertJsonPath(
+                'error.code',
+                -32600
+            );
     }
 
     public function testGetAndDeleteAreNotAllowed(): void
@@ -533,13 +692,17 @@ class McpEndpointHttpTest extends TestCase
             ->get(
                 uri: '/mcp',
             )
-            ->assertStatus(405);
+            ->assertStatus(
+                405
+            );
 
         $this
             ->delete(
                 uri: '/mcp',
             )
-            ->assertStatus(405);
+            ->assertStatus(
+                405
+            );
     }
 
     public function testSessionHeaderIsIgnored(): void
@@ -553,7 +716,9 @@ class McpEndpointHttpTest extends TestCase
             )
             ->assertOk();
 
-        $this->assertFalse($response->headers->has('Mcp-Session-Id'));
+        $this->assertFalse(
+            $response->headers->has('Mcp-Session-Id')
+        );
     }
 
     public function testTokenIsRequired(): void
@@ -608,11 +773,17 @@ class McpEndpointHttpTest extends TestCase
         );
 
         $this->repository
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('incrementRequestsCount')
             ->with(
                 5,
-                $this->callback(static fn(Carbon $at): bool => $at->eq(Carbon::now()))
+                $this->callback(
+                    static fn(Carbon $at): bool => $at->eq(
+                        Carbon::now()
+                    )
+                )
             );
 
         $this
@@ -626,8 +797,13 @@ class McpEndpointHttpTest extends TestCase
      * @param array<string, mixed>  $params
      * @param array<string, string> $headers
      */
-    private function rpc(string $method, array $params = [], string $version = '2026-07-28', ?string $token = self::TOKEN, array $headers = []): TestResponse
-    {
+    private function rpc(
+        string $method,
+        array $params = [],
+        string $version = '2026-07-28',
+        ?string $token = self::TOKEN,
+        array $headers = []
+    ): TestResponse {
         $params['_meta'] = [
             'io.modelcontextprotocol/protocolVersion' => $version,
             'io.modelcontextprotocol/clientInfo'      => [
@@ -677,11 +853,8 @@ class McpEndpointHttpTest extends TestCase
         ];
 
         foreach ($headers as $name => $value) {
-            $server['HTTP_' . strtoupper(str_replace(
-                '-',
-                '_',
-                $name,
-            ))] = $value;
+            $server['HTTP_'
+                . strtoupper(str_replace('-', '_', $name))] = $value;
         }
 
         return $server;

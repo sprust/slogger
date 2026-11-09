@@ -13,8 +13,10 @@ use App\Modules\Service\Parameters\ServiceUpdateParameters;
 
 readonly class UpdateServiceByAdminUseCase
 {
-    public function __construct(private UpdateServiceAction $updateServiceAction, private FindServiceAction $findServiceAction)
-    {
+    public function __construct(
+        private UpdateServiceAction $updateServiceAction,
+        private FindServiceAction $findServiceAction
+    ) {
     }
 
     /**

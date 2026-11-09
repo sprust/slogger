@@ -24,12 +24,20 @@ use Illuminate\Support\Carbon;
  */
 readonly class EnqueueNotificationsAction
 {
-    public function __construct(private FindChannelAction $findChannelAction, private NotificationChannelTypeRegistry $types, private IncidentMessageFactory $messageFactory, private NotificationRepository $notificationRepository, private DispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        private FindChannelAction $findChannelAction,
+        private NotificationChannelTypeRegistry $types,
+        private IncidentMessageFactory $messageFactory,
+        private NotificationRepository $notificationRepository,
+        private DispatcherInterface $dispatcher
+    ) {
     }
 
-    public function handle(IncidentWatcherParameters $watcher, IncidentSnapshotParameters $incident, ?IncidentEventParameters $event): void
-    {
+    public function handle(
+        IncidentWatcherParameters $watcher,
+        IncidentSnapshotParameters $incident,
+        ?IncidentEventParameters $event
+    ): void {
         $channel = $this->channelOf($watcher);
 
         if (is_null($channel)) {
@@ -64,7 +72,9 @@ readonly class EnqueueNotificationsAction
 
         // Written first and queued after: a broker that will not take the job still
         // leaves a row saying the message was meant to go.
-        $this->dispatcher->event(new NotificationEnqueuedEvent($notification->id));
+        $this->dispatcher->event(
+            new NotificationEnqueuedEvent($notification->id)
+        );
     }
 
     /** One that was switched off or removed counts as none: the watcher goes quiet. */
@@ -85,11 +95,15 @@ readonly class EnqueueNotificationsAction
             return NotificationKindEnum::Closed;
         }
 
-        return $incident->eventsCount > 1 ? NotificationKindEnum::Event : NotificationKindEnum::Opened;
+        return $incident->eventsCount > 1
+            ? NotificationKindEnum::Event
+            : NotificationKindEnum::Opened;
     }
 
-    private function speaksAbout(IncidentWatcherParameters $watcher, NotificationKindEnum $kind): bool
-    {
+    private function speaksAbout(
+        IncidentWatcherParameters $watcher,
+        NotificationKindEnum $kind
+    ): bool {
         return match ($kind) {
             NotificationKindEnum::Opened => $watcher->notifyOnOpened,
             NotificationKindEnum::Event  => $watcher->notifyOnEvent,

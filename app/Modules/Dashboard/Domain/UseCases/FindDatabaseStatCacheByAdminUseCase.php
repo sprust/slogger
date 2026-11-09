@@ -10,8 +10,9 @@ use App\Modules\Dashboard\Domain\Actions\FindDatabaseStatCacheAction;
 
 readonly class FindDatabaseStatCacheByAdminUseCase
 {
-    public function __construct(private FindDatabaseStatCacheAction $findDatabaseStatCacheAction)
-    {
+    public function __construct(
+        private FindDatabaseStatCacheAction $findDatabaseStatCacheAction
+    ) {
     }
 
     /**

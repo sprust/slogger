@@ -33,9 +33,7 @@ class TraceTreeStateBroadcast implements ShouldBroadcastNow, ShouldRescue
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('sl-trace-tree.' . $this->state->rootTraceId),
-        ];
+        return [new PrivateChannel('sl-trace-tree.' . $this->state->rootTraceId)];
     }
 
     public function broadcastAs(): string

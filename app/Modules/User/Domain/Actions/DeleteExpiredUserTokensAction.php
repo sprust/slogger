@@ -22,6 +22,8 @@ readonly class DeleteExpiredUserTokensAction
 
     public function handle(): int
     {
-        return $this->userTokenRepository->deleteExpired(Carbon::now());
+        return $this->userTokenRepository->deleteExpired(
+            Carbon::now()
+        );
     }
 }

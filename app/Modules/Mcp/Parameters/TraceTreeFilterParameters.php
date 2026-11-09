@@ -15,7 +15,11 @@ readonly class TraceTreeFilterParameters
      * @param string[] $tags       any one of them is enough
      * @param string[] $statuses
      */
-    public function __construct(public array $serviceIds, public array $types, public array $tags, public array $statuses)
-    {
+    public function __construct(
+        public array $serviceIds,
+        public array $types,
+        public array $tags,
+        public array $statuses
+    ) {
     }
 }

@@ -51,7 +51,9 @@ class CheckWatchersTaskTest extends TestCase
 
         $checkAction = $this->createMock(CheckWatcherAction::class);
 
-        $checkAction->expects($this->once())->method('handle');
+        $checkAction->expects(
+            $this->once()
+        )->method('handle');
 
         $this->assertSame(
             TickResultEnum::Worked,
@@ -78,13 +80,18 @@ class CheckWatchersTaskTest extends TestCase
 
         $checkAction = $this->createMock(CheckWatcherAction::class);
 
-        $checkAction->expects($this->once())->method('handle');
+        $checkAction->expects(
+            $this->once()
+        )->method('handle');
 
         $task = $this->task(
             checkAction: $checkAction,
         );
 
-        $this->assertSame(TickResultEnum::Worked, $task->tick());
+        $this->assertSame(
+            TickResultEnum::Worked,
+            $task->tick()
+        );
 
         Carbon::setTestNow(
             testNow: Carbon::create(
@@ -97,7 +104,10 @@ class CheckWatchersTaskTest extends TestCase
             ),
         );
 
-        $this->assertSame(TickResultEnum::Idle, $task->tick());
+        $this->assertSame(
+            TickResultEnum::Idle,
+            $task->tick()
+        );
     }
 
     public function testTheNextMinuteIsLookedAtAgain(): void
@@ -115,7 +125,9 @@ class CheckWatchersTaskTest extends TestCase
 
         $checkAction = $this->createMock(CheckWatcherAction::class);
 
-        $checkAction->expects($this->exactly(2))->method('handle');
+        $checkAction->expects(
+            $this->exactly(2)
+        )->method('handle');
 
         $task = $this->task(
             checkAction: $checkAction,
@@ -134,7 +146,10 @@ class CheckWatchersTaskTest extends TestCase
             ),
         );
 
-        $this->assertSame(TickResultEnum::Worked, $task->tick());
+        $this->assertSame(
+            TickResultEnum::Worked,
+            $task->tick()
+        );
     }
 
     public function testOnlyTheEnabledWatchersAreEvenAskedFor(): void
@@ -152,11 +167,15 @@ class CheckWatchersTaskTest extends TestCase
 
         $findWatchers = $this->createMock(FindWatchersAction::class);
 
-        $findWatchers->expects($this->once())->method('handle')->with(true)->willReturn([]);
+        $findWatchers->expects(
+            $this->once()
+        )->method('handle')->with(true)->willReturn([]);
 
         $checkAction = $this->createMock(CheckWatcherAction::class);
 
-        $checkAction->expects($this->never())->method('handle');
+        $checkAction->expects(
+            $this->never()
+        )->method('handle');
 
         $bufferAction = $this->createMock(FindTraceBufferCountAction::class);
 
@@ -164,12 +183,17 @@ class CheckWatchersTaskTest extends TestCase
 
         $task = new CheckWatchersTask(
             findWatchersAction: $findWatchers,
-            findWatcherBufferCountAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindWatcherBufferCountAction($bufferAction),
+            findWatcherBufferCountAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindWatcherBufferCountAction(
+                $bufferAction
+            ),
             checkWatcherAction: $checkAction,
             logger: $this->createMock(TaskPoolLogger::class),
         );
 
-        $this->assertSame(TickResultEnum::Idle, $task->tick());
+        $this->assertSame(
+            TickResultEnum::Idle,
+            $task->tick()
+        );
     }
 
     /**
@@ -202,9 +226,17 @@ class CheckWatchersTaskTest extends TestCase
         $checkAction = $this->createMock(CheckWatcherAction::class);
 
         $checkAction
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
-            ->with($this->callback(static fn(\App\Modules\Watcher\Parameters\CheckWatcherParameters $parameters): bool => is_null($parameters->context->bufferCount)));
+            ->with(
+                $this->callback(
+                    static fn(
+                        \App\Modules\Watcher\Parameters\CheckWatcherParameters $parameters
+                    ): bool => is_null($parameters->context->bufferCount)
+                )
+            );
 
         $this->assertSame(
             TickResultEnum::Worked,
@@ -220,8 +252,11 @@ class CheckWatchersTaskTest extends TestCase
     /**
      * @param WatcherObject[]|null $watchers
      */
-    private function task(CheckWatcherAction $checkAction, ?array $watchers = null, ?FindTraceBufferCountAction $bufferAction = null): CheckWatchersTask
-    {
+    private function task(
+        CheckWatcherAction $checkAction,
+        ?array $watchers = null,
+        ?FindTraceBufferCountAction $bufferAction = null
+    ): CheckWatchersTask {
         $watchers ??= [
             $this->enabled(
                 id: 1,
@@ -240,7 +275,9 @@ class CheckWatchersTaskTest extends TestCase
 
         return new CheckWatchersTask(
             findWatchersAction: $findWatchers,
-            findWatcherBufferCountAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindWatcherBufferCountAction($bufferAction),
+            findWatcherBufferCountAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindWatcherBufferCountAction(
+                $bufferAction
+            ),
             checkWatcherAction: $checkAction,
             logger: $this->createMock(TaskPoolLogger::class),
         );

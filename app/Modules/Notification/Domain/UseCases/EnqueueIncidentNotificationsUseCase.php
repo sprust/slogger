@@ -9,8 +9,9 @@ use App\Modules\Notification\Domain\Actions\Mutations\EnqueueIncidentNotificatio
 
 readonly class EnqueueIncidentNotificationsUseCase
 {
-    public function __construct(private EnqueueIncidentNotificationsAction $enqueueIncidentNotificationsAction)
-    {
+    public function __construct(
+        private EnqueueIncidentNotificationsAction $enqueueIncidentNotificationsAction
+    ) {
     }
 
     public function handle(IncidentSnapshotParameters $parameters): void

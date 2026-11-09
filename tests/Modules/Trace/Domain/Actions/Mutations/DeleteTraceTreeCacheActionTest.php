@@ -27,9 +27,17 @@ class DeleteTraceTreeCacheActionTest extends TestCase
         $events = $this->createMock(Dispatcher::class);
 
         $events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with($this->callback(static fn(TraceTreeCacheDeleteRequestedEvent $event): bool => $event->rootTraceId === 'root' && $event->buildVersion === 'v1'));
+            ->with(
+                $this->callback(
+                    static fn(
+                        TraceTreeCacheDeleteRequestedEvent $event
+                    ): bool => $event->rootTraceId === 'root' && $event->buildVersion === 'v1'
+                )
+            );
 
         $this
             ->action(
@@ -47,9 +55,18 @@ class DeleteTraceTreeCacheActionTest extends TestCase
         $events = $this->createMock(Dispatcher::class);
 
         $events
-            ->expects($this->once())
+            ->expects(
+                $this->once()
+            )
             ->method('event')
-            ->with($this->callback(static fn(TraceTreeCacheBuildRequestedEvent $event): bool => $event->rootTraceId === 'root' && $event->version === 'v1' && $event->depth === 0 && $event->afterId === null));
+            ->with(
+                $this->callback(
+                    static fn(
+                        TraceTreeCacheBuildRequestedEvent $event
+                    ): bool => $event->rootTraceId === 'root' && $event->version === 'v1' && $event->depth === 0
+                    && $event->afterId === null
+                )
+            );
 
         $this
             ->action(
@@ -66,7 +83,9 @@ class DeleteTraceTreeCacheActionTest extends TestCase
     {
         $events = $this->createMock(Dispatcher::class);
 
-        $events->expects($this->never())->method('event');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         $this
             ->action(
@@ -86,11 +105,15 @@ class DeleteTraceTreeCacheActionTest extends TestCase
     {
         $events = $this->createMock(Dispatcher::class);
 
-        $events->expects($this->never())->method('event');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         $cache = $this->createMock(TraceTreeCacheRepository::class);
 
-        $cache->expects($this->never())->method('deleteChunk');
+        $cache->expects(
+            $this->never()
+        )->method('deleteChunk');
 
         $shouldContinue = $this->createMock(IsShouldContinueBuildTraceTreeCacheAction::class);
 
