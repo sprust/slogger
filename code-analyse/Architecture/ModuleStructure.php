@@ -35,6 +35,7 @@ class ModuleStructure
                 'Tools',
                 'Prompts',
                 'Exceptions',
+                'Providers',
             ],
             'Repositories' => [
                 'Dto',

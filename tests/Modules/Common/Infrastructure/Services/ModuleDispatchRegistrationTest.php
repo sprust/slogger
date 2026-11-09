@@ -5,6 +5,14 @@ declare (strict_types=1);
 namespace Tests\Modules\Common\Infrastructure\Services;
 
 use App\Console\Kernel;
+use App\Modules\Mcp\Infrastructure\Prompts\Contracts\McpPromptRegistry;
+use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
+use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
+use App\Modules\Logs\Infrastructure\Commands\CleanLogsCommand;
+use App\Modules\Logs\Infrastructure\Commands\IndexLogsCommand;
+use App\Modules\Service\Infrastructure\Commands\CreateServiceCommand;
+use App\Modules\User\Infrastructure\Commands\CreateUserCommand;
+use App\Modules\User\Infrastructure\Commands\DeleteExpiredUserTokensCommand;
 use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
 use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Dashboard\Infrastructure\Jobs\RefreshDatabaseStatCacheJob;
@@ -35,6 +43,14 @@ class ModuleDispatchRegistrationTest extends TestCase
             'listeners',
         ];
 
+        yield 'module commands' => [
+            'commands',
+        ];
+
+        yield 'singleton factories' => [
+            'factories',
+        ];
+
         yield 'scheduled application jobs' => [
             'schedule',
         ];
@@ -54,6 +70,44 @@ class ModuleDispatchRegistrationTest extends TestCase
         Queue::fake();
 
         $dispatcher = $this->app->make(DispatcherInterface::class);
+
+        if ($case === 'commands') {
+            $commands = $this->app->make(Kernel::class)->all();
+
+            foreach (
+                [
+                    'traces-clearing:clear' => ClearTracesCommand::class,
+                    'logs:index'            => IndexLogsCommand::class,
+                    'logs:clean'            => CleanLogsCommand::class,
+                    'service:create'        => CreateServiceCommand::class,
+                    'user:create'           => CreateUserCommand::class,
+                    'user:tokens:clear'     => DeleteExpiredUserTokensCommand::class,
+                ] as $name => $class
+            ) {
+                self::assertInstanceOf(
+                    $class,
+                    $commands[$name]
+                );
+            }
+
+            return;
+        }
+
+        if ($case === 'factories') {
+            foreach (
+                [
+                    McpToolRegistry::class,
+                    McpPromptRegistry::class,
+                ] as $class
+            ) {
+                self::assertSame(
+                    $this->app->make($class),
+                    $this->app->make($class)
+                );
+            }
+
+            return;
+        }
 
         if ($case === 'jobs') {
             $jobs = [
@@ -142,9 +196,47 @@ class ModuleDispatchRegistrationTest extends TestCase
             ClearTracesJob::class              => '0 * * * *',
             RefreshDatabaseStatCacheJob::class => '*/5 * * * *',
         ];
-        $executed = [];
+        $expectedCommands = [
+            'user:tokens:clear' => [
+                '0 0 * * *',
+                false,
+            ],
+            'logs:index' => [
+                '* * * * *',
+                true,
+            ],
+            'logs:clean' => [
+                '0 0 * * *',
+                true,
+            ],
+        ];
+        $executed          = [];
+        $scheduledCommands = [];
+
+        self::assertCount(
+            5,
+            $schedule->events()
+        );
 
         foreach ($schedule->events() as $event) {
+            if (!$event instanceof CallbackEvent) {
+                foreach ($expectedCommands as $name => [$expression, $withoutOverlapping]) {
+                    if (str_contains($event->command, $name)) {
+                        self::assertSame(
+                            $expression,
+                            $event->expression
+                        );
+
+                        self::assertSame(
+                            $withoutOverlapping,
+                            $event->withoutOverlapping
+                        );
+
+                        $scheduledCommands[] = $name;
+                    }
+                }
+            }
+
             if (
                 !$event instanceof CallbackEvent || !array_key_exists(
                     $event->description,
@@ -164,9 +256,14 @@ class ModuleDispatchRegistrationTest extends TestCase
             $executed[] = $event->description;
         }
 
-        self::assertSame(
+        self::assertEqualsCanonicalizing(
             array_keys($expectedSchedules),
             $executed
+        );
+
+        self::assertEqualsCanonicalizing(
+            array_keys($expectedCommands),
+            $scheduledCommands
         );
 
         foreach (

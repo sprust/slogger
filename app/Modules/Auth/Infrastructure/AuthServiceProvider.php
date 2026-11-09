@@ -7,10 +7,15 @@ namespace App\Modules\Auth\Infrastructure;
 use App\Modules\Auth\Infrastructure\Exceptions\AuthExceptionManager;
 use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
 use App\Modules\Auth\Domain\Actions\LoginAction;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
 
 class AuthServiceProvider extends BaseServiceProvider
 {
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
     protected function getContracts(): array
     {
         return [
@@ -19,10 +24,23 @@ class AuthServiceProvider extends BaseServiceProvider
         ];
     }
 
-    protected function getExceptionManagers(): array
+    protected function getExceptionManagerClass(): ?string
     {
-        return [
-            AuthExceptionManager::class,
-        ];
+        return AuthExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
+    }
+
+    protected function getJobs(): array
+    {
+        return [];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
     }
 }

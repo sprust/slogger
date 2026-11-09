@@ -10,7 +10,7 @@ use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
 use App\Modules\Notification\Infrastructure\Listeners\DispatchNotificationListener;
 use App\Modules\Watcher\Domain\Events\WatcherIncidentChangedEvent;
 use App\Modules\Notification\Infrastructure\Listeners\EnqueueNotificationsListener;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Notification\Domain\Actions\Mutations\CreateChannelAction;
 use App\Modules\Notification\Domain\Actions\Mutations\DeleteChannelAction;
 use App\Modules\Notification\Domain\Actions\Mutations\EnqueueNotificationsAction;
@@ -38,10 +38,15 @@ use GuzzleHttp\Psr7\HttpFactory;
 use SConcur\Features\HttpClient\HttpClient;
 use Illuminate\Contracts\Foundation\Application;
 use SConcur\Features\HttpClient\HttpClientOptions;
+use Illuminate\Console\Scheduling\Schedule;
 
 class NotificationServiceProvider extends BaseServiceProvider
 {
-    public function register(): void
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
+    protected function onRegister(): void
     {
         $this->app->singleton(
             abstract: TelegramSender::class,
@@ -78,8 +83,6 @@ class NotificationServiceProvider extends BaseServiceProvider
                 ),
             ),
         );
-
-        parent::register();
     }
 
     protected function getJobs(): array
@@ -126,11 +129,14 @@ class NotificationServiceProvider extends BaseServiceProvider
         ];
     }
 
-    protected function getExceptionManagers(): array
+    protected function getExceptionManagerClass(): ?string
     {
-        return [
-            NotificationExceptionManager::class,
-        ];
+        return NotificationExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
     }
 
     private static function makeHttpClient(): HttpClient

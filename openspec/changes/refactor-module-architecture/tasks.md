@@ -63,17 +63,25 @@
 - [x] 7.3 Выполнить `make oa-generate`, проверить diff схем: изменения внешних полей, required/nullability и статусов не допускаются. При изменении сгенерированного TypeScript или frontend source выполнить `make frontend-npm-build`; иначе зафиксировать отсутствие основания для сборки.
 - [x] 7.4 Выполнить `make check` после завершения изменений и генерации. Зафиксировать успешный результат, проверить `git diff --check`, актуальность `.ai/README.md` и отсутствие изменений схемы БД/Go receiver; остановить сервисы, запущенные только для проверки.
 
+## 8. ModulesConfig и жизненный цикл providers из PMS
+
+- [x] 8.1 Перенести BaseServiceProvider в Infrastructure/Providers, добавить hooks и обязательные модульные регистраторы; сохранить DI lifetime, обновить структуру и Deptrac.
+- [x] 8.2 Перевести providers на hooks, собственные команды/jobs/listeners/exception manager и setSchedule; собирать расписание через ModulesConfig, сохранить параметры всех пяти запусков.
+- [x] 8.3 Проверить lifecycle, команды, расписание, изоляцию регистраций разных контейнеров и архитектурные ограничения; обновить документацию, выполнить make check и ревью, остановить проверочные сервисы.
+
 ## Итоговая проверка
 
-- `make check`: 895 тестов, 3004 assertions; PHPStan, оба Deptrac-конфига,
+- `make check`: 901 тест, 3051 assertions; PHPStan, оба Deptrac-конфига,
   структура модулей и полный единый formatter PMS прошли без ошибок.
 - Все 97 правил CS Fixer совпадают с PMS; адаптированы пути. Повторный dry-run:
-  0 исправлений из 1085 файлов; обёртка diff сохраняет exit code 0/8.
+  0 исправлений из 1087 файлов; обёртка diff сохраняет exit code 0/8.
 - `make oa-generate`: схемы и generated TypeScript совпадают с исходными.
   Frontend source не изменён, оснований для `make frontend-npm-build` нет.
 - Проверены тексты landing и MCP-примеры: описанный внешний контракт сохраняется.
 - `openspec validate refactor-module-architecture --strict` и `git diff --check` пройдены.
 - Ревью `code-reviewer`: PASSED после исправления HTTP-ошибки Logs, защиты
   структуры каталогов, PHPDoc и удаления неиспользуемого преобразования.
-- Схема БД и Go receiver не менялись. Проверочные сервисы будут остановлены
-  после завершающей проверки следующего этапа providers.
+- Финальное ревью providers: PASSED; подтверждены 5 jobs, 6 команд, 5 listeners,
+  все пять расписаний, console-only команды и независимость двух контейнеров.
+- PHP-FPM, MySQL, Redis, RabbitMQ, MongoDB и ClickHouse, запущенные для проверок,
+  остановлены. Схема БД и Go receiver не менялись.

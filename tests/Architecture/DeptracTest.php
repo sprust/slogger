@@ -182,6 +182,20 @@ class DeptracTest extends TestCase
             false,
         ];
 
+        yield 'base provider is collected' => [
+            'layers',
+            'Common/Infrastructure/Providers/BaseServiceProvider',
+            'Common/Domain/Services/DispatcherInterface',
+            true,
+        ];
+
+        yield 'nested provider cannot bind foreign service' => [
+            'modules',
+            'Notification/Infrastructure/Providers/NotificationServiceProvider',
+            'Watcher/Domain/Services/Registry',
+            false,
+        ];
+
         yield 'local dto cannot hold foreign dto' => [
             'modules',
             'Mcp/Entities/ExampleObject',

@@ -13,7 +13,7 @@ use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Infrastructure\Listeners\DispatchTraceTreeCacheDeleteListener;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
 use App\Modules\Trace\Infrastructure\Listeners\BroadcastTraceTreeStateListener;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
@@ -59,14 +59,17 @@ use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use Illuminate\Console\Scheduling\Schedule;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
-    public function register(): void
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
+    protected function onRegister(): void
     {
         $this->app->singleton(TraceFieldTitlesService::class);
-
-        parent::register();
     }
 
     protected function getJobs(): array
@@ -147,10 +150,13 @@ class TraceServiceProvider extends BaseServiceProvider
         ];
     }
 
-    protected function getExceptionManagers(): array
+    protected function getExceptionManagerClass(): ?string
     {
-        return [
-            TraceExceptionManager::class,
-        ];
+        return TraceExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
     }
 }

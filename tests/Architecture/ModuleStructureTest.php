@@ -30,6 +30,7 @@ class ModuleStructureTest extends TestCase
                 $root . '/Minimal/Transports',
                 $root . '/Full/Repositories/Dto',
                 $root . '/Full/Infrastructure/Tasks',
+                $root . '/Full/Infrastructure/Providers',
                 $root . '/Full/Domain/UseCases',
             ],
         );

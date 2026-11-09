@@ -6,7 +6,7 @@ namespace App\Modules\Dashboard\Infrastructure;
 
 use App\Modules\Dashboard\Infrastructure\Exceptions\DashboardExceptionManager;
 use App\Modules\Dashboard\Infrastructure\Jobs\RefreshDatabaseStatCacheJob;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Dashboard\Domain\Actions\FindDatabaseStatCacheAction;
 use App\Modules\Dashboard\Domain\Actions\FindSconcurStatAction;
 use App\Modules\Dashboard\Domain\Actions\FindTraceMetricsAction;
@@ -16,9 +16,23 @@ use App\Modules\Dashboard\Repositories\DatabaseStatCacheRepository;
 use App\Modules\Dashboard\Repositories\DatabaseStatRepository;
 use App\Modules\Dashboard\Repositories\Services\TraceMetricReader;
 use App\Modules\Dashboard\Repositories\TraceMetricRepository;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
+use Illuminate\Console\Scheduling\Schedule;
 
 class DashboardProvider extends BaseServiceProvider
 {
+    public static function setSchedule(Schedule $schedule): void
+    {
+        $schedule
+            ->call(
+                callback: static function (DispatcherInterface $dispatcher): void {
+                    $dispatcher->dispatch(new RefreshDatabaseStatCacheJob());
+                },
+            )
+            ->name(RefreshDatabaseStatCacheJob::class)
+            ->everyFiveMinutes();
+    }
+
     protected function getJobs(): array
     {
         return [
@@ -45,10 +59,18 @@ class DashboardProvider extends BaseServiceProvider
         ];
     }
 
-    protected function getExceptionManagers(): array
+    protected function getExceptionManagerClass(): ?string
     {
-        return [
-            DashboardExceptionManager::class,
-        ];
+        return DashboardExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
     }
 }

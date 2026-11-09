@@ -9,17 +9,29 @@ use App\Modules\Cleaner\Domain\Actions\FindProcessesAction;
 use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
 use App\Modules\Cleaner\Repositories\ProcessRepository;
 use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
+use Illuminate\Console\Scheduling\Schedule;
 
 class CleanerServiceProvider extends BaseServiceProvider
 {
-    public function boot(): void
+    public static function setSchedule(Schedule $schedule): void
     {
-        parent::boot();
+        $schedule
+            ->call(
+                callback: static function (DispatcherInterface $dispatcher): void {
+                    $dispatcher->dispatch(new ClearTracesJob());
+                },
+            )
+            ->name(ClearTracesJob::class)
+            ->hourly();
+    }
 
-        $this->commands([
+    protected function getCommands(): array
+    {
+        return [
             ClearTracesCommand::class,
-        ]);
+        ];
     }
 
     protected function getJobs(): array
@@ -38,5 +50,15 @@ class CleanerServiceProvider extends BaseServiceProvider
             ClearTracesAction::class,
             FindProcessesAction::class,
         ];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
+    }
+
+    protected function getExceptionManagerClass(): ?string
+    {
+        return null;
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Mcp\Infrastructure;
 
 use App\Modules\Mcp\Infrastructure\Exceptions\McpExceptionManager;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpDataRangeAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIncidentEventsAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIncidentsAction;
@@ -56,6 +56,7 @@ use App\Modules\Mcp\Infrastructure\Tools\GetServicesTool;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Mcp\Repositories\McpRepository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Console\Scheduling\Schedule;
 
 class McpServiceProvider extends BaseServiceProvider
 {
@@ -79,7 +80,26 @@ class McpServiceProvider extends BaseServiceProvider
         SearchSloggerLogsTool::class,
     ];
 
-    public function register(): void
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
+    }
+
+    protected function getJobs(): array
+    {
+        return [];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
+    }
+
+    protected function onRegister(): void
     {
         $this->app->singleton(
             abstract: McpToolRegistry::class,
@@ -105,14 +125,10 @@ class McpServiceProvider extends BaseServiceProvider
                 new ExplainTracePrompt(),
             ]),
         );
-
-        parent::register();
     }
 
-    public function boot(): void
+    protected function onBoot(): void
     {
-        parent::boot();
-
         $this->app->make(FindMcpSettingsAction::class)->handle();
     }
 
@@ -158,10 +174,8 @@ class McpServiceProvider extends BaseServiceProvider
         ];
     }
 
-    protected function getExceptionManagers(): array
+    protected function getExceptionManagerClass(): ?string
     {
-        return [
-            McpExceptionManager::class,
-        ];
+        return McpExceptionManager::class;
     }
 }

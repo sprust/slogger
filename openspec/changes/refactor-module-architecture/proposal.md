@@ -11,6 +11,7 @@ SLogger уже разделён на модули, но Deptrac проверяе
 - Устранить зависимости между DTO разных модулей: создавать собственные Entities/Parameters и явные преобразования в `Transports` принимающего модуля, вызываемые из Domain, включая вложенные объекты, коллекции и MCP bridges. Исключений для мостов нет.
 - Устранить обращения к чужим Infrastructure и Repositories, сохранить явно разрешённые направления вызовов между Domain модулей.
 - Перенести `DispatcherInterface` с методами `event`, `dispatch`, `report`, `registerJobs`; адаптировать реализацию к Laravel/SConcur и существующим очередям. Зарегистрировать jobs и listeners в провайдерах модулей.
+- Перенести устройство `ModulesConfig` и BaseServiceProvider из PMS: общий список модулей, `onRegister`/`onBoot`, собственные регистраторы команд/jobs/listeners/exception manager и `setSchedule` каждого модуля.
 - Централизовать отображение доменных исключений в HTTP-ошибки, сохранив отдельную обработку JSON-RPC и ошибок MCP tools.
 - Сохранить примитивы хранения и общий построитель фильтров; разделять чтение и запись только там, где этого требует выделение сценариев. Не переводить ClickHouse и MongoDB на Eloquent-шаблон.
 - Обновить архитектурные инструкции проекта после реализации, включая правила событий, DTO, UseCases и проверки границ.
@@ -34,7 +35,7 @@ ActionResolver, proxy, автоматические retry действий, Hori
 
 - Модули: `Common`, `Auth`, `User`, `Service`, `Setting`, `Cleaner`, `Dashboard`, `Logs`, `Trace`, `Watcher`, `Notification`, `Mcp`, `Tools`. Слои: Domain, Entities, Parameters, Enums, Repositories, Infrastructure; покрытие Models и точек сборки приложения уточняется в Deptrac.
 - Проверки: `code-analyse/deptrac-layers.yaml`, новый межмодульный конфиг, проверка структуры/контрактов, `makefile`, соответствующие тесты архитектуры.
-- Регистрация: `app/Modules/Common/Infrastructure/BaseServiceProvider.php`, модульные провайдеры, `app/Modules/ModulesConfig.php`, `app/Providers/EventServiceProvider.php`, `app/Console/Kernel.php`.
+- Регистрация: `app/Modules/Common/Infrastructure/Providers/BaseServiceProvider.php`, модульные провайдеры, `app/Modules/ModulesConfig.php`, `app/Providers/EventServiceProvider.php`, `app/Console/Kernel.php`.
 - Основные места переноса: `Mcp/Entities/Bridges`, `Mcp/Domain/Actions/Bridges`, `Mcp/Infrastructure/Tools`, `Notification/Infrastructure/Listeners`, `Watcher/Infrastructure/Http/Controllers`, `Watcher/Infrastructure/Tasks`, Actions событий Trace и Watcher.
 - Конфигурация очередей: существующие `config/queue.php`, `config/sconcur.php`, `config/module-trace.php`, `config/cleaner.php`; имена очередей и параметры jobs сохраняются.
 - Тесты: `tests/Modules/**`, архитектурные отрицательные примеры, регрессии HTTP/MCP и очередей. После реализации — `make check` и `make oa-generate`; frontend build только при изменении frontend/generated TypeScript.

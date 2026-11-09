@@ -220,7 +220,8 @@ A module may contain `Domain/{Actions,Services,UseCases,Events,Exceptions}`,
 `Entities`, `Parameters`, `Enums`, `Helpers`, `Transports`, `Repositories/{Dto,Services}` and
 `Infrastructure`. Infrastructure includes HTTP, commands, jobs, listeners, tasks,
 services, broadcasting, protocol, tools, prompts and exception managers. Unused
-folders need not exist. Providers live in the root of Infrastructure and are
+folders need not exist. Module providers live in the root of Infrastructure; their base
+lives in `Common/Infrastructure/Providers`. Both are
 included in analysis, as are Common and enums.
 
 - Actions and Services use their module's repositories and data. Actions expose
@@ -362,7 +363,7 @@ frequencies and the separate scheduled commands/SConcur tasks remain unchanged.
 ## Change Rules
 
 - Treat `code-analyse/deptrac-layers.yaml` as an architectural constraint, not as documentation-only. New code in `app/Modules` must fit the declared layers or the deptrac config must be explicitly updated.
-- Put adapters inside the relevant nested `Infrastructure` directory. Providers in the root of `Infrastructure` have a dedicated composition layer; both forms are checked by Deptrac.
+- Put adapters inside the relevant nested `Infrastructure` directory. Module providers and the base in `Infrastructure/Providers` have a dedicated composition layer; both forms are checked by Deptrac.
 - Changes in backend business logic should usually stay inside the relevant module instead of leaking into controllers or unrelated services.
 - `frontend/src/api-schema` is generated code. Prefer regenerating it instead of editing it manually.
 - Domain events are domain logic. If a flow needs to trigger queues or other framework integrations, emit a domain event first and handle infrastructure side effects in listeners.
@@ -690,7 +691,7 @@ When the spec is ready — output it and ask whether implementation can begin.
 
 ## Module Exception Managers
 
-Each module registers its HTTP exception manager through `getExceptionManagers()`
+Each module registers its HTTP exception manager through `getExceptionManagerClass()`
 on its provider. `Common/Infrastructure/Exceptions/ExceptionManagerRegistry` stores
 one manager per class. The application Handler uses the registry for reporting and
 rendering: mapped business errors are not reported; unknown errors follow Laravel's
@@ -709,3 +710,18 @@ groups, incidents and service summaries. `Mcp/Transports` converts source DTOs a
 query parameters; tools do not use another module's resource or data contract.
 `TraceDataParityTest` checks recursive HTTP/MCP data output, null, empty children,
 scalar types, key order and untruncated long values.
+
+## Module Provider Lifecycle
+
+`ModulesConfig::getProviders()` is the single provider list used by `config/app.php`
+and `Console/Kernel::schedule`; Common goes first. Each module declares `setSchedule`,
+`getCommands`, `getJobs`, `getListeners` and `getExceptionManagerClass`, using empty
+lists or null where appropriate. Module providers use `onRegister` and `onBoot`
+instead of overriding Laravel's lifecycle methods.
+
+`Common/Infrastructure/Providers/BaseServiceProvider` registers the existing SLogger
+`getContracts` singletons before `onRegister` factories. At boot it calls `onBoot`,
+registers listeners, console-only commands, jobs and the exception manager. It does
+not cache the application or dispatcher in static properties. Scheduled callbacks
+in Cleaner and Dashboard use DispatcherInterface; User and Logs own their scheduled
+commands. Frequencies, names and overlap locks are preserved.

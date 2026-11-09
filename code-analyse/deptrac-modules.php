@@ -29,8 +29,8 @@ return static function (DeptracConfig $config): void {
         'Helpers'        => 'Helpers/',
         'Repositories'   => 'Repositories/',
         'Transports'     => 'Transports/',
-        'Providers'      => 'Infrastructure/[^/]*Provider.php$',
-        'Infrastructure' => 'Infrastructure/(?![^/]*Provider.php$)',
+        'Providers'      => 'Infrastructure/(Providers/|[^/]*Provider.php$)',
+        'Infrastructure' => 'Infrastructure/(?!(Providers/|[^/]*Provider.php$))',
     ];
 
     $modules = [];

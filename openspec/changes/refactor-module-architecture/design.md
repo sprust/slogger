@@ -4,7 +4,7 @@
 
 Мотивация и границы изменения — в [proposal.md](proposal.md). Источники для переноса: `zb.pms.back/code-analyse/deptrac/deptrac-modules.php`, `app/Modules/Common/Domain/Services/DispatcherInterface.php`, `Common/Infrastructure/Services/Dispatcher.php`, `Common/Infrastructure/Providers/BaseServiceProvider.php` и пример `ErrorReport/Domain/UseCases/CloseErrorReportByAdminUseCase.php`.
 
-В SLogger общий `code-analyse/deptrac-layers.yaml` не различает модули, не собирает Enums и файлы в корне Infrastructure. Провайдеры используют `Common/Infrastructure/BaseServiceProvider.php`, где все `getContracts()` регистрируются singleton. События Trace и Notification подключаются в `app/Providers/EventServiceProvider.php`; расписание находится в `app/Console/Kernel.php`.
+До начала изменения в SLogger общий `code-analyse/deptrac-layers.yaml` не различал модули, не собирал Enums и файлы в корне Infrastructure. Провайдеры использовали `Common/Infrastructure/BaseServiceProvider.php`, где все `getContracts()` регистрировались singleton. События Trace и Notification подключались в `app/Providers/EventServiceProvider.php`; расписание находилось в `app/Console/Kernel.php`.
 
 Наблюдаемые места рефакторинга:
 
@@ -120,7 +120,7 @@ public function report(Throwable $exception): void;
 public function registerJobs(array $jobClasses): void;
 ```
 
-`Common/Infrastructure/Services/Dispatcher.php` связывается с интерфейсом в `CommonServiceProvider::register`. Реализация использует существующие Laravel event/bus/exception contracts через DI. Отправка выполняется до возврата из метода, не откладывается на деструктор временного объекта. Domain публикует события; создание Infrastructure jobs остаётся в listeners.
+`Common/Infrastructure/Services/Dispatcher.php` связывается с интерфейсом в `CommonServiceProvider`. Реализация использует существующие Laravel event/bus/exception contracts через DI. Отправка выполняется до возврата из метода, не откладывается на деструктор временного объекта. Domain публикует события; создание Infrastructure jobs остаётся в listeners.
 
 Реестр классов наполняется модульными провайдерами при boot и дедуплицируется. Во время запросов/задач реестр не изменяется. Singleton dispatcher не хранит текущие параметры вызова. Не копируем static-кэши dispatcher из PMS BaseServiceProvider.
 
@@ -139,7 +139,7 @@ public function registerJobs(array $jobClasses): void;
 
 `TraceTreeStateBroadcast` отправляется через `event()`, сохраняя ShouldBroadcastNow/ShouldRescue. Это событие, не application job; реестр jobs к нему не применяется.
 
-`Schedule::job` обходит прикладной dispatcher. Поэтому два существующих запуска jobs в `Console/Kernel.php` заменяются плановыми callbacks, вызывающими dispatcher с теми же jobs и периодами; именование/ограничения расписания сохраняются. Команды индексации, очистки логов и удаления токенов остаются командами. `CheckWatchersTask` и `RefreshTraceDataPathTypesTask` остаются в task pool.
+`Schedule::job` обходит прикладной dispatcher. Поэтому два существующих запуска jobs заменяются плановыми callbacks, вызывающими dispatcher с теми же jobs и периодами; именование/ограничения расписания сохраняются. Команды индексации, очистки логов и удаления токенов остаются командами. `CheckWatchersTask` и `RefreshTraceDataPathTypesTask` остаются в task pool.
 
 ### 5. Модульные providers и обработчики ошибок
 
@@ -148,6 +148,15 @@ public function registerJobs(array $jobClasses): void;
 `NotificationServiceProvider` больше не собирает сервис с прямой зависимостью на Watcher registry: эта интеграция принадлежит Domain Notification и внедряется обычным DI. Сборка приложения не становится исключением для произвольных связей бизнес-модулей.
 
 Общие интерфейс/реестр exception managers живут в `Common/Infrastructure/Exceptions`, реализации — в `Infrastructure/Exceptions` модулей. `app/Exceptions/Handler.php` делегирует им обработку. Domain содержит только ошибки и контекст, без HTTP-кодов/response builders. Сохраняем существующие 401/404/409/422/503, тела и сообщения; не копируем из PMS принудительный 400. Учитываем контекст операции там, где один тип ошибки раньше отображался по-разному. MCP protocol/tool errors обрабатываются существующим протокольным механизмом.
+
+Перенос структуры PMS выполняется отдельным завершающим этапом:
+
+- `ModulesConfig::getProviders()` — единственный список модульных providers, Common первый. Его используют `config/app.php` и цикл `Console/Kernel::schedule`.
+- Базовый класс размещается в `Common/Infrastructure/Providers/BaseServiceProvider`. `register` устанавливает существующие singleton-привязки SLogger через `getContracts`, затем вызывает `onRegister` для фабрик. `boot` вызывает `onBoot` и регистрирует listeners, команды (только в console), jobs и один exception manager, как в PMS.
+- Каждый модуль явно объявляет `setSchedule`, `getCommands`, `getJobs`, `getListeners` и `getExceptionManagerClass`; отсутствие регистраций выражается пустым списком либо null. Модульные providers больше не переопределяют Laravel `register`/`boot`.
+- Расписание jobs принадлежит Cleaner и Dashboard, команд — User и Logs. Частота, имена и `withoutOverlapping` сохраняются. Плановые callbacks по-прежнему отправляют jobs через DispatcherInterface.
+- Сохраняется расширение SLogger `getContracts`, чтобы не менять DI lifetime существующих сервисов. Не переносятся AppContext, static-кеши контейнера, ActionResolver/proxy. `final` не добавляется согласно локальным правилам.
+- Deptrac учитывает базовый provider в новом каталоге; перенос не освобождает providers от запрета чужих бизнес-регистраций.
 
 ### 6. Репозитории и хранение
 

@@ -48,7 +48,7 @@ parameters:
     - name: Providers
       collectors:
         - type: directory
-          value: /app/Modules/\w+/Infrastructure/[^/]*Provider.php$
+          value: /app/Modules/\w+/Infrastructure/(Providers/|[^/]*Provider.php$)
     - name: Composition
       collectors:
         - type: directory
@@ -58,7 +58,7 @@ parameters:
     - name: Infrastructure
       collectors:
         - type: directory
-          value: /app/Modules/\w+/Infrastructure/(?![^/]*Provider.php$)
+          value: /app/Modules/\w+/Infrastructure/(?!(Providers/|[^/]*Provider.php$))
     - name: Models
       collectors:
         - type: directory

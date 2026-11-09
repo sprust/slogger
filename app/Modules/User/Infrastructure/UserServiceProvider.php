@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\User\Infrastructure;
 
 use App\Modules\User\Infrastructure\Exceptions\UserExceptionManager;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\User\Domain\Actions\CreateUserAction;
 use App\Modules\User\Domain\Actions\CreateUserTokenAction;
 use App\Modules\User\Domain\Actions\DeleteExpiredUserTokensAction;
@@ -21,17 +21,25 @@ use App\Modules\User\Infrastructure\Commands\CreateUserCommand;
 use App\Modules\User\Infrastructure\Commands\DeleteExpiredUserTokensCommand;
 use App\Modules\User\Repositories\UserRepository;
 use App\Modules\User\Repositories\UserTokenRepository;
+use Illuminate\Console\Scheduling\Schedule;
 
 class UserServiceProvider extends BaseServiceProvider
 {
-    public function boot(): void
+    public static function setSchedule(Schedule $schedule): void
     {
-        parent::boot();
+        $schedule
+            ->command(
+                command: DeleteExpiredUserTokensCommand::class,
+            )
+            ->daily();
+    }
 
-        $this->commands([
+    protected function getCommands(): array
+    {
+        return [
             CreateUserCommand::class,
             DeleteExpiredUserTokensCommand::class,
-        ]);
+        ];
     }
 
     protected function getContracts(): array
@@ -56,10 +64,18 @@ class UserServiceProvider extends BaseServiceProvider
         ];
     }
 
-    protected function getExceptionManagers(): array
+    protected function getExceptionManagerClass(): ?string
     {
-        return [
-            UserExceptionManager::class,
-        ];
+        return UserExceptionManager::class;
+    }
+
+    protected function getJobs(): array
+    {
+        return [];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
     }
 }
