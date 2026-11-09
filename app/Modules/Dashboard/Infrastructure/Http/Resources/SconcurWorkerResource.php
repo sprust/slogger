@@ -15,6 +15,7 @@ class SconcurWorkerResource extends AbstractApiResource
     private float $uptime_seconds;
     private float $cpu_percent;
     private int $memory_rss_bytes;
+    private int $memory_pss_bytes;
     private int $runtime_tasks;
     private ?SconcurWorkResource $work;
 
@@ -28,6 +29,7 @@ class SconcurWorkerResource extends AbstractApiResource
         $this->uptime_seconds   = $worker->uptimeSeconds;
         $this->cpu_percent      = $worker->cpuPercent;
         $this->memory_rss_bytes = $worker->memoryRssBytes;
+        $this->memory_pss_bytes = $worker->memoryPssBytes;
         $this->runtime_tasks    = $worker->runtimeTasks;
         $this->work             = SconcurWorkResource::makeIfNotNull($worker->work);
     }

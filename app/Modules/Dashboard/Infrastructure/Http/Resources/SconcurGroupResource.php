@@ -14,6 +14,7 @@ class SconcurGroupResource extends AbstractApiResource
     private int $workers_hung;
     private float $cpu_percent;
     private int $memory_rss_bytes;
+    private int $memory_pss_bytes;
     private int $runtime_tasks;
     private ?SconcurWorkResource $work;
 
@@ -26,6 +27,7 @@ class SconcurGroupResource extends AbstractApiResource
         $this->workers_hung     = $group->workersHung;
         $this->cpu_percent      = $group->cpuPercent;
         $this->memory_rss_bytes = $group->memoryRssBytes;
+        $this->memory_pss_bytes = $group->memoryPssBytes;
         $this->runtime_tasks    = $group->runtimeTasks;
         $this->work             = SconcurWorkResource::makeIfNotNull($group->work);
     }

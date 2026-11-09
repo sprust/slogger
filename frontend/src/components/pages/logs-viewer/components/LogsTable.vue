@@ -61,8 +61,18 @@
               · {{ field(scope.row, 'status') }} · {{ field(scope.row, 'ip') }} · {{ field(scope.row, 'bytes') ?? 0 }} B
             </el-text>
           </span>
+          <span v-else-if="scope.row.type === 'sconcur_access' && field(scope.row, 'status')" class="logs-table-entry">
+            {{ field(scope.row, 'method') }} {{ field(scope.row, 'path') }}
+            <el-text type="info">
+              · {{ field(scope.row, 'status') }} · {{ field(scope.row, 'duration_ms') }} ms
+              <template v-if="field(scope.row, 'worker')">· {{ field(scope.row, 'worker') }}</template>
+            </el-text>
+          </span>
           <span v-else class="logs-table-entry">
             <el-text v-if="field(scope.row, 'env')" type="info">{{ field(scope.row, 'env') }}</el-text>
+            <el-text v-if="scope.row.type === 'sconcur_journal'" type="info">
+              {{ field(scope.row, 'worker') ?? field(scope.row, 'process') }}
+            </el-text>
             {{ scope.row.message }}
           </span>
         </template>

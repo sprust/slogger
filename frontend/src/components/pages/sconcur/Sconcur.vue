@@ -40,7 +40,9 @@ const TIPS = {
   workers: 'Worker processes the master supervises right now, over every group.',
   hung: 'Alive but silent: the master last heard from them over 15 s ago. It catches a jammed worker runtime, not a slow handler — the sender runs beside PHP rather than inside it. The tasks pool is the exception, reporting from PHP itself.',
   cpu: 'CPU as a percentage of one core, so several busy cores put it over 100. Summed over the worker processes it covers; the master\'s own process is not in it.',
-  rss: 'Resident memory of the worker processes it covers, the PHP side and the extension together.',
+  rss: 'Resident memory of the worker processes it covers, the PHP side and the extension together. Memory that several processes share is counted in full for each of them.',
+  pss: 'The same memory, but a page shared by several processes is split between them. The workers are copies of the master and share much of its memory, which RSS counts again for every worker. Add the master\'s PSS to get what the whole pool takes.',
+  masterPss: 'PSS of the master itself: its share of the memory the workers copied from it. The master is not in the other numbers here.',
   runtimeTasks: 'Live tasks in the extension runtime of the workers. The tasks pool runs no such runtime and reports zero.',
   inProcess: 'Units of work handed to PHP and not finished yet: requests being served, queue deliveries being handled, task ticks running.',
   finished: 'Units of work that ended, however they ended: requests completed plus deliveries acked or refused. A tick that found nothing to do is not one.',
@@ -52,7 +54,7 @@ const TIPS = {
   pid: 'Process id of the worker. A worker the master replaces comes back with a new one.',
   workerGroup: 'The pool this worker belongs to.',
   status: 'ok, or hung when the master last heard from this worker over 15 s ago.',
-  uptime: 'Since this worker started serving, not since the master started — a rolling reload puts it back to zero.',
+  uptime: 'Since this worker started serving, not since the master started. A worker the master replaces starts again from zero.',
 };
 
 interface MetricDef {
@@ -79,6 +81,7 @@ export default defineComponent({
         {key: 'avg_ms', label: 'Avg duration, ms'},
         {key: 'cpu_percent', label: 'CPU, %'},
         {key: 'memory_rss_mb', label: 'Memory RSS, MB'},
+        {key: 'memory_pss_mb', label: 'Memory PSS, MB'},
         {key: 'runtime_tasks', label: 'Ext tasks'},
       ] as MetricDef[],
     }
@@ -248,7 +251,7 @@ export default defineComponent({
       return (last.avg * last.count - first.avg * first.count) / done
     },
 
-    rssMb(bytes: number): number {
+    toMb(bytes: number): number {
       return Math.round(bytes / 1048576)
     },
 
@@ -387,9 +390,23 @@ export default defineComponent({
           </el-statistic>
         </el-col>
         <el-col :span="3">
-          <el-statistic :value="rssMb(store.stat.memory_rss_bytes)">
+          <el-statistic :value="toMb(store.stat.memory_rss_bytes)">
             <template #title>
               <StatTitle label="RSS, MB" :tip="tips.rss"/>
+            </template>
+          </el-statistic>
+        </el-col>
+        <el-col :span="3">
+          <el-statistic :value="toMb(store.stat.memory_pss_bytes)">
+            <template #title>
+              <StatTitle label="PSS, MB" :tip="tips.pss"/>
+            </template>
+          </el-statistic>
+        </el-col>
+        <el-col :span="3">
+          <el-statistic :value="toMb(store.stat.master_memory_pss_bytes)">
+            <template #title>
+              <StatTitle label="Master PSS, MB" :tip="tips.masterPss"/>
             </template>
           </el-statistic>
         </el-col>
@@ -400,40 +417,41 @@ export default defineComponent({
             </template>
           </el-statistic>
         </el-col>
-        <template v-if="store.stat.work">
-          <el-col :span="3">
-            <el-statistic :value="store.stat.work.in_process">
-              <template #title>
-                <StatTitle label="In process" :tip="tips.inProcess"/>
-              </template>
-            </el-statistic>
-          </el-col>
-          <el-col :span="3">
-            <!-- Everything that ended, whatever came of it — the same number the tables
-                 below call Finished and the same one the chart's Finished/sec is a rate
-                 of. Refused sits beside it, so a queue whose jobs all fail is visible
-                 rather than hidden inside a throughput. -->
-            <el-statistic :value="store.stat.work.finished">
-              <template #title>
-                <StatTitle label="Finished" :tip="tips.finished"/>
-              </template>
-            </el-statistic>
-          </el-col>
-          <el-col :span="3">
-            <el-statistic :value="store.stat.work.refused">
-              <template #title>
-                <StatTitle label="Refused" :tip="tips.refused"/>
-              </template>
-            </el-statistic>
-          </el-col>
-          <el-col :span="3">
-            <el-statistic :value="store.stat.work.avg_ms" :precision="2">
-              <template #title>
-                <StatTitle label="Avg, ms" :tip="tips.avgSince"/>
-              </template>
-            </el-statistic>
-          </el-col>
-        </template>
+      </el-row>
+
+      <el-row v-if="store.stat.work" :gutter="12" style="margin-top: 10px">
+        <el-col :span="3">
+          <el-statistic :value="store.stat.work.in_process">
+            <template #title>
+              <StatTitle label="In process" :tip="tips.inProcess"/>
+            </template>
+          </el-statistic>
+        </el-col>
+        <el-col :span="3">
+          <!-- Everything that ended, whatever came of it — the same number the tables
+               below call Finished and the same one the chart's Finished/sec is a rate
+               of. Refused sits beside it, so a queue whose jobs all fail is visible
+               rather than hidden inside a throughput. -->
+          <el-statistic :value="store.stat.work.finished">
+            <template #title>
+              <StatTitle label="Finished" :tip="tips.finished"/>
+            </template>
+          </el-statistic>
+        </el-col>
+        <el-col :span="3">
+          <el-statistic :value="store.stat.work.refused">
+            <template #title>
+              <StatTitle label="Refused" :tip="tips.refused"/>
+            </template>
+          </el-statistic>
+        </el-col>
+        <el-col :span="3">
+          <el-statistic :value="store.stat.work.avg_ms" :precision="2">
+            <template #title>
+              <StatTitle label="Avg, ms" :tip="tips.avgSince"/>
+            </template>
+          </el-statistic>
+        </el-col>
       </el-row>
 
       <el-divider/>
@@ -468,7 +486,13 @@ export default defineComponent({
           <template #header>
             <StatTitle label="RSS, MB" :tip="tips.rss"/>
           </template>
-          <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
+          <template #default="{ row }">{{ toMb(row.memory_rss_bytes) }}</template>
+        </el-table-column>
+        <el-table-column label="PSS, MB" width="100">
+          <template #header>
+            <StatTitle label="PSS, MB" :tip="tips.pss"/>
+          </template>
+          <template #default="{ row }">{{ toMb(row.memory_pss_bytes) }}</template>
         </el-table-column>
         <el-table-column prop="runtime_tasks" label="Ext tasks" width="110">
           <template #header>
@@ -547,7 +571,13 @@ export default defineComponent({
           <template #header>
             <StatTitle label="RSS, MB" :tip="tips.rss"/>
           </template>
-          <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
+          <template #default="{ row }">{{ toMb(row.memory_rss_bytes) }}</template>
+        </el-table-column>
+        <el-table-column label="PSS, MB">
+          <template #header>
+            <StatTitle label="PSS, MB" :tip="tips.pss"/>
+          </template>
+          <template #default="{ row }">{{ toMb(row.memory_pss_bytes) }}</template>
         </el-table-column>
         <el-table-column prop="runtime_tasks" label="Ext tasks">
           <template #header>

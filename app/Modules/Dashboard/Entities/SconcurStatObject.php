@@ -17,10 +17,12 @@ readonly class SconcurStatObject
         public int $workersHung,
         public float $cpuPercent,
         public int $memoryRssBytes,
+        public int $memoryPssBytes,
         public int $runtimeTasks,
         public ?SconcurWorkObject $work,
         public float $masterCpuPercent,
         public int $masterMemoryRssBytes,
+        public int $masterMemoryPssBytes,
         public array $groups,
         public array $workers,
     ) {

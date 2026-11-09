@@ -336,6 +336,10 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
+                                                "memory_pss_bytes": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "runtime_tasks": {
                                                     "type": "integer",
                                                     "nullable": false
@@ -394,6 +398,10 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
+                                                "master_memory_pss_bytes": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "groups": {
                                                     "type": "array",
                                                     "nullable": false,
@@ -416,6 +424,10 @@
                                                                 "nullable": false
                                                             },
                                                             "memory_rss_bytes": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "memory_pss_bytes": {
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
@@ -476,6 +488,7 @@
                                                             "workers_hung",
                                                             "cpu_percent",
                                                             "memory_rss_bytes",
+                                                            "memory_pss_bytes",
                                                             "runtime_tasks"
                                                         ]
                                                     }
@@ -506,6 +519,10 @@
                                                                 "nullable": false
                                                             },
                                                             "memory_rss_bytes": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "memory_pss_bytes": {
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
@@ -567,6 +584,7 @@
                                                             "uptime_seconds",
                                                             "cpu_percent",
                                                             "memory_rss_bytes",
+                                                            "memory_pss_bytes",
                                                             "runtime_tasks"
                                                         ]
                                                     }
@@ -579,9 +597,11 @@
                                                 "workers_hung",
                                                 "cpu_percent",
                                                 "memory_rss_bytes",
+                                                "memory_pss_bytes",
                                                 "runtime_tasks",
                                                 "master_cpu_percent",
                                                 "master_memory_rss_bytes",
+                                                "master_memory_pss_bytes",
                                                 "groups",
                                                 "workers"
                                             ]

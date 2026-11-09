@@ -60,6 +60,7 @@ class SconcurStatClientTest extends TestCase
         $this->assertSame(0, $tasks->workersTotal);
         $this->assertSame(0.0, $tasks->cpuPercent);
         $this->assertSame(0, $tasks->memoryRssBytes);
+        $this->assertSame(0, $tasks->memoryPssBytes);
         $this->assertSame(0, $tasks->runtimeTasks);
 
         // Absent rather than zeroed: the dashboard renders a dash for it, which says
@@ -235,7 +236,7 @@ class SconcurStatClientTest extends TestCase
                 [
                     'pid'      => 4242,
                     'group'    => 'http',
-                    'memory'   => ['rssBytes' => 1048576],
+                    'memory'   => ['rssBytes' => 1048576, 'pssBytes' => 524288],
                     'requests' => ['completed' => 9, 'inFlight' => 1],
                 ],
             ],
@@ -246,9 +247,29 @@ class SconcurStatClientTest extends TestCase
         $this->assertSame(4242, $worker->pid);
         $this->assertSame('http', $worker->group);
         $this->assertSame(1048576, $worker->memoryRssBytes);
+        $this->assertSame(524288, $worker->memoryPssBytes);
         $this->assertNotNull($worker->work);
         $this->assertSame(9, $worker->work->finished);
         $this->assertSame(1, $worker->work->inProcess);
+    }
+
+    /** Workers are forks of the master and share its pages, so their RSS adds up to more than they hold. */
+    public function testPssIsReadBesideRssForTheMasterAndTheGroups(): void
+    {
+        $stat = $this->client([
+            'master' => ['memory' => ['rssBytes' => 600, 'pssBytes' => 200]],
+            'totals' => ['memory' => ['rssBytes' => 3000, 'pssBytes' => 900]],
+            'groups' => [
+                ['name' => 'http', 'totals' => ['memory' => ['rssBytes' => 1200, 'pssBytes' => 400]]],
+            ],
+        ])->find();
+
+        $this->assertSame(3000, $stat->memoryRssBytes);
+        $this->assertSame(900, $stat->memoryPssBytes);
+        $this->assertSame(600, $stat->masterMemoryRssBytes);
+        $this->assertSame(200, $stat->masterMemoryPssBytes);
+        $this->assertSame(1200, $stat->groups[0]->memoryRssBytes);
+        $this->assertSame(400, $stat->groups[0]->memoryPssBytes);
     }
 
     /** The two tables read in the same order, and a worker keeps its row between refreshes. */

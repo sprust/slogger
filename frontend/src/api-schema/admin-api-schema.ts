@@ -371,6 +371,7 @@ export namespace AdminApi {
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
+    memory_pss_bytes: number,
     runtime_tasks: number,
     work?: {
     in_process: number,
@@ -385,12 +386,14 @@ export namespace AdminApi {
 },
     master_cpu_percent: number,
     master_memory_rss_bytes: number,
+    master_memory_pss_bytes: number,
     groups: ({
     name: string,
     workers_total: number,
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
+    memory_pss_bytes: number,
     runtime_tasks: number,
     work?: {
     in_process: number,
@@ -412,6 +415,7 @@ export namespace AdminApi {
     uptime_seconds: number,
     cpu_percent: number,
     memory_rss_bytes: number,
+    memory_pss_bytes: number,
     runtime_tasks: number,
     work?: {
     in_process: number,
@@ -444,6 +448,7 @@ export namespace AdminApi {
         workers_hung: number;
         cpu_percent: number;
         memory_rss_bytes: number;
+        memory_pss_bytes: number;
         runtime_tasks: number;
         work?: {
           in_process: number;
@@ -457,12 +462,14 @@ export namespace AdminApi {
         };
         master_cpu_percent: number;
         master_memory_rss_bytes: number;
+        master_memory_pss_bytes: number;
         groups: {
           name: string;
           workers_total: number;
           workers_hung: number;
           cpu_percent: number;
           memory_rss_bytes: number;
+          memory_pss_bytes: number;
           runtime_tasks: number;
           work?: {
             in_process: number;
@@ -482,6 +489,7 @@ export namespace AdminApi {
           uptime_seconds: number;
           cpu_percent: number;
           memory_rss_bytes: number;
+          memory_pss_bytes: number;
           runtime_tasks: number;
           work?: {
             in_process: number;
@@ -5421,6 +5429,7 @@ export class Api<
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
+    memory_pss_bytes: number,
     runtime_tasks: number,
     work?: {
     in_process: number,
@@ -5435,12 +5444,14 @@ export class Api<
 },
     master_cpu_percent: number,
     master_memory_rss_bytes: number,
+    master_memory_pss_bytes: number,
     groups: ({
     name: string,
     workers_total: number,
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
+    memory_pss_bytes: number,
     runtime_tasks: number,
     work?: {
     in_process: number,
@@ -5462,6 +5473,7 @@ export class Api<
     uptime_seconds: number,
     cpu_percent: number,
     memory_rss_bytes: number,
+    memory_pss_bytes: number,
     runtime_tasks: number,
     work?: {
     in_process: number,
@@ -5491,6 +5503,7 @@ export class Api<
             workers_hung: number;
             cpu_percent: number;
             memory_rss_bytes: number;
+            memory_pss_bytes: number;
             runtime_tasks: number;
             work?: {
               in_process: number;
@@ -5504,12 +5517,14 @@ export class Api<
             };
             master_cpu_percent: number;
             master_memory_rss_bytes: number;
+            master_memory_pss_bytes: number;
             groups: {
               name: string;
               workers_total: number;
               workers_hung: number;
               cpu_percent: number;
               memory_rss_bytes: number;
+              memory_pss_bytes: number;
               runtime_tasks: number;
               work?: {
                 in_process: number;
@@ -5529,6 +5544,7 @@ export class Api<
               uptime_seconds: number;
               cpu_percent: number;
               memory_rss_bytes: number;
+              memory_pss_bytes: number;
               runtime_tasks: number;
               work?: {
                 in_process: number;

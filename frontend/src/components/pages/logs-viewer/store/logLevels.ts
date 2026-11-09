@@ -1,5 +1,5 @@
 // Level keys come from the backend as `<type>.<level>`: laravel.ERROR, nginx_error.crit,
-// nginx_access.5xx, receiver.WARN, and `<type>.none` for an entry without a level.
+// nginx_access.5xx, receiver.WARN, sconcur_access.5xx, sconcur_journal.ERROR, and `<type>.none` for an entry without a level.
 
 export type LogTagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
 
@@ -8,6 +8,8 @@ const TYPE_TITLES: Record<string, string> = {
     nginx_access: 'Nginx access',
     nginx_error: 'Nginx errors',
     receiver: 'Receiver',
+    sconcur_access: 'Sconcur access',
+    sconcur_journal: 'Sconcur journal',
 }
 
 const LEVEL_ORDER: Record<string, Array<string>> = {
@@ -15,6 +17,8 @@ const LEVEL_ORDER: Record<string, Array<string>> = {
     nginx_access: ['1xx', '2xx', '3xx', '4xx', '5xx'],
     nginx_error: ['debug', 'info', 'notice', 'warn', 'error', 'crit', 'alert', 'emerg'],
     receiver: ['DEBUG', 'INFO', 'WARN', 'ERROR'],
+    sconcur_access: ['1xx', '2xx', '3xx', '4xx', '5xx'],
+    sconcur_journal: ['INFO', 'WARN', 'ERROR'],
 }
 
 const DANGER_LEVELS = new Set([
