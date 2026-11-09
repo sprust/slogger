@@ -21,8 +21,8 @@ This command does not restate the project rules. They live in `.ai/README.md` (i
    - `git merge-base HEAD <base>` → `git diff <merge-base>...HEAD --stat` and the full diff;
    - `git log --oneline <merge-base>..HEAD` — the commit messages are under review too;
    - uncommitted work: `git status`, `git diff`, `git diff --cached`, untracked files — review them as well and mark them separately.
-3. For the touched paths, read in full:
-   - `app/Modules/**`, `app/Models/**`, `routes/**` — the `.ai/README.md` sections "Module Layering Rules" (with "Cross-Module Dependencies"), "Placement Rules", "Change Rules", "PHP Coding Conventions"; `code-analyse/deptrac-layers.yaml`;
+3. Read `.ai/rules.md` and the relevant guides in `.ai/skills/` in full. For the touched paths, read in full:
+   - `app/Modules/**`, `app/Models/**`, `routes/**` — the `.ai/README.md` sections "Module Layering Rules" (with "Cross-Module Dependencies"), "Placement Rules", "Change Rules", "PHP Coding Conventions"; `code-analyse/deptrac-layers.yaml` and `code-analyse/deptrac-modules.php`;
    - `app/Modules/Mcp/**` — the "MCP Server" section and the `openspec/specs/mcp-*` specs;
    - `app/Modules/Trace/**`, `app/Services/Clickhouse/**` — the `openspec/specs/trace-storage` spec and the README sections "Traces table (ClickHouse)", "Flexible filtering by trace data";
    - `database/migrations/**` — the "Migrations" section;

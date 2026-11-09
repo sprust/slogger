@@ -6,6 +6,18 @@ Centralized source of instructions for AI assistants (Claude Code and others) wo
 
 ---
 
+## Required Rules And Guides
+
+Read [rules.md](rules.md) before editing code. It contains the coding rules
+transferred from PMS, including vertical arrays and named arguments. Read relevant
+[tests](skills/tests.md), [repositories](skills/repositories.md),
+[admin](skills/admin.md) and
+[documentation](skills/documentation.md) guides before work in those areas.
+[PMS import](pms-import.md) records the selected reusable rules and SLogger adaptations.
+Existing authorization in the conversation applies to the ongoing task.
+
+---
+
 ## Approval Policy
 
 - Before making any changes (even trivial ones), show the user a plan describing what files and lines will be modified.
@@ -74,7 +86,7 @@ make stop
 - Main orchestration is done through the root `makefile` and Docker Compose.
 - Domain code is organized mostly in `app/Modules`, while Eloquent models remain in `app/Models`.
 
-HTTP request path: **Route → Controller → Domain Action/Service → Repository → Model**
+HTTP request path: **Route → Controller → module UseCase → Actions/Services → Repository → Model**
 
 Domain events are emitted for flows that trigger queues or framework side effects; listeners in `Infrastructure/Listeners/` handle the infrastructure side.
 
@@ -173,7 +185,7 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 
 ## Typical Request Flow
 
-- Route → HTTP controller → module `Domain` action/service → repository → model/storage.
+- Route → HTTP controller → module `Domain/UseCases` → Actions/Services → repository → model/storage.
 - Request validation and API resources usually live in module `Infrastructure/Http`.
 - Framework-specific adapters should stay in `Infrastructure`; business logic should stay in `Domain`.
 - UI-driven changes are usually traced through `frontend/src/components/pages` → `frontend/src/api-schema` → backend route/controller → module domain code.
@@ -197,143 +209,102 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 
 ## Module Layering Rules
 
-Source of truth: `code-analyse/deptrac-layers.yaml`.
+Architecture is checked in two dimensions by `code-analyse/deptrac-layers.yaml`
+(layers) and `code-analyse/deptrac-modules.php` (module ownership). Both run through
+`make code-analise-deptrac`. `make code-analise-modules-structure` checks directory
+placement; custom rules in `code-analyse/PHPStan` run through `make code-analise-stan`.
+All checks are part of `make check`; do not add a baseline to hide violations.
+Regression fixtures live in `tests/Architecture`.
 
-### Typical Module Tree
+A module may contain `Domain/{Actions,Services,UseCases,Events,Exceptions}`,
+`Entities`, `Parameters`, `Enums`, `Helpers`, `Transports`, `Repositories/{Dto,Services}` and
+`Infrastructure`. Infrastructure includes HTTP, commands, jobs, listeners, tasks,
+services, broadcasting, protocol, tools, prompts and exception managers. Unused
+folders need not exist. Providers live in the root of Infrastructure and are
+included in analysis, as are Common and enums.
 
-Typical module root: `app/Modules/<ModuleName>`.
+- Actions and Services use their module's repositories and data. Actions expose
+  one public business method, `handle`. Use ordinary constructor DI.
+- UseCases orchestrate Actions and Services, expose `handle`, and do not call
+  repositories or other UseCases. Business HTTP endpoints call one local UseCase;
+  protocol parsing/routing remains in Infrastructure.
+- Entities and Parameters hold local or common data types, including nested
+  fields, collections and enums. Foreign DTOs must be converted to local types by module `Transports/*Transport`,
+  called from Domain. Do not bypass this rule with inheritance, aliases, `mixed` or untyped arrays.
+- Actions/UseCases accept local Parameters. Domain may construct foreign Parameters
+  immediately before an allowed foreign Action call. PHPStan checks input types,
+  including aliases, unions, generics, inherited and nested DTOs.
+- Transports convert typed Entities/Parameters/Enums along the declared module graph;
+  they may use their own repositories but never foreign Domain, Repositories or
+  Infrastructure. Domain/UseCases/Repositories use local Transports; Entities,
+  Parameters, Enums and Infrastructure do not. Source Object inputs are allowed
+  only in Transports, not public Domain business methods.
+- Repositories perform persistence primitives and mapping, use their owned Models,
+  and do not call another repository. Repository mapping services/DTOs remain allowed.
+  Public results are data objects or primitives, never Model/Builder instances.
+  Physical deletion remains supported.
+- Infrastructure calls its own Domain, uses its own data and Common infrastructure.
+  Foreign Events/Exceptions are integration contracts, not access to foreign business
+  Actions. Providers bind their own layers and Common contracts; global Laravel
+  providers and ModulesConfig are composition points.
+- Enums do not access repositories/adapters. Common has no reverse dependencies on
+  business modules. Domain does not construct HTTP responses.
 
-```text
-app/Modules/<ModuleName>/
-├── Domain/
-│   ├── Actions/
-│   ├── Services/
-│   └── Exceptions/
-├── Entities/
-├── Parameters/
-├── Repositories/
-│   ├── Dto/
-│   └── Services/
-├── Infrastructure/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   ├── Requests/
-│   │   ├── Resources/
-│   │   └── Services/
-│   └── Commands/
-└── Enums/
-```
+Only Domain Actions/Services may use foreign Domain/data, along these directions:
 
-Notes:
-- Not every module contains every directory. Minimal modules may have only part of this tree.
-- Shared/support modules may also include directories such as `Helpers`.
-- HTTP entrypoints for a module are usually placed in `Infrastructure/Http`.
-- Console or framework-facing adapters should go into `Infrastructure/...`, not into `Domain`.
-- Keep business use cases in `Domain/Actions`, domain services in `Domain/Services`, and transport/input objects in `Parameters`.
-- Repositories are part of the declared deptrac layer and may contain DTOs or helper services related to persistence/mapping.
+| Source | Foreign modules |
+| --- | --- |
+| Auth | User |
+| Cleaner | Trace, Setting |
+| Logs | Setting |
+| Trace | Service |
+| Watcher | Trace, Logs, Auth |
+| Notification | Watcher |
+| Mcp | Service, Watcher, Trace, Logs, Setting |
 
-### Declared Layers
+Other modules have no foreign business dependencies by default. New modules are
+collected automatically and require an explicit edge. Providers, Infrastructure
+and UseCases may use the Events/Exceptions of their declared integrations, but
+not foreign Entities, Parameters or services. There are no MCP bridge exceptions.
 
-- `Domain` — `app/Modules/<Module>/Domain`
-- `Entities` — `app/Modules/<Module>/Entities`
-- `Parameters` — `app/Modules/<Module>/Parameters`
-- `Repositories` — `app/Modules/<Module>/Repositories`
-- `Infrastructure` — only nested directories inside `app/Modules/<Module>/Infrastructure/<Subdir>`
-- `Models` — `app/Models`
+Model ownership is explicit in the module config. In particular,
+`Models/Traces/TraceMetric` belongs to Dashboard and
+`Models/Traces/TraceClearingProcess` belongs to Cleaner. Shared abstract Models
+belong to Common. Models do not depend on module enums; repositories map storage
+values to domain types.
 
-### Cross-Module Dependencies
+---
 
-Deptrac compares layers, not modules, so `Watcher\Domain` reaching into `Trace\Domain`
-passes the tool. Nothing but this list stands between that and a graph nobody can follow,
-so a new cross-module edge is added here or is not added.
+## Application Dispatcher
 
-`Notification` → `Watcher`. One way only: `Watcher` knows nothing about channels.
+`Common/Domain/Services/DispatcherInterface` is the application boundary for
+`event(object)`, `dispatch(ShouldQueue)`, `report(Throwable)` and
+`registerJobs(array<class-string<ShouldQueue>>)`. Its singleton implementation
+forwards calls immediately through Laravel event/bus/exception contracts. It
+keeps only the boot-time set of job classes, never request payload or routing state.
 
-- `Domain\Actions\Mutations\EnqueueNotificationsAction` → `Watcher\Entities`,
-  `Watcher\Enums` — the incident, its event and its status are what a message is made of.
-- `Domain\Services\IncidentMessageFactory` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
-  `Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface`, `Watcher\Entities`
-  — to read a watcher type's title, to render an event's numbers under the names they are
-  stored by, and the same three objects.
-- `Infrastructure\Listeners\EnqueueNotificationsListener` → `Watcher\Domain\Events`,
-  `Watcher\Domain\Actions\Queries` — it listens for `WatcherIncidentChangedEvent` and
-  reads the watcher and the latest event behind it.
-- `Infrastructure\NotificationServiceProvider` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
-  to build the message factory above.
+Module providers bind services in `register()` with their existing lifetimes.
+During `boot()`, `getJobs()` registers application jobs idempotently and
+`getListeners()` attaches local listeners. The five jobs are Trace build/delete
+cache, Notification send, Cleaner clear traces and Dashboard refresh statistics.
+Global EventServiceProvider does not duplicate these mappings. Package jobs are
+not intercepted. Commands remain registered by their owner module.
 
-`Cleaner` → `Trace`. One way only: `Trace` knows nothing about the cleaner.
+A job's connection overrides `queue.default`; its queue overrides the chosen
+connection's configured queue, with `default` as fallback. A sync driver is
+allowed without RabbitMQ topology. Async routing requires the configured
+`sconcur.queue.rabbitmq.connection`, driver `sconcur_rabbitmq`, and membership in
+`sconcur.queue.rabbitmq.queues`. Worker groups and running consumer counts are not
+an allow-list. Unknown jobs/routes are skipped and logged directly with the class
+and route, without payload or recursive report. Transport exceptions propagate;
+the dispatcher does not retry. The same job object reaches Laravel, preserving
+delay, after-commit, retries and backoff. No PendingDispatch destructor is involved.
 
-- `Domain\Actions\ClearTracesAction` → `Trace\Domain\Actions\Mutations\DeletePartitionsAction`,
-  `Trace\Entities` — to drop the hours past the retention.
-
-`Watcher` → `Trace`.
-
-- `Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to count what
-  the receiver could not act on.
-- `Infrastructure\Tasks\CheckWatchersTask` → `Trace\Domain`, to read the buffer size
-  once for a whole pass rather than once per watcher.
-
-`Watcher` → `Logs`.
-
-- `Domain\Services\Checkers\LogErrorsChecker` → `Logs\Domain\Actions\FindLogErrorStatAction`,
-  `Logs\Entities` — to count the errors written to the application log and read the
-  latest of them.
-- `Domain\Services\Checkers\ReceiverErrorsChecker` → `Logs\Domain\Actions\FindReceiverErrorStatAction`,
-  `Logs\Entities` — the same for the receiver log.
-
-`Watcher` → `Auth`.
-
-- `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,
-  to record who closed an incident. The only place outside `Auth` that reaches into it.
-
-`Mcp` → `Service`, `Watcher`, `Trace`, `Logs`. One way only: none of them knows about MCP. Tools
-never call another module; only the bridge actions in `Mcp\Domain\Actions\Bridges` do,
-and they hand the other module's entities back as they are.
-
-- `Domain\Actions\Bridges\FindMcpServicesAction` → `Service\Domain\Actions\FindServicesAction`,
-  `Service\Entities`.
-- `Domain\Actions\Bridges\FindMcpDataRangeAction` → `Trace\Domain\Actions\Queries\FindTraceDataRangeAction`,
-  `Trace\Entities`.
-- `Domain\Actions\Bridges\FindMcpIncidentsAction` → `Watcher\Domain\Actions\Queries\FindIncidentsAction`,
-  `FindWatcherAction`, `Watcher\Parameters\FindIncidentsParameters`, `Watcher\Entities`.
-- `Domain\Actions\Bridges\FindMcpIncidentEventsAction` → `Watcher\Domain\Actions\Queries\FindIncidentAction`,
-  `FindWatcherAction`, `FindIncidentEventsAction`, `Watcher\Domain\Services\Types\WatcherTypeRegistry`
-  (to render an event's numbers under the names they are stored by), `Watcher\Entities`.
-- `Domain\Actions\Bridges\FindMcpTraceAction` → `Trace\Domain\Actions\Queries\FindTraceDetailAction`.
-- `Domain\Actions\Bridges\FindMcpTraceTreeAction` → `Trace\Domain\Actions\Queries\FindTraceTreeStateAction`,
-  `FindTraceTreeAction` (only to start the first build, as the UI does), `FindTraceTreeChildrenAction`.
-- `Domain\Actions\Bridges\FindMcpTraceTreeFilteredAction` → `FindTraceTreeStateAction`,
-  `FindTraceTreeFilteredAction`, `Trace\Parameters\TraceTreeFilterParameters`.
-- `Domain\Actions\Bridges\FindMcpTraceFacetsAction` → `Trace\Domain\Actions\Queries\FindTypesAction`,
-  `FindStatusesAction`, `FindTagsAction` and their `Trace\Parameters\TraceFind*Parameters`.
-- `Domain\Actions\Bridges\FindMcpTracesAction` → `Trace\Domain\Actions\Queries\FindTracesAction`,
-  `Trace\Parameters\TraceFindParameters`, `Trace\Parameters\Data\TraceDataFilterParameters`.
-- `Domain\Actions\Bridges\FindMcpTraceDataFieldsAction` → `FindTracesAction`, `FindTraceDetailAction`.
-- `Domain\Actions\Bridges\FindMcpTraceGroupsAction` → `Trace\Domain\Actions\Queries\FindTraceGroupsAction`,
-  `CompareMcpTraceGroupsAction` → `CompareTraceGroupsAction`, with `Trace\Parameters\TraceFindGroupsParameters`,
-  `TraceCompareGroupsParameters`, `Trace\Parameters\Data\TraceDataFilterParameters` (the `data_filter` of
-  `aggregate_traces`), `Trace\Enums\TraceGroupFieldEnum`, `TraceCompareByEnum`.
-- `Domain\Services\McpTraceDataFilterParser` → `Trace\Parameters\Data`, `Trace\Enums\TraceDataFilterComp*Enum`;
-  `Domain\Services\McpTracePeriodMapper` → `Trace\Parameters\PeriodParameters`.
-- `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,
-  to put service names on tree nodes.
-- `Domain\Actions\Bridges\FindMcpLogEntriesAction` → `Logs\Domain\Actions\FindLogFilesAction`,
-  `FindLogEntriesAction`, `Logs\Domain\Services\Formats\LogFormatRegistry` (the level names of a
-  source's format), `Logs\Parameters\FindLogEntriesParameters`, `Logs\Entities`, `Logs\Enums`.
-- `Infrastructure\Tools\GetTraceDataTool` → `Trace\Infrastructure\Http\Resources\Data\TraceDataResource`,
-  so that the model gets a trace's data exactly as the UI does. The only edge between two
-  modules' `Infrastructure`.
-- `Parameters`, `Domain\Exceptions`, `Entities\Bridges`, `Infrastructure\Tools` → `Watcher\Enums`,
-  `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums`, `Logs\Entities` — the
-  objects the bridges return.
-
-### Allowed Dependencies
-
-- `Domain` may depend only on `Entities`, `Parameters`, `Repositories`.
-- `Parameters` may depend only on `Entities`.
-- `Repositories` may depend only on `Entities`, `Parameters`, `Models`.
-- `Infrastructure` may depend only on `Domain`, `Parameters`, `Entities`.
-- `Models` must not depend on other declared layers.
+`report` passes the original exception to the existing Handler, including its
+expected-error filters. No PMS reporter wrapper or Horizon dependency is added.
+Immediate trace broadcasts stay immediate and retain their existing rescue policy.
+The two scheduled application jobs use named callbacks through the dispatcher;
+frequencies and the separate scheduled commands/SConcur tasks remain unchanged.
 
 ---
 
@@ -391,11 +362,11 @@ and they hand the other module's entities back as they are.
 ## Change Rules
 
 - Treat `code-analyse/deptrac-layers.yaml` as an architectural constraint, not as documentation-only. New code in `app/Modules` must fit the declared layers or the deptrac config must be explicitly updated.
-- If a module needs infrastructure code, place it inside a nested subdirectory of `Infrastructure`. Deptrac does not collect files directly under `app/Modules/<Module>/Infrastructure`.
+- Put adapters inside the relevant nested `Infrastructure` directory. Providers in the root of `Infrastructure` have a dedicated composition layer; both forms are checked by Deptrac.
 - Changes in backend business logic should usually stay inside the relevant module instead of leaking into controllers or unrelated services.
 - `frontend/src/api-schema` is generated code. Prefer regenerating it instead of editing it manually.
 - Domain events are domain logic. If a flow needs to trigger queues or other framework integrations, emit a domain event first and handle infrastructure side effects in listeners.
-- For Laravel jobs, prefer the `dispatch()` helper instead of static `::dispatch()`.
+- Send application jobs through `DispatcherInterface::dispatch()`; register their classes in the owning module provider.
 - Use `PSR-12` formatting for PHP changes.
 - If a class is an action, it should expose a single `handle(...)` method only.
 - Repositories should not contain business operations like `cancel*`; keep them as persistence primitives such as `updateStatus(...)`, and call them from actions like `Cancel*Action`.
@@ -424,7 +395,7 @@ and they hand the other module's entities back as they are.
   is an ordinary field and stays with the others, before the three above.
 - Call with named arguments once a call is written across more than one line —
   `new HttpClient(responseFactory: ..., options: ...)`, `$sender->send(channel: ..., text: ...)`.
-  Short single-line calls stay positional. Named arguments bind to parameter names, so
+  Use named arguments for multiple arguments or optional parameters, as specified in `rules.md`. Named arguments bind to parameter names, so
   the names of an interface's parameters become part of its contract, and the same goes
   for a third-party constructor: renaming a parameter is then a breaking change.
 - A call passed as an argument to another call goes on its own line:
@@ -615,16 +586,16 @@ You are a strict code reviewer for the SLogger project (Laravel 12 / PHP 8.4, Vu
 **What to Check:**
 
 1. **Architecture (deptrac)**
-   - Domain depends only on Entities, Parameters, Repositories
-   - Infrastructure depends only on Domain, Parameters, Entities
-   - Repositories depend only on Entities, Parameters, Models
+   - Check the layer and module matrices above and both Deptrac configurations
+   - UseCases call local Actions/Services, not Repositories or other UseCases
+   - Entities/Parameters use local or common data; conversions belong to Transports
    - Business logic has not leaked into controllers, requests, or commands
 
 2. **Code Rules**
    - Action classes expose only a `handle(...)` method — no extra public methods
    - Repositories contain only persistence primitives (not `cancelOrder`, but `updateStatus`)
    - Each entity has its own dedicated controller — no mixing
-   - New Laravel jobs use `dispatch()`, not the static `::dispatch()`
+   - New application jobs use `DispatcherInterface::dispatch()` and module registration
    - PSR-12 formatting
 
 3. **Tests**
@@ -716,3 +687,25 @@ What is intentionally excluded.
 - Business logic must not leak into controllers
 
 When the spec is ready — output it and ask whether implementation can begin.
+
+## Module Exception Managers
+
+Each module registers its HTTP exception manager through `getExceptionManagers()`
+on its provider. `Common/Infrastructure/Exceptions/ExceptionManagerRegistry` stores
+one manager per class. The application Handler uses the registry for reporting and
+rendering: mapped business errors are not reported; unknown errors follow Laravel's
+normal handling. Managers preserve existing status codes and response messages.
+Dashboard's unavailable cache keeps its `503` JSON body. MCP protocol and tool errors
+remain in the protocol/tool handlers and do not pass through these HTTP mappings.
+
+Business controllers call one local UseCase per operation. Read-after-write and type
+guards belong to that scenario. UseCases return complete DTOs or throw domain errors;
+controllers validate transport input and construct resources. The five queued job
+classes retain their FQCN and payload fields; `LegacyJobPayloadTest` compares them
+against serialized fixtures generated from the pre-refactor classes.
+
+MCP bridges return local Entities and enums, including nested trace data, tree nodes,
+groups, incidents and service summaries. `Mcp/Transports` converts source DTOs and
+query parameters; tools do not use another module's resource or data contract.
+`TraceDataParityTest` checks recursive HTTP/MCP data output, null, empty children,
+scalar types, key order and untruncated long values.
