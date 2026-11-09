@@ -18,6 +18,7 @@
 | `NoMultilineArrayKeyRule` | `code-analyse/PHPStan/NoMultilineArrayKeyRule.php`, подключён в PHPStan |
 | Четыре custom CS fixers и их traits | `code-analyse/Fixers`, единый конфиг `code-analyse/php-cs-fixer.dist.php` для штатных check/fix |
 | ModulesConfig и BaseServiceProvider | Единый список, hooks, модульные регистраторы и расписание; `getContracts` сохраняет SLogger singleton lifetime, без PMS AppContext/static caches |
+| OpenAPI generator | Локальный пакет и SourceInterface; только admin API SLogger, public/private aliases, без Go traces-api и PMS collection-классов |
 | Deptrac и проверка структуры | Адаптированы в локальных configs; включают Enums, Common, providers, UseCases и Transports |
 
 Не перенесены навыки удаления отелей, клиентских разрешений и подготовки

@@ -26,6 +26,12 @@ class OaAttributeHelper
         return self::getInstanceByReflection($reflection, OaSummaryAttribute::class);
     }
 
+    public static function getResponseStatusCodeAttribute(
+        ReflectionClass $reflection
+    ): ?OaResponseStatusCodeAttribute {
+        return self::getInstanceByReflection($reflection, OaResponseStatusCodeAttribute::class);
+    }
+
     public static function getInstanceByReflection(
         ReflectionMethod|ReflectionProperty|ReflectionClass $reflection,
         string $attributeClass

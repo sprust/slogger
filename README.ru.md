@@ -538,4 +538,8 @@ make receiver-monitor # живая статистика receiver'а из servers
 storage/api/json-schemes/admin-api-openapi-scheme.json    # API веб-панели (поиск, дерево, графики, дашборды)
 ```
 
-Трейсы принимаются только через сокет, поэтому в схеме API трейсов (`traces-api-openapi-scheme.json`) нет путей.
+`make oa-generate` строит private/public схемы admin API и регенерирует
+`frontend/src/api-schema/admin-api-schema.ts`. Генератор — локальный пакет
+`packages/ifksco/openapi-generator`; источники и диски заданы в
+`config/oa-generator.php`. Отдельные команды: `php artisan oa:generate private`
+и `php artisan oa:generate public`. Go receiver этим генератором не описывается.

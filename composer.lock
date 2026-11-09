@@ -1080,10 +1080,10 @@
             "dist": {
                 "type": "path",
                 "url": "packages/ifksco/openapi-generator",
-                "reference": "3a52da808b61d541e282e80f5aef88009f33b94c"
+                "reference": "1f3126418b0d527a17d1a54b9b1d4c0bd2959457"
             },
             "require": {
-                "laravel/framework": "^10.0 | ^11.0 | ^12.0"
+                "laravel/framework": "^9.0 | ^10.0 | ^11.0 | ^12.0"
             },
             "type": "library",
             "extra": {

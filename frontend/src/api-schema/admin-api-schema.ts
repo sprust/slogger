@@ -1050,7 +1050,7 @@ export namespace AdminApi {
            * @minLength 4
            * @maxLength 255
            */
-          field?: string;
+          field: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
@@ -1285,7 +1285,7 @@ export namespace AdminApi {
     export type RequestQuery = {};
     export type RequestBody = {
       root_trace_id: string;
-      parent_trace_id?: string | null;
+      parent_trace_id: string | null;
       cursor?: string | null;
       /**
        * @min 1
@@ -1694,7 +1694,7 @@ export namespace AdminApi {
            * @minLength 4
            * @maxLength 255
            */
-          field?: string;
+          field: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
@@ -1795,7 +1795,7 @@ export namespace AdminApi {
            * @minLength 4
            * @maxLength 255
            */
-          field?: string;
+          field: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
@@ -1896,7 +1896,7 @@ export namespace AdminApi {
            * @minLength 4
            * @maxLength 255
            */
-          field?: string;
+          field: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
@@ -2010,7 +2010,7 @@ export namespace AdminApi {
            * @minLength 4
            * @maxLength 255
            */
-          field?: string;
+          field: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
@@ -2967,13 +2967,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -3050,13 +3050,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -3104,13 +3104,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -3187,13 +3187,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -3241,16 +3241,16 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /**
          * @min 1
          * @max 175
          */
-        period_minutes?: number;
+        period_minutes: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -3346,16 +3346,16 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /**
          * @min 1
          * @max 175
          */
-        period_minutes?: number;
+        period_minutes: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -3409,18 +3409,18 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /**
          * @min 1
          * @max 175
          */
-        window_minutes?: number;
+        window_minutes: number;
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -3518,18 +3518,18 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /**
          * @min 1
          * @max 175
          */
-        window_minutes?: number;
+        window_minutes: number;
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -3583,21 +3583,21 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /**
          * @format float
          * @min 0.001
          */
-        duration?: number;
+        duration: number;
         /**
          * @min 1
          * @max 175
          */
-        window_minutes?: number;
+        window_minutes: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -3695,21 +3695,21 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /**
          * @format float
          * @min 0.001
          */
-        duration?: number;
+        duration: number;
         /**
          * @min 1
          * @max 175
          */
-        window_minutes?: number;
+        window_minutes: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -3763,13 +3763,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -3846,13 +3846,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -3900,13 +3900,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -3983,13 +3983,13 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
-      notification_channel_id?: number | null;
+      notification_channel_id: number | null;
       notify_on_opened: boolean;
       notify_on_event: boolean;
       notify_on_closed: boolean;
-      settings?: {
+      settings: {
         /** @min 1 */
-        threshold?: number;
+        threshold: number;
       };
     };
     export type RequestHeaders = {};
@@ -4122,17 +4122,17 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      settings?: {
+      settings: {
         /**
          * @minLength 10
          * @maxLength 255
          */
-        bot_token?: string;
+        bot_token: string;
         /**
          * @minLength 5
          * @maxLength 255
          */
-        chat_id?: string;
+        chat_id: string;
       };
     };
     export type RequestHeaders = {};
@@ -4198,7 +4198,7 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      settings?: {
+      settings: {
         /**
          * @minLength 10
          * @maxLength 255
@@ -4208,7 +4208,7 @@ export namespace AdminApi {
          * @minLength 5
          * @maxLength 255
          */
-        chat_id?: string;
+        chat_id: string;
       };
     };
     export type RequestHeaders = {};
@@ -4243,12 +4243,12 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      settings?: {
+      settings: {
         /**
          * @minLength 10
          * @maxLength 500
          */
-        webhook_url?: string;
+        webhook_url: string;
       };
     };
     export type RequestHeaders = {};
@@ -4312,7 +4312,7 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      settings?: {
+      settings: {
         /**
          * @minLength 10
          * @maxLength 500
@@ -4352,12 +4352,12 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      settings?: {
+      settings: {
         /**
          * @minLength 10
          * @maxLength 500
          */
-        url?: string;
+        url: string;
         /**
          * @minLength 1
          * @maxLength 255
@@ -4428,12 +4428,12 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      settings?: {
+      settings: {
         /**
          * @minLength 10
          * @maxLength 500
          */
-        url?: string;
+        url: string;
         /**
          * @minLength 1
          * @maxLength 255
@@ -4841,8 +4841,8 @@ export namespace AdminApi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
-      files?: string[];
-      levels?: string[];
+      files: string[];
+      levels?: string[] | null;
       /** @format date */
       from?: string | null;
       /** @format date */
@@ -6187,7 +6187,7 @@ export class Api<
              * @minLength 4
              * @maxLength 255
              */
-            field?: string;
+            field: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
@@ -6452,7 +6452,7 @@ export class Api<
     traceAggregatorTracesTreeChildrenCreate: (
       data: {
         root_trace_id: string;
-        parent_trace_id?: string | null;
+        parent_trace_id: string | null;
         cursor?: string | null;
         /**
          * @min 1
@@ -6906,7 +6906,7 @@ export class Api<
              * @minLength 4
              * @maxLength 255
              */
-            field?: string;
+            field: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
@@ -7017,7 +7017,7 @@ export class Api<
              * @minLength 4
              * @maxLength 255
              */
-            field?: string;
+            field: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
@@ -7128,7 +7128,7 @@ export class Api<
              * @minLength 4
              * @maxLength 255
              */
-            field?: string;
+            field: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
@@ -7252,7 +7252,7 @@ export class Api<
              * @minLength 4
              * @maxLength 255
              */
-            field?: string;
+            field: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
@@ -8335,13 +8335,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -8430,13 +8430,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -8491,13 +8491,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -8586,13 +8586,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -8647,16 +8647,16 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /**
            * @min 1
            * @max 175
            */
-          period_minutes?: number;
+          period_minutes: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -8764,16 +8764,16 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /**
            * @min 1
            * @max 175
            */
-          period_minutes?: number;
+          period_minutes: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -8834,18 +8834,18 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /**
            * @min 1
            * @max 175
            */
-          window_minutes?: number;
+          window_minutes: number;
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -8955,18 +8955,18 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /**
            * @min 1
            * @max 175
            */
-          window_minutes?: number;
+          window_minutes: number;
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -9027,21 +9027,21 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /**
            * @format float
            * @min 0.001
            */
-          duration?: number;
+          duration: number;
           /**
            * @min 1
            * @max 175
            */
-          window_minutes?: number;
+          window_minutes: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -9151,21 +9151,21 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /**
            * @format float
            * @min 0.001
            */
-          duration?: number;
+          duration: number;
           /**
            * @min 1
            * @max 175
            */
-          window_minutes?: number;
+          window_minutes: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -9226,13 +9226,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -9321,13 +9321,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -9382,13 +9382,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -9477,13 +9477,13 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
-        notification_channel_id?: number | null;
+        notification_channel_id: number | null;
         notify_on_opened: boolean;
         notify_on_event: boolean;
         notify_on_closed: boolean;
-        settings?: {
+        settings: {
           /** @min 1 */
-          threshold?: number;
+          threshold: number;
         };
       },
       params: RequestParams = {},
@@ -9632,17 +9632,17 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        settings?: {
+        settings: {
           /**
            * @minLength 10
            * @maxLength 255
            */
-          bot_token?: string;
+          bot_token: string;
           /**
            * @minLength 5
            * @maxLength 255
            */
-          chat_id?: string;
+          chat_id: string;
         };
       },
       params: RequestParams = {},
@@ -9720,7 +9720,7 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        settings?: {
+        settings: {
           /**
            * @minLength 10
            * @maxLength 255
@@ -9730,7 +9730,7 @@ export class Api<
            * @minLength 5
            * @maxLength 255
            */
-          chat_id?: string;
+          chat_id: string;
         };
       },
       params: RequestParams = {},
@@ -9772,12 +9772,12 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        settings?: {
+        settings: {
           /**
            * @minLength 10
            * @maxLength 500
            */
-          webhook_url?: string;
+          webhook_url: string;
         };
       },
       params: RequestParams = {},
@@ -9853,7 +9853,7 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        settings?: {
+        settings: {
           /**
            * @minLength 10
            * @maxLength 500
@@ -9900,12 +9900,12 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        settings?: {
+        settings: {
           /**
            * @minLength 10
            * @maxLength 500
            */
-          url?: string;
+          url: string;
           /**
            * @minLength 1
            * @maxLength 255
@@ -9988,12 +9988,12 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        settings?: {
+        settings: {
           /**
            * @minLength 10
            * @maxLength 500
            */
-          url?: string;
+          url: string;
           /**
            * @minLength 1
            * @maxLength 255
@@ -10447,8 +10447,8 @@ export class Api<
  */
     logsEntriesCreate: (
       data: {
-        files?: string[];
-        levels?: string[];
+        files: string[];
+        levels?: string[] | null;
         /** @format date */
         from?: string | null;
         /** @format date */

@@ -182,7 +182,8 @@ workers-restart:
 	make sconcur-restart
 
 oa-generate:
-	make art c='oa:generate'
+	make art c='oa:generate private'
+	make art c='oa:generate public'
 	make frontend-npm-generate
 
 # Order matters: sconcur.so is baked into the image from composer.lock, so vendor

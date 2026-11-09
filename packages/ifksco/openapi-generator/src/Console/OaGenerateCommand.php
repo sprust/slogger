@@ -4,7 +4,7 @@ namespace Ifksco\OpenApiGenerator\Console;
 
 use Ifksco\OpenApiGenerator\OaService;
 use Illuminate\Console\Command;
-use ReflectionException;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 class OaGenerateCommand extends Command
 {
@@ -13,7 +13,7 @@ class OaGenerateCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'oa:generate {--public}';
+    protected $signature = 'oa:generate {diskAlias}';
 
     /**
      * The console command description.
@@ -23,16 +23,13 @@ class OaGenerateCommand extends Command
     protected $description = 'Generate open-api json schemes';
 
     /**
-     * Execute the console command.
-     *
-     * @return int
-     * @throws ReflectionException
+     * @throws BindingResolutionException
      */
-    public function handle(): int
+    public function handle(OaService $oaService): int
     {
-        $public = $this->option('public');
-
-        OaService::generateScheme($public);
+        $oaService->generateScheme(
+            $this->argument('diskAlias')
+        );
 
         $this->info('Json schemes have been generated!');
 

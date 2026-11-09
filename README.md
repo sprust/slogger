@@ -538,4 +538,8 @@ The `sconcur.so` extension is baked into the image from `composer.lock`, so `ven
 storage/api/json-schemes/admin-api-openapi-scheme.json    # web-panel API (search, tree, charts, dashboards)
 ```
 
-Traces are received over the socket only, so the traces API schema (`traces-api-openapi-scheme.json`) has no paths.
+Run `make oa-generate` to build the private/public admin API schemas and regenerate
+`frontend/src/api-schema/admin-api-schema.ts`. The generator is the local
+`packages/ifksco/openapi-generator` package; sources and disks are configured in
+`config/oa-generator.php`. Individual commands are `php artisan oa:generate private`
+and `php artisan oa:generate public`. The Go receiver is outside this generator.

@@ -1639,7 +1639,10 @@
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    },
+                                                    "required": [
+                                                        "field"
+                                                    ]
                                                 }
                                             },
                                             "fields": {
@@ -2174,7 +2177,8 @@
                                     }
                                 },
                                 "required": [
-                                    "root_trace_id"
+                                    "root_trace_id",
+                                    "parent_trace_id"
                                 ],
                                 "type": "object"
                             }
@@ -3107,7 +3111,10 @@
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    },
+                                                    "required": [
+                                                        "field"
+                                                    ]
                                                 }
                                             }
                                         }
@@ -3329,7 +3336,10 @@
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    },
+                                                    "required": [
+                                                        "field"
+                                                    ]
                                                 }
                                             }
                                         }
@@ -3551,7 +3561,10 @@
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    },
+                                                    "required": [
+                                                        "field"
+                                                    ]
                                                 }
                                             }
                                         }
@@ -3811,7 +3824,10 @@
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    },
+                                                    "required": [
+                                                        "field"
+                                                    ]
                                                 }
                                             }
                                         }
@@ -5650,16 +5666,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -5851,16 +5872,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -5933,16 +5959,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -6134,16 +6165,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -6252,16 +6288,21 @@
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "period_minutes"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -6528,16 +6569,21 @@
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "period_minutes"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -6650,16 +6696,22 @@
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "window_minutes",
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -6935,16 +6987,22 @@
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "window_minutes",
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -7058,16 +7116,22 @@
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "duration",
+                                            "window_minutes"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -7344,16 +7408,22 @@
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "duration",
+                                            "window_minutes"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -7426,16 +7496,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -7627,16 +7702,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -7709,16 +7789,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -7910,16 +7995,21 @@
                                                 "type": "integer",
                                                 "minimum": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "threshold"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
                                     "enabled",
                                     "cooldown_seconds",
+                                    "notification_channel_id",
                                     "notify_on_opened",
                                     "notify_on_event",
-                                    "notify_on_closed"
+                                    "notify_on_closed",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -8158,12 +8248,17 @@
                                                 "maxLength": 255,
                                                 "minLength": 5
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "bot_token",
+                                            "chat_id"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
-                                    "enabled"
+                                    "enabled",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -8313,12 +8408,16 @@
                                                 "maxLength": 255,
                                                 "minLength": 5
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "chat_id"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
-                                    "enabled"
+                                    "enabled",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -8374,12 +8473,16 @@
                                                 "maxLength": 500,
                                                 "minLength": 10
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "webhook_url"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
-                                    "enabled"
+                                    "enabled",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -8524,7 +8627,8 @@
                                 },
                                 "required": [
                                     "name",
-                                    "enabled"
+                                    "enabled",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -8586,12 +8690,16 @@
                                                 "maxLength": 255,
                                                 "minLength": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "url"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
-                                    "enabled"
+                                    "enabled",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -8741,12 +8849,16 @@
                                                 "maxLength": 255,
                                                 "minLength": 1
                                             }
-                                        }
+                                        },
+                                        "required": [
+                                            "url"
+                                        ]
                                     }
                                 },
                                 "required": [
                                     "name",
-                                    "enabled"
+                                    "enabled",
+                                    "settings"
                                 ],
                                 "type": "object"
                             }
@@ -9439,6 +9551,7 @@
                                     },
                                     "levels": {
                                         "type": "array",
+                                        "nullable": true,
                                         "items": {
                                             "type": "string",
                                             "maxLength": 64,
@@ -9484,6 +9597,9 @@
                                         "maximum": 500
                                     }
                                 },
+                                "required": [
+                                    "files"
+                                ],
                                 "type": "object"
                             }
                         }

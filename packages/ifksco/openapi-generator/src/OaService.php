@@ -2,75 +2,60 @@
 
 namespace Ifksco\OpenApiGenerator;
 
-use Ifksco\OpenApiGenerator\Router\RouterService;
-use Ifksco\OpenApiGenerator\Router\RoutersParser;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Ifksco\OpenApiGenerator\Sources\SourceInterface;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
-use ReflectionException;
+use RuntimeException;
 
-class OaService
+readonly class OaService
 {
-    private static ?string $requestParentClass = null;
-    private static ?array $resourcesParentClasses = null;
+    public function __construct(
+        private Application $app
+    ) {
+    }
 
     /**
-     * @throws ReflectionException
+     * @throws BindingResolutionException
      */
-    public static function generateScheme(bool $public): void
+    public function generateScheme(string $diskAlias): void
     {
-        $parser = new RoutersParser();
+        $diskSetting = Arr::first(
+            config('oa-generator.disks'),
+            static fn(array $setting) => ($setting['alias'] ?? null) === $diskAlias
+        );
 
-        foreach (config('oa-generator.routes') as $name => $pathPrefixes) {
-            $parsedRoutes = $parser->parseRoutes(
-                (new RouterService($pathPrefixes))->getRoutes()
-            );
+        if (!$diskSetting) {
+            throw new RuntimeException("Setting disk for $diskAlias not found");
+        }
 
-            $jsonGenerator = new JsonFileGenerator($parsedRoutes);
+        $diskName = $diskSetting['name'] ?? null;
+        $isPublic = $diskSetting['is_public'] ?? null;
 
-            $jsonGenerator->generate($public);
+        if (!$diskName || !is_bool($isPublic)) {
+            throw new RuntimeException("Invalid disk settings for $diskAlias");
+        }
+
+        $disk = Storage::disk($diskName);
+
+        foreach (config('oa-generator.sources') as $sourceClass) {
+            /** @var class-string<SourceInterface> $sourceClass */
+
+            /** @var SourceInterface $source */
+            $source = $this->app->make($sourceClass);
+
+            $jsonGenerator = new JsonFileGenerator($source);
+
+            $jsonGenerator->generate($isPublic);
 
             if (!App::runningUnitTests()) {
-                $disk = $public ? config('oa-generator.disks.public') : config('oa-generator.disks.private');
-
                 $jsonGenerator->saveToDisk(
-                    Storage::disk($disk),
-                    "$name-openapi-scheme"
+                    $disk,
+                    "{$source->getName()}-openapi-scheme"
                 );
             }
         }
-    }
-
-    /**
-     * @return class-string<JsonResource>
-     */
-    public static function getRequestParentClass(): string
-    {
-        return self::$requestParentClass
-            ?: (self::$requestParentClass = config('oa-generator.classes.request_parent_class'));
-    }
-
-    public static function isClassResource(mixed $class): bool
-    {
-        if (!is_string($class) && !class_exists($class)) {
-            return false;
-        }
-
-        foreach (self::getResourcesParentClasses() as $resourcesParentClass) {
-            if (is_subclass_of($class, $resourcesParentClass)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    
-    /**
-     * @return class-string<JsonResource>[]
-     */
-    private static function getResourcesParentClasses(): array
-    {
-        return self::$resourcesParentClasses
-            ?: (self::$resourcesParentClasses = config('oa-generator.classes.resources_parent_class'));
     }
 }

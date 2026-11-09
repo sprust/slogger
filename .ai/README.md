@@ -725,3 +725,14 @@ registers listeners, console-only commands, jobs and the exception manager. It d
 not cache the application or dispatcher in static properties. Scheduled callbacks
 in Cleaner and Dashboard use DispatcherInterface; User and Logs own their scheduled
 commands. Frequencies, names and overlap locks are preserved.
+
+## OpenAPI Generation
+
+The local `packages/ifksco/openapi-generator` follows the PMS source-based generator.
+`config/oa-generator.php` registers only `AdminApiRoutesParser`; Go receiver routes
+are outside Laravel generation. `make oa-generate` generates both disk aliases
+(`oa:generate private`, `oa:generate public`), then regenerates the frontend client.
+Keep `storage/api/json-schemes/admin-api-openapi-scheme.json` and generated TypeScript
+in sync. Requests use `present` and nested `required` in their schemas. The SLogger
+streamed list annotation remains supported, and Laravel resource wrappers are preserved.
+Parser configuration and extension resolvers must not leak between application containers.

@@ -12,6 +12,8 @@ $finder = PhpCsFixer\Finder::create()
         __DIR__ . '/../app/Modules',
         __DIR__ . '/../app/Console',
         __DIR__ . '/../app/Providers',
+        __DIR__ . '/../app/Services/OpenApiGenerator',
+        __DIR__ . '/../packages/ifksco/openapi-generator',
         __DIR__ . '/../app/Models',
         __DIR__ . '/../tests',
         __DIR__ . '/../database/seeders',
