@@ -8,7 +8,7 @@ Centralized source of instructions for AI assistants (Claude Code and others) wo
 
 ## Required Rules And Guides
 
-Read [rules.md](rules.md) before editing code. It contains the coding rules
+Read [rules.md](rules.md) and the verbatim PMS [code style](code-style.md) before editing code. It contains the coding rules
 transferred from PMS, including vertical arrays and named arguments. Read relevant
 [tests](skills/tests.md), [repositories](skills/repositories.md),
 [admin](skills/admin.md) and
@@ -717,7 +717,7 @@ Internal missing log files, invalid MCP server configuration and mutex timeouts 
 reportable HTTP 500 errors with `Server Error`; paths, settings and lock keys stay in
 the original exception for reporting. Infrastructure MCP protocol errors keep their own handling.
 Mapped JSON errors keep SLogger statuses; non-JSON requests retain content negotiation.
-The DTO adds messageField solely to preserve Dashboard's existing `error` response and
+The DTO adds the boolean isError solely to preserve Dashboard's existing `error` response and
 JSON 503 even without an Accept header. MCP protocol/tool errors stay in their handlers.
 
 Business controllers call one local UseCase per operation. Read-after-write and type
