@@ -25,10 +25,7 @@ trait ExcludedPathsTrait
 
     protected function excludedPathsOption(): FixerOptionInterface
     {
-        return new FixerOptionBuilder(
-            'excluded_paths',
-            'Regular expressions; a file whose path matches any of them is left untouched.'
-        )
+        return new FixerOptionBuilder('excluded_paths', 'Regular expressions; a file whose path matches any of them is left untouched.')
             ->setAllowedTypes(['string[]'])
             ->setDefault([])
             ->getOption();

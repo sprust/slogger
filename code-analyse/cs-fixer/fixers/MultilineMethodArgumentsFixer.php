@@ -24,7 +24,6 @@ use const T_ATTRIBUTE;
 use const T_DOUBLE_ARROW;
 use const T_DOUBLE_COLON;
 use const T_FUNCTION;
-use const T_FOREACH;
 use const T_NAMESPACE;
 use const T_NEW;
 use const T_NS_SEPARATOR;
@@ -34,12 +33,7 @@ use const T_STRING;
 use const T_VARIABLE;
 
 /**
- * @phpstan-type _Config array{
- *     max_length: int,
- *     single_argument: string,
- *     hug_prefix_length: int,
- *     excluded_paths: list<string>
- * }
+ * @phpstan-type _Config array{max_length: int, single_argument: string, hug_prefix_length: int, excluded_paths: list<string>}
  *
  * @implements ConfigurableFixerInterface<_Config, _Config>
  *
@@ -47,9 +41,7 @@ use const T_VARIABLE;
  *               php-cs-fixer marks its tokenizer and base fixer classes as @internal,
  *               yet they are the only API a custom fixer can be built on
  */
-class MultilineMethodArgumentsFixer extends AbstractFixer implements
-    ConfigurableFixerInterface,
-    WhitespacesAwareFixerInterface
+final class MultilineMethodArgumentsFixer extends AbstractFixer implements ConfigurableFixerInterface, WhitespacesAwareFixerInterface
 {
     /** @use ConfigurableFixerTrait<_Config, _Config> */
     use ConfigurableFixerTrait;
@@ -73,10 +65,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
     public function getDefinition(): FixerDefinitionInterface
     {
         return new FixerDefinition(
-            ('Arguments of a single-line method, static or constructor call '
-                . 'MUST be split one per line when their total length exceeds the '
-                . 'given limit, and the parentheses of any call holding several '
-                . 'lines MUST stand on lines of their own.'),
+            'Arguments of a single-line method, static or constructor call MUST be split one per line when their total length exceeds the given limit, and the parentheses of any call holding several lines MUST stand on lines of their own.',
             [
                 new CodeSample(
                     "<?php\n\$this->handle(\$booking->id, \$guest->id, true);\n",
@@ -107,17 +96,11 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
     protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
         return new FixerConfigurationResolver([
-            new FixerOptionBuilder(
-                'max_length',
-                'Maximum total length of the arguments kept on a single line, parentheses excluded.'
-            )
+            new FixerOptionBuilder('max_length', 'Maximum total length of the arguments kept on a single line, parentheses excluded.')
                 ->setAllowedTypes(['int'])
                 ->setDefault(25)
                 ->getOption(),
-            new FixerOptionBuilder(
-                'single_argument',
-                'How to treat a call that has exactly one argument.'
-            )
+            new FixerOptionBuilder('single_argument', 'How to treat a call that has exactly one argument.')
                 ->setAllowedValues([
                     self::SINGLE_ARGUMENT_KEEP,
                     self::SINGLE_ARGUMENT_BREAK_NAMED,
@@ -125,11 +108,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
                 ])
                 ->setDefault(self::SINGLE_ARGUMENT_BREAK_NAMED)
                 ->getOption(),
-            new FixerOptionBuilder(
-                'hug_prefix_length',
-                ('Up to how many characters may stand before the line break of an '
-                    . 'argument list that opens a block and is left as it is.')
-            )
+            new FixerOptionBuilder('hug_prefix_length', 'Up to how many characters may stand before the line break of an argument list that opens a block and is left as it is.')
                 ->setAllowedTypes(['int'])
                 ->setDefault(40)
                 ->getOption(),
@@ -154,13 +133,10 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
 
         for ($index = 0; $index < $tokens->count(); ++$index) {
             $indexBracketDepth = $this->trackIndexBrackets($tokens, $index, $indexBracketDepth);
-            $closeIndex        = $this->findArgumentListEnd($tokens, $index);
+            $closeIndex = $this->findArgumentListEnd($tokens, $index);
 
             // An argument list that already spans several lines is the author's own layout.
-            if (
-                null === $closeIndex
-                || $this->isMultilineBlock($tokens, $index, $closeIndex)
-            ) {
+            if (null === $closeIndex || $this->isMultilineBlock($tokens, $index, $closeIndex)) {
                 continue;
             }
 
@@ -169,10 +145,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
                 continue;
             }
 
-            if (
-                0 < $indexBracketDepth
-                || $this->isArrayKey($tokens, $closeIndex)
-            ) {
+            if (0 < $indexBracketDepth || $this->isArrayKey($tokens, $closeIndex)) {
                 continue;
             }
 
@@ -196,19 +169,13 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
 
         for ($index = 0; $index < $tokens->count(); ++$index) {
             $indexBracketDepth = $this->trackIndexBrackets($tokens, $index, $indexBracketDepth);
-            $closeIndex        = $this->findArgumentListEnd($tokens, $index);
+            $closeIndex = $this->findArgumentListEnd($tokens, $index);
 
-            if (
-                null === $closeIndex
-                || !$this->isMultilineBlock($tokens, $index, $closeIndex)
-            ) {
+            if (null === $closeIndex || !$this->isMultilineBlock($tokens, $index, $closeIndex)) {
                 continue;
             }
 
-            if (
-                0 < $indexBracketDepth
-                || $this->isArrayKey($tokens, $closeIndex)
-            ) {
+            if (0 < $indexBracketDepth || $this->isArrayKey($tokens, $closeIndex)) {
                 continue;
             }
 
@@ -219,12 +186,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
                 continue;
             }
 
-            $this->wrapBlock(
-                $tokens,
-                $index,
-                $closeIndex,
-                itemsSeparatedByComma: true
-            );
+            $this->wrapBlock($tokens, $index, $closeIndex, itemsSeparatedByComma: true);
         }
     }
 
@@ -267,10 +229,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
                 continue;
             }
 
-            if (
-                $token->equalsAny([',', ';'])
-                || $token->isGivenKind(T_DOUBLE_COLON)
-            ) {
+            if ($token->equalsAny([',', ';']) || $token->isGivenKind(T_DOUBLE_COLON)) {
                 return false;
             }
         }
@@ -283,31 +242,20 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
      * or the body of a closure. A nested call opening there does not count: its own parentheses
      * hold arguments of their own, and those read better with the outer ones spelled out.
      */
-    private function hugsBlockAfterShortPrefix(
-        Tokens $tokens,
-        int $openIndex,
-        int $closeIndex
-    ): bool {
+    private function hugsBlockAfterShortPrefix(Tokens $tokens, int $openIndex, int $closeIndex): bool
+    {
         for ($index = $openIndex + 1; $index < $closeIndex; ++$index) {
-            if (
-                !$tokens[$index]->isWhitespace()
-                || !str_contains($tokens[$index]->getContent(), "\n")
-            ) {
+            if (!$tokens[$index]->isWhitespace() || !str_contains($tokens[$index]->getContent(), "\n")) {
                 continue;
             }
 
-            if (
-                mb_strlen(
-                    $tokens->generatePartialCode($openIndex + 1, $index - 1)
-                ) > $this->configuration['hug_prefix_length']
-            ) {
+            if (mb_strlen($tokens->generatePartialCode($openIndex + 1, $index - 1)) > $this->configuration['hug_prefix_length']) {
                 return false;
             }
 
             $lastIndex = $tokens->getPrevMeaningfulToken($index);
 
-            return $tokens[$lastIndex]->equals('{')
-                || $tokens[$lastIndex]->isGivenKind(CT::T_ARRAY_BRACKET_OPEN);
+            return $tokens[$lastIndex]->equals('{') || $tokens[$lastIndex]->isGivenKind(CT::T_ARRAY_BRACKET_OPEN);
         }
 
         return false;
@@ -318,69 +266,13 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
      */
     private function findArgumentListEnd(Tokens $tokens, int $index): ?int
     {
-        if (
-            !$tokens[$index]->equals('(')
-            || !$this->isCallArgumentList($tokens, $index)
-            || $this->isInsideForeachHeader($tokens, $index)
-            || $this->isInlineHelper($tokens, $index)
-        ) {
+        if (!$tokens[$index]->equals('(') || !$this->isCallArgumentList($tokens, $index)) {
             return null;
         }
 
         $closeIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS, $index);
 
         return $tokens->getNextMeaningfulToken($index) === $closeIndex ? null : $closeIndex;
-    }
-
-    private function isInsideForeachHeader(Tokens $tokens, int $openIndex): bool
-    {
-        for ($index = $openIndex - 1; $index >= 0; --$index) {
-            if ($tokens[$index]->equals(')')) {
-                $index = $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS, $index);
-
-                continue;
-            }
-
-            if ($tokens[$index]->equalsAny(['{', '}', ';'])) {
-                return false;
-            }
-
-            if (!$tokens[$index]->equals('(')) {
-                continue;
-            }
-
-            $previousIndex = $tokens->getPrevMeaningfulToken($index);
-
-            if ($previousIndex !== null && $tokens[$previousIndex]->isGivenKind(T_FOREACH)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function isInlineHelper(Tokens $tokens, int $openIndex): bool
-    {
-        $nameIndex = $tokens->getPrevMeaningfulToken($openIndex);
-
-        if ($nameIndex === null || !$tokens[$nameIndex]->isGivenKind(T_STRING)) {
-            return false;
-        }
-
-        $qualifierIndex = $this->findQualifier($tokens, $nameIndex);
-
-        if (
-            $qualifierIndex !== null && $tokens[$qualifierIndex]->isGivenKind([
-                T_OBJECT_OPERATOR,
-                T_NULLSAFE_OBJECT_OPERATOR,
-                T_DOUBLE_COLON,
-                T_NEW,
-            ])
-        ) {
-            return false;
-        }
-
-        return in_array(strtolower($tokens[$nameIndex]->getContent()), ['preg_match', 'preg_match_all'], true);
     }
 
     private function isCallArgumentList(Tokens $tokens, int $openIndex): bool
@@ -394,10 +286,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
         $prevToken = $tokens[$prevIndex];
 
         // $callable(...), $callables[0](...), foo()(...)
-        if (
-            $prevToken->isGivenKind(T_VARIABLE)
-            || $prevToken->equalsAny([']', ')'])
-        ) {
+        if ($prevToken->isGivenKind(T_VARIABLE) || $prevToken->equalsAny([']', ')'])) {
             return true;
         }
 
@@ -409,8 +298,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
 
         // What is left after the calls are a declaration and an attribute, neither of which
         // holds arguments; language constructs have token kinds of their own already.
-        return null !== $qualifierIndex
-            && !$tokens[$qualifierIndex]->isGivenKind([T_FUNCTION, T_ATTRIBUTE]);
+        return null !== $qualifierIndex && !$tokens[$qualifierIndex]->isGivenKind([T_FUNCTION, T_ATTRIBUTE]);
     }
 
     /**
@@ -422,22 +310,18 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
         $prevIndex = $tokens->getPrevMeaningfulToken($openIndex);
         $prevToken = $tokens[$prevIndex];
 
-        if (
-            $prevToken->isGivenKind(T_VARIABLE)
-            || $prevToken->equalsAny([']', ')'])
-        ) {
+        if ($prevToken->isGivenKind(T_VARIABLE) || $prevToken->equalsAny([']', ')'])) {
             return true;
         }
 
         $qualifierIndex = $this->findQualifier($tokens, $prevIndex);
 
-        return null !== $qualifierIndex
-            && $tokens[$qualifierIndex]->isGivenKind([
-                T_OBJECT_OPERATOR,
-                T_NULLSAFE_OBJECT_OPERATOR,
-                T_DOUBLE_COLON,
-                T_NEW,
-            ]);
+        return null !== $qualifierIndex && $tokens[$qualifierIndex]->isGivenKind([
+            T_OBJECT_OPERATOR,
+            T_NULLSAFE_OBJECT_OPERATOR,
+            T_DOUBLE_COLON,
+            T_NEW,
+        ]);
     }
 
     /**
@@ -448,10 +332,7 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
     {
         $qualifierIndex = $tokens->getPrevMeaningfulToken($nameIndex);
 
-        while (
-            null !== $qualifierIndex
-            && $tokens[$qualifierIndex]->isGivenKind([T_NS_SEPARATOR, T_STRING, T_NAMESPACE])
-        ) {
+        while (null !== $qualifierIndex && $tokens[$qualifierIndex]->isGivenKind([T_NS_SEPARATOR, T_STRING, T_NAMESPACE])) {
             $qualifierIndex = $tokens->getPrevMeaningfulToken($qualifierIndex);
         }
 
@@ -461,26 +342,10 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
     /**
      * @param array<int, int> $arguments
      */
-    private function shouldBeSplit(
-        Tokens $tokens,
-        int $openIndex,
-        int $closeIndex,
-        array $arguments
-    ): bool {
+    private function shouldBeSplit(Tokens $tokens, int $openIndex, int $closeIndex, array $arguments): bool
+    {
         if ([] === $arguments) {
             return false;
-        }
-
-        if (count($arguments) === 1) {
-            $argumentIndex = $tokens->getNextMeaningfulToken($openIndex);
-
-            if (!$tokens[$argumentIndex]->isGivenKind(CT::T_ARRAY_BRACKET_OPEN)) {
-                for ($index = $argumentIndex; $index < $closeIndex; ++$index) {
-                    if ($tokens[$index]->equals('(') && $this->isCallArgumentList($tokens, $index)) {
-                        return true;
-                    }
-                }
-            }
         }
 
         $length = mb_strlen($tokens->generatePartialCode($openIndex + 1, $closeIndex - 1));
@@ -494,9 +359,9 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
         }
 
         return match ($this->configuration['single_argument']) {
-            self::SINGLE_ARGUMENT_ALWAYS      => true,
+            self::SINGLE_ARGUMENT_ALWAYS => true,
             self::SINGLE_ARGUMENT_BREAK_NAMED => $this->isNamedArgument($tokens, array_key_first($arguments)),
-            default                           => false,
+            default => false,
         };
     }
 
@@ -514,22 +379,16 @@ class MultilineMethodArgumentsFixer extends AbstractFixer implements
      */
     private function split(Tokens $tokens, int $openIndex, int $closeIndex, array $arguments): void
     {
-        $lineEnding     = $this->whitespacesConfig->getLineEnding();
-        $indent         = WhitespacesAnalyzer::detectIndent($tokens, $openIndex);
+        $lineEnding = $this->whitespacesConfig->getLineEnding();
+        $indent = WhitespacesAnalyzer::detectIndent($tokens, $openIndex);
         $argumentIndent = $indent . $this->whitespacesConfig->getIndent();
 
         // Insertions run back to front so that indices ahead of them stay valid.
-        $beforeCloseIndex = $tokens[$closeIndex - 1]->isWhitespace()
-            ? $closeIndex - 1
-            : $closeIndex;
+        $beforeCloseIndex = $tokens[$closeIndex - 1]->isWhitespace() ? $closeIndex - 1 : $closeIndex;
         $tokens->ensureWhitespaceAtIndex($beforeCloseIndex, 0, $lineEnding . $indent);
 
         foreach (array_reverse(array_keys($arguments)) as $argumentStartIndex) {
-            $tokens->ensureWhitespaceAtIndex(
-                $argumentStartIndex,
-                0,
-                $lineEnding . $argumentIndent
-            );
+            $tokens->ensureWhitespaceAtIndex($argumentStartIndex, 0, $lineEnding . $argumentIndent);
         }
     }
 }

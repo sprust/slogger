@@ -15,8 +15,8 @@
 | `pms-review` / Claude review | Существующий `slogger-review` и `.claude/commands/slogger/review.md`; второй review не создаётся |
 | `pms-env-actualize` | `slogger-env-actualize` для Codex и Claude |
 | `opsx-*` wrappers / OpenSpec | Уже установленные официальные `openspec-*`; дубли не копируются |
-| `NoMultilineArrayKeyRule` | `code-analyse/PHPStan/NoMultilineArrayKeyRule.php`, подключён в PHPStan |
-| Четыре custom CS fixers и их traits | `code-analyse/Fixers`, единый конфиг `code-analyse/php-cs-fixer.dist.php` для штатных check/fix |
+| `NoMultilineArrayKeyRule` | `code-analyse/phpstan/NoMultilineArrayKeyRule.php`, подключён в PHPStan |
+| Четыре custom CS fixers и их traits | `code-analyse/cs-fixer/fixers`, единый конфиг `code-analyse/cs-fixer/.php-cs-fixer.dist.php` для штатных check/fix |
 | Exception managers | Исходный Manager API, BaseExceptionManager, DTO и ReportableException; сохранены статусы/JSON Dashboard SLogger, без PMS LocaleRules и ErrorReport |
 | ModulesConfig и BaseServiceProvider | Единый список, hooks, модульные регистраторы и расписание; `getContracts` сохраняет SLogger singleton lifetime, без PMS AppContext/static caches |
 | Тестовые tmpfs DB, .env.testing и factories | Изолированные MySQL/MongoDB/ClickHouse и Redis, guarded bootstrap, BaseModuleTestCase и readonly factories сущностей SLogger; без PMS seeders/context |
@@ -93,3 +93,25 @@ namespace/use и содержимое heredoc fixtures исключаются, �
 
 Эти находки отделены от подтверждённой эквивалентности форматирования и исправленного
 механизма исключений; они требуют отдельного функционального изменения Domain и тестов.
+
+## Подключение исходной структуры code-analyse
+
+После пользовательского переноса исходные fixers, NoMultilineArrayKeyRule и
+Deptrac matrices используются из cs-fixer/phpstan/deptrac без изменения алгоритмов.
+В makefile исправлены пути, Composer регистрирует CodeAnalyse\PhpStan, standalone
+module-structure CLI не зависит от удалённого ModuleStructure-класса. Старые локальные
+InputParametersRule/DomainDependencyRule и line-length check не восстановлены.
+В PHPStan удалены только unmatched ignore patterns отсутствующих PMS интеграций;
+проверки и область app/tests/seeders сохранены. Уточнены реальные типы тестов и
+инициализация TraceDataToObjectBuilder. Часть предыдущих утверждений об автоматической
+проверке бизнес-матрицы и входных Parameters больше не соответствует этому набору:
+эти требования остаются правилами ревью, а не дополнительной переделкой исходников PMS.
+
+Кеши анализаторов хранятся рядом с их настройками: CS Fixer — в cs-fixer,
+PHPStan — в phpstan/.cache, две конфигурации Deptrac — в отдельных
+.deptrac-layers.cache/.deptrac-modules.cache внутри deptrac. Локальные .gitignore
+этих каталогов исключают кеши из git.
+
+Для YAML-конфига Deptrac используется штатный раздел deptrac: cache_file внутри
+старого parameters не управляет кешем в установленной версии. Состав layers/ruleset
+сохранён; оба прогона подтверждают прежние количества проверенных зависимостей.

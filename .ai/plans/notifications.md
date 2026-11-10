@@ -3,7 +3,7 @@
 Ветка: продолжение `feature/watchers` (или отдельная от неё).
 
 Сверено с кодом: `app/Modules/Watcher/**`, `app/Modules/Dashboard/Domain/Services/SconcurStatClient.php`,
-`config/sconcur.php`, `code-analyse/deptrac-layers.yaml`, `composer.json`,
+`config/sconcur.php`, `code-analyse/deptrac/deptrac-layers.yaml`, `composer.json`,
 `vendor/sconcur/sconcur/src/Features/HttpClient/**`, `vendor/sconcur/laravel/src/Tasks/**`.
 
 ## Цель

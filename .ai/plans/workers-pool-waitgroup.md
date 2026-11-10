@@ -644,7 +644,7 @@ shutdown_timeout_seconds пула (20 с)
 
 ## 10. Проверка
 
-1. `make check` — обязательна. Пакет входит в пути PHPStan (`code-analyse/phpstan.neon`,
+1. `make check` — обязательна. Пакет входит в пути PHPStan (`code-analyse/phpstan/phpstan.neon`,
    `../packages/sconcur`, level 8), так что новый код анализируется наравне с `app`.
 2. Тесты без корутин и без расширения: `tick()` каждой задачи отдельно; цикл пула на
    фейковой задаче (паузы по `TickResultEnum`, исключение не гасит соседей, снятие с

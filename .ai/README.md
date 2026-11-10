@@ -59,9 +59,6 @@ make code-analise-stan
 # Architecture layer validation
 make code-analise-deptrac
 
-# PHP source line length check (120 characters)
-make code-analise-line-length
-
 # Code style check / fix
 make code-analise-cs-fixer-check
 make code-analise-cs-fixer-fix
@@ -215,20 +212,23 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 
 ## Module Layering Rules
 
-Architecture is checked in two dimensions by `code-analyse/deptrac-layers.yaml`
-(layers) and `code-analyse/deptrac-modules.php` (module ownership). Both run through
-`make code-analise-deptrac`. `make code-analise-modules-structure` checks directory
-placement; custom rules in `code-analyse/PHPStan` run through `make code-analise-stan`.
-All checks are part of `make check`; do not add a baseline to hide violations.
-Regression fixtures live in `tests/Architecture`.
+The copied PMS checks live in `code-analyse/deptrac`, `code-analyse/phpstan`,
+`code-analyse/cs-fixer` and `code-analyse/module-structure`. The existing make targets
+use these files directly. PHPStan checks app, tests and seeders, including the copied
+NoMultilineArrayKeyRule. Module structure is checked by its standalone CLI.
+
+The source Deptrac layer/module matrices are retained. Common is excluded from the
+module matrix; shared Domain modules are project-specific. These checks do not enforce
+the full code conventions below: input Parameters, UseCase orchestration and the allowed
+business integration graph also require code review. Do not add a baseline to hide errors.
+Regression fixtures in tests/Architecture exercise the copied rules.
 
 A module may contain `Domain/{Actions,Services,UseCases,Events,Exceptions}`,
 `Entities`, `Parameters`, `Enums`, `Helpers`, `Transports`, `Repositories/{Dto,Services}` and
 `Infrastructure`. Infrastructure includes HTTP, commands, jobs, listeners, tasks,
 services, broadcasting, protocol, tools, prompts and exception managers. Unused
 folders need not exist. Module providers live in the root of Infrastructure; their base
-lives in `Common/Infrastructure/Providers`. Both are
-included in analysis, as are Common and enums.
+lives in `Common/Infrastructure/Providers`. The copied layer collectors do not collect root Infrastructure providers or Enums as separate layers.
 
 - Actions and Services use their module's repositories and data. Actions expose
   one public business method, `handle`. Use ordinary constructor DI.
@@ -239,8 +239,7 @@ included in analysis, as are Common and enums.
   fields, collections and enums. Foreign DTOs must be converted to local types by module `Transports/*Transport`,
   called from Domain. Do not bypass this rule with inheritance, aliases, `mixed` or untyped arrays.
 - Actions/UseCases accept local Parameters. Domain may construct foreign Parameters
-  immediately before an allowed foreign Action call. PHPStan checks input types,
-  including aliases, unions, generics, inherited and nested DTOs.
+  immediately before an allowed foreign Action call. The copied PHPStan rules do not validate these input contracts automatically.
 - Transports convert typed Entities/Parameters/Enums along the declared module graph;
   they may use their own repositories but never foreign Domain, Repositories or
   Infrastructure. Domain/UseCases/Repositories use local Transports; Entities,
@@ -269,12 +268,12 @@ Only Domain Actions/Services may use foreign Domain/data, along these directions
 | Notification | Watcher |
 | Mcp | Service, Watcher, Trace, Logs, Setting |
 
-Other modules have no foreign business dependencies by default. New modules are
-collected automatically and require an explicit edge. Providers, Infrastructure
+These are business-code conventions. The copied module matrix discovers modules
+automatically and permits cross-module Domain/Objects dependencies as PMS does. Providers, Infrastructure
 and UseCases may use the Events/Exceptions of their declared integrations, but
 not foreign Entities, Parameters or services. There are no MCP bridge exceptions.
 
-Model ownership is explicit in the module config. In particular,
+Model ownership remains a code convention, not an additional copied module collector. In particular,
 `Models/Traces/TraceMetric` belongs to Dashboard and
 `Models/Traces/TraceClearingProcess` belongs to Cleaner. Shared abstract Models
 belong to Common. Models do not depend on module enums; repositories map storage
@@ -368,8 +367,8 @@ frequencies and the separate scheduled commands/SConcur tasks remain unchanged.
 
 ## Change Rules
 
-- Treat `code-analyse/deptrac-layers.yaml` as an architectural constraint, not as documentation-only. New code in `app/Modules` must fit the declared layers or the deptrac config must be explicitly updated.
-- Put adapters inside the relevant nested `Infrastructure` directory. Module providers and the base in `Infrastructure/Providers` have a dedicated composition layer; both forms are checked by Deptrac.
+- Treat `code-analyse/deptrac/deptrac-layers.yaml` as an architectural constraint, not as documentation-only. New code in `app/Modules` must fit the declared layers or the deptrac config must be explicitly updated.
+- Put adapters inside the relevant nested `Infrastructure` directory. Module providers and the base in `Infrastructure/Providers` retain their placement; the copied Deptrac collectors do not define a dedicated provider layer.
 - Changes in backend business logic should usually stay inside the relevant module instead of leaking into controllers or unrelated services.
 - `frontend/src/api-schema` is generated code. Prefer regenerating it instead of editing it manually.
 - Domain events are domain logic. If a flow needs to trigger queues or other framework integrations, emit a domain event first and handle infrastructure side effects in listeners.

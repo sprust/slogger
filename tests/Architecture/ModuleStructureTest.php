@@ -4,7 +4,6 @@ declare (strict_types=1);
 
 namespace Tests\Architecture;
 
-use CodeAnalyse\Architecture\ModuleStructure;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -15,7 +14,7 @@ class ModuleStructureTest extends TestCase
     {
         self::assertSame(
             [],
-            (new ModuleStructure())->errors(__DIR__ . '/../../app/Modules')
+            $this->errors(__DIR__ . '/../../app/Modules')
         );
     }
 
@@ -38,7 +37,7 @@ class ModuleStructureTest extends TestCase
         try {
             self::assertSame(
                 [],
-                (new ModuleStructure())->errors($root)
+                $this->errors($root)
             );
 
             $filesystem->mkdir(
@@ -68,7 +67,7 @@ class ModuleStructureTest extends TestCase
             $process = new Process(
                 command: [
                     PHP_BINARY,
-                    __DIR__ . '/../../code-analyse/modules-structure.php',
+                    __DIR__ . '/../../code-analyse/module-structure/modules-structure.php',
                     $root,
                 ],
             );
@@ -112,5 +111,24 @@ class ModuleStructureTest extends TestCase
         } finally {
             $filesystem->remove($root);
         }
+    }
+
+    /** @return list<string> */
+    private function errors(string $root): array
+    {
+        $process = new Process([
+            PHP_BINARY,
+            __DIR__ . '/../../code-analyse/module-structure/modules-structure.php',
+            $root,
+        ]);
+        $process->run();
+
+        self::assertSame(
+            expected: 0,
+            actual: $process->getExitCode(),
+            message: $process->getErrorOutput()
+        );
+
+        return [];
     }
 }

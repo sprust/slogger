@@ -31,9 +31,7 @@ use const T_PLUS_EQUAL;
  *               php-cs-fixer marks its tokenizer and base fixer classes as @internal,
  *               yet they are the only API a custom fixer can be built on
  */
-class MultilineAssignmentFixer extends AbstractFixer implements
-    ConfigurableFixerInterface,
-    WhitespacesAwareFixerInterface
+final class MultilineAssignmentFixer extends AbstractFixer implements ConfigurableFixerInterface, WhitespacesAwareFixerInterface
 {
     /** @use ConfigurableFixerTrait<_Config, _Config> */
     use ConfigurableFixerTrait;
@@ -57,9 +55,7 @@ class MultilineAssignmentFixer extends AbstractFixer implements
     public function getDefinition(): FixerDefinitionInterface
     {
         return new FixerDefinition(
-            ('An assigned expression whose first operand already spans several '
-                . 'lines MUST start on a line of its own, with every operand lined '
-                . 'up under it.'),
+            'An assigned expression whose first operand already spans several lines MUST start on a line of its own, with every operand lined up under it.',
             [
                 new CodeSample(
                     "<?php\n\$manualEdit = !\$this->isSame(\n    \$left,\n    \$right\n)\n    || \$other;\n",
@@ -84,35 +80,25 @@ class MultilineAssignmentFixer extends AbstractFixer implements
 
     protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([$this->excludedPathsOption()]);
+        return new FixerConfigurationResolver([
+            $this->excludedPathsOption(),
+        ]);
     }
 
     protected function applyFix(SplFileInfo $file, Tokens $tokens): void
     {
         for ($index = 0; $index < $tokens->count(); ++$index) {
-            if (
-                !$tokens[$index]->equals('=')
-                && !$tokens[$index]->isGivenKind(self::ASSIGNMENT_OPERATORS)
-            ) {
+            if (!$tokens[$index]->equals('=') && !$tokens[$index]->isGivenKind(self::ASSIGNMENT_OPERATORS)) {
                 continue;
             }
 
             $endIndex = $this->findStatementEnd($tokens, $index);
 
-            if (
-                null === $endIndex
-                || !$this->operandsAreTornApart($tokens, $index, $endIndex)
-            ) {
+            if (null === $endIndex || !$this->operandsAreTornApart($tokens, $index, $endIndex)) {
                 continue;
             }
 
-            $this->wrapBlock(
-                $tokens,
-                $index,
-                $endIndex,
-                itemsSeparatedByComma: false,
-                closeOnItsOwnLine: false
-            );
+            $this->wrapBlock($tokens, $index, $endIndex, itemsSeparatedByComma: false, closeOnItsOwnLine: false);
         }
     }
 
@@ -157,16 +143,13 @@ class MultilineAssignmentFixer extends AbstractFixer implements
      */
     private function operandsAreTornApart(Tokens $tokens, int $operatorIndex, int $endIndex): bool
     {
-        $depth                   = 0;
+        $depth = 0;
         $firstOperandIsMultiline = false;
 
         for ($index = $operatorIndex + 1; $index < $endIndex; ++$index) {
             $token = $tokens[$index];
 
-            if (
-                $token->isWhitespace()
-                && str_contains($token->getContent(), "\n")
-            ) {
+            if ($token->isWhitespace() && str_contains($token->getContent(), "\n")) {
                 if (0 === $depth) {
                     return $firstOperandIsMultiline;
                 }

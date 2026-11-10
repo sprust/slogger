@@ -14,201 +14,14 @@ class DeptracTest extends TestCase
     /** @return iterable<string, array{string, string, string, bool}> */
     public static function dependencies(): iterable
     {
-        yield 'domain uses transport' => [
-            'layers',
-            'Mcp/Domain/Actions/ReadAction',
-            'Mcp/Transports/IncidentObjectTransport',
-            true,
-        ];
-
-        yield 'transport uses data' => [
-            'layers',
-            'Mcp/Transports/IncidentObjectTransport',
-            'Watcher/Entities/IncidentObject',
-            true,
-        ];
-
-        yield 'transport cannot call domain' => [
-            'layers',
-            'Mcp/Transports/IncidentObjectTransport',
-            'Watcher/Domain/Actions/ReadAction',
-            false,
-        ];
-
-        yield 'transport cannot call infrastructure' => [
-            'layers',
-            'Mcp/Transports/IncidentObjectTransport',
-            'Watcher/Infrastructure/Adapter',
-            false,
-        ];
-
-        yield 'entity cannot call transport' => [
-            'layers',
-            'Mcp/Entities/IncidentObject',
-            'Mcp/Transports/IncidentObjectTransport',
-            false,
-        ];
-
-        yield 'infrastructure cannot call transport' => [
-            'layers',
-            'Mcp/Infrastructure/Adapter',
-            'Mcp/Transports/IncidentObjectTransport',
-            false,
-        ];
-
-        yield 'transport declared foreign data' => [
-            'modules',
-            'Mcp/Transports/IncidentObjectTransport',
-            'Watcher/Entities/IncidentObject',
-            true,
-        ];
-
-        yield 'transport reverse data forbidden' => [
-            'modules',
-            'Watcher/Transports/IncidentObjectTransport',
-            'Notification/Entities/IncidentObject',
-            false,
-        ];
-
-        yield 'transport foreign repository forbidden' => [
-            'modules',
-            'Mcp/Transports/IncidentObjectTransport',
-            'Watcher/Repositories/ExampleRepository',
-            false,
-        ];
-
-        yield 'transport foreign domain forbidden' => [
-            'modules',
-            'Mcp/Transports/IncidentObjectTransport',
-            'Watcher/Domain/Actions/ReadAction',
-            false,
-        ];
-
-        yield 'common transport no reverse edge' => [
-            'modules',
-            'Common/Transports/IncidentObjectTransport',
-            'Watcher/Entities/IncidentObject',
-            false,
-        ];
-
-        yield 'provider binds repository' => [
-            'layers',
-            'Watcher/Infrastructure/WatcherServiceProvider',
-            'Watcher/Repositories/ExampleRepository',
-            true,
-        ];
-
-        yield 'root infrastructure is collected' => [
-            'layers',
-            'Watcher/Infrastructure/Adapter',
-            'Watcher/Repositories/ExampleRepository',
-            false,
-        ];
-
-        yield 'enum cannot query repository' => [
-            'layers',
-            'Watcher/Enums/ExampleEnum',
-            'Watcher/Repositories/ExampleRepository',
-            false,
-        ];
-
-        yield 'common entities cannot query domain' => [
-            'layers',
-            'Common/Entities/ExampleObject',
-            'Common/Domain/Actions/ReadAction',
-            false,
-        ];
-
-        yield 'usecase cannot query repository' => [
-            'layers',
-            'Watcher/Domain/UseCases/ReadUseCase',
-            'Watcher/Repositories/ExampleRepository',
-            false,
-        ];
-
-        yield 'allowed integration' => [
-            'modules',
-            'Watcher/Domain/Actions/ReadAction',
-            'Trace/Domain/Actions/ReadAction',
-            true,
-        ];
-
-        yield 'foreign repository' => [
-            'modules',
-            'Watcher/Domain/Actions/ReadAction',
-            'Trace/Repositories/ExampleRepository',
-            false,
-        ];
-
-        yield 'foreign infrastructure' => [
-            'modules',
-            'Watcher/Infrastructure/Adapter',
-            'Trace/Infrastructure/Adapter',
-            false,
-        ];
-
-        yield 'reverse integration' => [
-            'modules',
-            'Watcher/Domain/Actions/ReadAction',
-            'Notification/Domain/Actions/ReadAction',
-            false,
-        ];
-
-        yield 'new module defaults closed' => [
-            'modules',
-            'NewModule/Domain/Actions/ReadAction',
-            'Trace/Domain/Actions/ReadAction',
-            false,
-        ];
-
-        yield 'event integration' => [
-            'modules',
-            'Notification/Infrastructure/Listener',
-            'Watcher/Domain/Events/ChangedEvent',
-            true,
-        ];
-
-        yield 'event is not entire domain' => [
-            'modules',
-            'Notification/Infrastructure/Listener',
-            'Watcher/Domain/Actions/ReadAction',
-            false,
-        ];
-
-        yield 'provider cannot bind foreign service' => [
-            'modules',
-            'Notification/Infrastructure/NotificationServiceProvider',
-            'Watcher/Domain/Services/Registry',
-            false,
-        ];
-
-        yield 'base provider is collected' => [
-            'layers',
-            'Common/Infrastructure/Providers/BaseServiceProvider',
-            'Common/Domain/Services/DispatcherInterface',
-            true,
-        ];
-
-        yield 'nested provider cannot bind foreign service' => [
-            'modules',
-            'Notification/Infrastructure/Providers/NotificationServiceProvider',
-            'Watcher/Domain/Services/Registry',
-            false,
-        ];
-
-        yield 'local dto cannot hold foreign dto' => [
-            'modules',
-            'Mcp/Entities/ExampleObject',
-            'Trace/Entities/ExampleObject',
-            false,
-        ];
-
-        yield 'common has no reverse edge' => [
-            'modules',
-            'Common/Domain/Actions/ReadAction',
-            'Trace/Domain/Actions/ReadAction',
-            false,
-        ];
+        yield 'domain uses repository' => ['layers', 'Mcp/Domain/Actions/ReadAction', 'Mcp/Repositories/TraceRepository', true];
+        yield 'transport uses entity' => ['layers', 'Mcp/Transports/TraceTransport', 'Trace/Entities/TraceObject', true];
+        yield 'transport cannot call domain' => ['layers', 'Mcp/Transports/TraceTransport', 'Trace/Domain/Actions/ReadAction', false];
+        yield 'entity cannot call transport' => ['layers', 'Mcp/Entities/TraceObject', 'Mcp/Transports/TraceTransport', false];
+        yield 'infrastructure cannot call transport' => ['layers', 'Mcp/Infrastructure/Http/Controller', 'Mcp/Transports/TraceTransport', false];
+        yield 'foreign domain integration' => ['modules', 'Mcp/Domain/Actions/ReadAction', 'Trace/Domain/Actions/ReadAction', true];
+        yield 'foreign repository forbidden' => ['modules', 'Mcp/Repositories/TraceRepository', 'Trace/Repositories/TraceRepository', false];
+        yield 'foreign infrastructure forbidden' => ['modules', 'Mcp/Infrastructure/Http/Controller', 'Trace/Infrastructure/Http/Controller', false];
     }
 
     #[DataProvider('dependencies')]
@@ -223,7 +36,7 @@ class DeptracTest extends TestCase
 
         $filesystem->mkdir(
             dirs: [
-                $root . '/code-analyse',
+                $root . '/code-analyse/deptrac',
                 $root . '/app/Models',
                 $root . '/app/Providers',
             ],
@@ -233,8 +46,8 @@ class DeptracTest extends TestCase
         $filename  = "deptrac-{$config}.{$extension}";
 
         $filesystem->copy(
-            originFile: __DIR__ . '/../../code-analyse/' . $filename,
-            targetFile: $root . '/code-analyse/' . $filename,
+            originFile: __DIR__ . '/../../code-analyse/deptrac/' . $filename,
+            targetFile: $root . '/code-analyse/deptrac/' . $filename,
         );
 
         $targetClass = 'App\Modules\\'
@@ -259,7 +72,7 @@ class DeptracTest extends TestCase
                     PHP_BINARY,
                     __DIR__ . '/../../vendor/bin/deptrac',
                     'analyse',
-                    '--config-file=' . $root . '/code-analyse/' . $filename,
+                    '--config-file=' . $root . '/code-analyse/deptrac/' . $filename,
                     '--no-progress',
                     '--no-cache',
                 ],

@@ -13,9 +13,14 @@ use PhpCsFixer\FixerConfiguration\FixerConfigurationResolverInterface;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
-use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Tokens;
 use SplFileInfo;
+use const T_ELSEIF;
+use const T_FOR;
+use const T_FOREACH;
+use const T_IF;
+use const T_SWITCH;
+use const T_WHILE;
 
 /**
  * @phpstan-type _Config array{excluded_paths: list<string>}
@@ -26,27 +31,27 @@ use SplFileInfo;
  *               php-cs-fixer marks its tokenizer and base fixer classes as @internal,
  *               yet they are the only API a custom fixer can be built on
  */
-class MultilineArrayBracketsFixer extends AbstractFixer implements
-    ConfigurableFixerInterface,
-    WhitespacesAwareFixerInterface
+final class MultilineControlStructureConditionFixer extends AbstractFixer implements ConfigurableFixerInterface, WhitespacesAwareFixerInterface
 {
     /** @use ConfigurableFixerTrait<_Config, _Config> */
     use ConfigurableFixerTrait;
     use ExcludedPathsTrait;
     use MultilineBlockTrait;
 
+    private const array CONTROL_STRUCTURES = [T_IF, T_ELSEIF, T_WHILE, T_SWITCH, T_FOR, T_FOREACH];
+
     public function getName(): string
     {
-        return 'Ifksco/multiline_array_brackets';
+        return 'Ifksco/multiline_control_structure_condition';
     }
 
     public function getDefinition(): FixerDefinitionInterface
     {
         return new FixerDefinition(
-            'An array holding anything multiline MUST have its brackets on lines of their own.',
+            'A control structure condition spanning several lines MUST start on its own line and have its closing parenthesis on a line of its own.',
             [
                 new CodeSample(
-                    "<?php\n\$expected = [self::expected(\n    \$purpose,\n    '2025-01-01'\n)];\n",
+                    "<?php\nif (!preg_match(\n    '~^/video/~',\n    \$path,\n    \$matches\n)) {\n    return null;\n}\n",
                 ),
             ],
         );
@@ -54,44 +59,45 @@ class MultilineArrayBracketsFixer extends AbstractFixer implements
 
     /**
      * Must run after Ifksco/multiline_method_arguments (31), which is what turns a call
-     * inside the array into a multiline one, and before array_indentation (29).
+     * inside the condition into a multiline one in the first place.
      */
     public function getPriority(): int
     {
-        return 30;
+        return 28;
     }
 
     public function isCandidate(Tokens $tokens): bool
     {
-        return $tokens->isTokenKindFound(CT::T_ARRAY_BRACKET_OPEN);
+        return $tokens->isAnyTokenKindsFound(self::CONTROL_STRUCTURES);
     }
 
     protected function createConfigurationDefinition(): FixerConfigurationResolverInterface
     {
-        return new FixerConfigurationResolver([$this->excludedPathsOption()]);
+        return new FixerConfigurationResolver([
+            $this->excludedPathsOption(),
+        ]);
     }
 
     protected function applyFix(SplFileInfo $file, Tokens $tokens): void
     {
-        // Going forward wraps an outer array before the ones nested in it, so a nested array
-        // is lined up against the line it has just been moved to.
         for ($index = 0; $index < $tokens->count(); ++$index) {
-            if (!$tokens[$index]->isGivenKind(CT::T_ARRAY_BRACKET_OPEN)) {
+            if (!$tokens[$index]->isGivenKind(self::CONTROL_STRUCTURES)) {
                 continue;
             }
 
-            $closeIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_ARRAY_BRACKET, $index);
+            $openIndex = $tokens->getNextMeaningfulToken($index);
 
-            if (!$this->isMultilineBlock($tokens, $index, $closeIndex)) {
+            if (null === $openIndex || !$tokens[$openIndex]->equals('(')) {
                 continue;
             }
 
-            $this->wrapBlock(
-                $tokens,
-                $index,
-                $closeIndex,
-                itemsSeparatedByComma: true
-            );
+            $closeIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS, $openIndex);
+
+            if (!$this->isMultilineBlock($tokens, $openIndex, $closeIndex)) {
+                continue;
+            }
+
+            $this->wrapBlock($tokens, $openIndex, $closeIndex, itemsSeparatedByComma: false);
         }
     }
 }

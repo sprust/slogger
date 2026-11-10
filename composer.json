@@ -46,7 +46,7 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/",
-            "CodeAnalyse\\": "code-analyse/"
+            "CodeAnalyse\\PhpStan\\": "code-analyse/phpstan/"
         }
     },
     "scripts": {

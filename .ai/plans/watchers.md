@@ -3,7 +3,7 @@
 Ветка: `feature/watchers`.
 
 Сверено с кодом ветки: `app/Modules/**`, `app/Models/**`, `config/sconcur.php`,
-`config/database.php`, `code-analyse/deptrac-layers.yaml`, `routes/admin-api.php`,
+`config/database.php`, `code-analyse/deptrac/deptrac-layers.yaml`, `routes/admin-api.php`,
 `database/migrations/**`, `frontend/src/**`, `servers/receiver/**`.
 
 ## Цель

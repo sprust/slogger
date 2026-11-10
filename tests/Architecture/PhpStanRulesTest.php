@@ -10,7 +10,7 @@ use Symfony\Component\Process\Process;
 
 class PhpStanRulesTest extends TestCase
 {
-    public function testInputContractsAndDomainDependencies(): void
+    public function testMultilineArrayKey(): void
     {
         $root       = sys_get_temp_dir() . '/slogger-stan-' . bin2hex(random_bytes(8));
         $filesystem = new Filesystem();
@@ -21,63 +21,22 @@ class PhpStanRulesTest extends TestCase
 
         $filesystem->dumpFile(
             filename: $root . '/fixture.php',
-            content: <<<'SOURCE'
-            <?php
-            namespace App\Modules\Trace\Parameters {
-                class Filter {}
-            }
-            namespace App\Modules\Mcp\Parameters {
-                class Inherited extends \App\Modules\Trace\Parameters\Filter {}
-                class Nested { public \App\Modules\Trace\Parameters\Filter $filter; }
-                class Local { public string $value; }
-            }
-            namespace App\Modules\Mcp\Domain\Actions {
-                use App\Modules\Trace\Parameters\Filter as Alias;
-                class Direct { public function handle(Alias $filter): void {} }
-                class Union { public function handle(Alias|string $filter): void {} }
-                class Child { public function handle(\App\Modules\Mcp\Parameters\Inherited $filter): void {} }
-                class Nested { public function handle(\App\Modules\Mcp\Parameters\Nested $filter): void {} }
-                class Generic {
-                    /** @param array<string, Alias> $filters */
-                    public function handle(array $filters): void {}
-                }
-                /** @phpstan-type Filters array<string, Alias> */
-                class TypeAlias {
-                    /** @param Filters $filters */
-                    public function handle(array $filters): void {}
-                }
-                class Allowed {
-                    public function handle(\App\Modules\Mcp\Parameters\Local $filter): void { $foreign = new Alias(); }
-                }
-            }
-            namespace App\Modules\Mcp\Repositories {
-                class FirstRepository { public function read(): void {} }
-                class SecondRepository { public function read(): void { (new FirstRepository())->read(); } }
-                class MappingService {}
-                class AllowedRepository { public function read(): void { new MappingService(); } }
-            }
-            namespace App\Modules\Mcp\Domain\UseCases {
-                class OtherUseCase { public function handle(): void {} }
-                class RepositoryUseCase { public function handle(): void { (new \App\Modules\Mcp\Repositories\FirstRepository())->read(); } }
-                class NestedUseCase { public function handle(): void { (new OtherUseCase())->handle(); } }
-            }
-            SOURCE,
+            content: <<<'PHP_FIXTURE'
+                <?php
+                $values = ['key' => 1];
+                $invalid = $values[
+                    strtolower(
+                        'KEY'
+                    )
+                ];
+                $key = strtolower('KEY');
+                $valid = $values[$key];
+                PHP_FIXTURE,
         );
-
         $filesystem->dumpFile(
             filename: $root . '/phpstan.neon',
-            content: <<<'CONFIG'
-            parameters:
-                level: 0
-            services:
-                - CodeAnalyse\PHPStan\ModuleTypes
-                -
-                    class: CodeAnalyse\PHPStan\InputParametersRule
-                    tags: [phpstan.rules.rule]
-                -
-                    class: CodeAnalyse\PHPStan\DomainDependencyRule
-                    tags: [phpstan.rules.rule]
-            CONFIG,
+            content: "parameters:\n    level: 0\n    bootstrapFiles: [" . dirname(__DIR__, 2)
+                . "/vendor/autoload.php]\nrules:\n    - CodeAnalyse\\PhpStan\\NoMultilineArrayKeyRule\n",
         );
 
         try {
@@ -108,48 +67,14 @@ class PhpStanRulesTest extends TestCase
                 flags: JSON_THROW_ON_ERROR,
             );
             $messages = $result['files'][$root . '/fixture.php']['messages'];
-            $inputs   = array_filter(
-                $messages,
-                static fn(
-                    array $message
-                ): bool => $message['identifier'] === 'architecture.foreignParameters',
-            );
 
             self::assertCount(
-                6,
-                $inputs,
-                $process->getOutput()
+                expectedCount: 1,
+                haystack: $messages
             );
-
-            $dependencies = array_filter(
-                $messages,
-                static fn(
-                    array $message
-                ): bool => $message['identifier'] === 'architecture.domainDependency',
-            );
-
-            self::assertNotEmpty(
-                $dependencies
-            );
-
-            $text = implode("\n", array_column($dependencies, 'message'));
-
-            foreach (['SecondRepository', 'RepositoryUseCase', 'NestedUseCase'] as $invalid) {
-                self::assertStringContainsString(
-                    $invalid,
-                    $text
-                );
-            }
-
-            self::assertStringNotContainsString(
-                'Allowed',
-                $process->getOutput()
-            );
-
-            self::assertCount(
-                count($inputs) + count($dependencies),
-                $messages,
-                $process->getOutput()
+            self::assertSame(
+                expected: 'ifksco.multilineArrayKey',
+                actual: $messages[0]['identifier']
             );
         } finally {
             $filesystem->remove($root);

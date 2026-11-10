@@ -48,7 +48,7 @@ line ~ /^[ \t]*[0-9]+\/[0-9]+ \[/ {
 
 # file header: 1) path/to/File.php (rule_one, rule_two)
 line ~ /^[ \t]*[0-9]+\)[ \t]/ {
-    gsub(/code-analyse\/\.\.\//, "", line)
+    gsub(/code-analyse\/cs-fixer\/\.\.\/\.\.\//, "", line)
 
     if (match(line, /\([^()]*\)$/)) {
         head = substr(line, 1, RSTART - 1)

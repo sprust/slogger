@@ -34,45 +34,26 @@
 
 ## Decisions
 
-### 1. Два измерения Deptrac и отдельная проверка контрактов
+### 1. Исходные проверки PMS (уточнение пользователя 2026-11-10)
 
-Сохраняем `code-analyse/deptrac-layers.yaml` и добавляем `code-analyse/deptrac-modules.php`. Оба входят в существующий `code-analise-deptrac`; `make check` продолжает вызывать его через `code-analise`.
+Подключаются перенесённые пользователем code-analyse/deptrac/deptrac-layers.yaml,
+code-analyse/deptrac/deptrac-modules.php, code-analyse/phpstan/phpstan.neon,
+code-analyse/cs-fixer/.php-cs-fixer.dist.php и standalone module-structure CLI.
+Алгоритмы/матрицы и флаги проверок PMS не переделываются. Адаптация ограничена
+путями, autoload, списком существующих shared modules и unmatched ignore patterns.
 
-В слои включаем Enums, Domain/Events, Domain/Exceptions и провайдеры. Events/Exceptions выделяем как контракты интеграции, а не исключаем из анализа целиком. Для провайдеров вводим отдельный слой сборки: он может связывать собственные Domain, Repositories и Infrastructure, общие контракты и слушаемые события, но не регистрировать чужие бизнес-команды. `ModulesConfig` и глобальные Laravel providers — явные точки подключения модулей. Common проверяется по слоям и не получает обратных зависимостей на бизнес-модули.
+Исходная матрица различает Adapter/Domain/Entities/Parameters/Transports/Repositories/
+Infrastructure/Models. Модульная матрица исключает Common, разрешает Domain доступ
+к чужому Domain/Objects и запрещает чужие Repositories/Infrastructure согласно PMS.
+Providers в корне Infrastructure и Enums не получают придуманных отдельных collectors.
+NoMultilineArrayKeyRule — единственное дополнительное PHPStan-правило. Удалённые
+InputParametersRule/DomainDependencyRule и line-length check не восстанавливаются.
+Ранее согласованные бизнес-ограничения проверяются ревью; скопированные инструменты
+не объявляются обеспечивающими больше, чем действительно проверяют.
 
-Основные зависимости:
-
-| Источник | Разрешённые зависимости |
-| --- | --- |
-| Entities / Parameters | Собственные объекты и enum, разрешённые общие типы данных; Parameters также используют собственные Entities |
-| Enums | Собственные/общие типы данных, без обращений к хранилищам и адаптерам |
-| Repositories | Собственные Entities, Parameters, Enums, DTO/сервисы маппинга, собственные Models и текущие клиенты хранения |
-| Domain Actions / Services | Собственные Domain, Entities, Parameters, Repositories; чужой Domain и его DTO только по разрешённому направлению |
-| Domain UseCases | Actions и Services, собственные данные; без прямых Repositories и других UseCases |
-| Infrastructure | Свой Domain и свои объекты; общая Infrastructure, контракты событий/исключений разрешённых интеграций |
-| Providers | Свои слои для регистрации и явно выделенные общие зависимости; чужие бизнес-сервисы напрямую не связывают |
-
-В межмодульном конфиге модули обнаруживаются автоматически. Направления бизнес-вызовов фиксируются явно:
-
-| Модуль | Разрешённый чужой Domain |
-| --- | --- |
-| Auth | User |
-| Cleaner | Trace, Setting |
-| Logs | Setting |
-| Trace | Service |
-| Watcher | Trace, Logs, Auth |
-| Notification | Watcher |
-| Mcp | Service, Watcher, Trace, Logs, Setting |
-
-Остальные модули не получают бизнес-зависимостей по умолчанию. `Logs → Cleaner` исчезает после удаления повторной регистрации команды. Общие типы и интеграционные события имеют отдельные правила, а не разрешение `все → все`. Постоянных послаблений для Auth или Setting в Infrastructure не вводим: собственный Action/UseCase скрывает интеграцию.
-
-Владение Models задаём явно, а не по совпадению имени каталога: `Models/Traces/TraceMetric` обслуживается Dashboard, `Models/Traces/TraceClearingProcess` — Cleaner. Расположение этих моделей не требует переноса ради имени модуля; проверка учитывает их фактического владельца.
-
-Для проверки дерева каталогов адаптируем подход `CodeAnalyseModulesStructureCommand` PMS: сохраняем `Enums`, `Repositories/Dto`, `Infrastructure/Tasks`, разрешаем `Domain/UseCases`; не добавляем пустые каталоги и не переименовываем Enums в Enum ради совпадения.
-
-Для входных типов Actions/UseCases используем правила PHPStan в `code-analyse` с подключением в `phpstan.neon`: различаем создание чужого Parameters внутри метода и его использование на входе. Проверяем aliases, наследование, unions, PHPDoc generics и вложенные DTO. Отдельно запрещаем зависимости UseCase → Repository/UseCase и repository → другой repository; внутрислойное разрешение Deptrac не должно обходить эти правила. Отрицательные примеры проверяют реальные нарушения, положительные — разрешённые интеграции.
-
-Альтернатива — копирование PMS-конфига целиком — отклонена: он допускает любой Domain → Domain, исключает Common и не решает все ограничения входных сигнатур.
+PHPStan охватывает app/tests/seeders с checkUninitializedProperties и
+ treatPhpDocTypesAsCertain:false. Найденные ошибки типов исправляются в коде,
+а не маскируются baseline или новыми глобальными исключениями.
 
 ### 2. Собственные DTO и модульные Transports
 

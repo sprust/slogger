@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CodeAnalyse\PHPStan;
+namespace CodeAnalyse\PhpStan;
 
 use PhpParser\Node;
 use PhpParser\Node\ArrayItem;
@@ -14,7 +14,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * @implements Rule<Node>
  */
-class NoMultilineArrayKeyRule implements Rule
+final class NoMultilineArrayKeyRule implements Rule
 {
     public function getNodeType(): string
     {
@@ -25,8 +25,8 @@ class NoMultilineArrayKeyRule implements Rule
     {
         $key = match (true) {
             $node instanceof ArrayDimFetch => $node->dim,
-            $node instanceof ArrayItem     => $node->key,
-            default                        => null,
+            $node instanceof ArrayItem => $node->key,
+            default => null,
         };
 
         if (null === $key || $key->getStartLine() === $key->getEndLine()) {
@@ -36,9 +36,7 @@ class NoMultilineArrayKeyRule implements Rule
         return [
             RuleErrorBuilder::message('Array key spans several lines; extract it into a variable.')
                 ->identifier('ifksco.multilineArrayKey')
-                ->line(
-                    $key->getStartLine()
-                )
+                ->line($key->getStartLine())
                 ->build(),
         ];
     }

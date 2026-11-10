@@ -355,7 +355,7 @@ nginx-логи на проде могут лежать вне `base_path()`.
 
 ## Бэкенд
 
-Модуль `Logs`, слои по `code-analyse/deptrac-layers.yaml`.
+Модуль `Logs`, слои по `code-analyse/deptrac/deptrac-layers.yaml`.
 
 - `Enums`: `LogTypeEnum`, `LaravelLogLevelEnum`, `NginxErrorLevelEnum`,
   `HttpStatusClassEnum`, `LogCursorDirectionEnum`.

@@ -25,10 +25,4 @@ yarn-error.log
 
 app/Console/Commands/Local
 
-.deptrac.cache
-
 storage/slogger
-
-.php-cs-fixer.cache
-
-.php-cs-fixer.cache.*
