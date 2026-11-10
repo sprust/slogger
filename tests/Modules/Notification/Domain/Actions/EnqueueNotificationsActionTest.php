@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Notification\Domain\Actions;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use App\Modules\Notification\Domain\Actions\Mutations\EnqueueNotificationsAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelAction;
 use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
@@ -29,7 +30,7 @@ class EnqueueNotificationsActionTest extends TestCase
 
     use NotificationFactoryTrait;
 
-    private Dispatcher $events;
+    private Dispatcher&MockObject $events;
 
     protected function setUp(): void
     {
@@ -491,6 +492,7 @@ class EnqueueNotificationsActionTest extends TestCase
         );
     }
 
+    /** @param NotificationRepository&MockObject $repository */
     private function action(
         NotificationRepository $repository,
         ?ChannelObject $channel

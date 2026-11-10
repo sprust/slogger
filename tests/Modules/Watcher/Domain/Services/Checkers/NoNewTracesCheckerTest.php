@@ -122,6 +122,7 @@ class NoNewTracesCheckerTest extends TestCase
         );
     }
 
+    /** @param array<int, int> $bucketsAtMinutesAgo */
     private function check(
         array $bucketsAtMinutesAgo,
         ?Carbon $collectSince = null,
@@ -159,9 +160,15 @@ class NoNewTracesCheckerTest extends TestCase
             collectSince: $collecting ? $collectSince ?? $now->clone()->subHour() : null
         );
 
-        return new NoNewTracesChecker($repository, new WatcherTimelineAnalyzer())->check(
+        $payload = new NoNewTracesChecker($repository, new WatcherTimelineAnalyzer())->check(
             $watcher,
             new WatcherCheckContextObject($now, null)
         );
+
+        if ($payload !== null) {
+            self::assertInstanceOf(NoNewTracesEventPayloadObject::class, $payload);
+        }
+
+        return $payload;
     }
 }

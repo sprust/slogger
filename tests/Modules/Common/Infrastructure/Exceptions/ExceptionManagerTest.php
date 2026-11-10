@@ -33,7 +33,7 @@ class ExceptionManagerTest extends BaseModuleTestCase
             ],
             'log indexing'    => [new LogFileIndexingException('busy'), 409, 'message', 'busy'],
             'watcher'         => [new WatcherNotFoundException(7), 404, 'message', 'Watcher [7] not found'],
-            'unauthorized'    => [new AuthenticationFailedException(), 401, 'message', ''],
+            'unauthorized'    => [new AuthenticationFailedException(), 401, 'message', 'Authentication failed'],
             'dashboard cache' => [
                 new DatabaseStatCacheNotFoundException(),
                 503,
@@ -78,7 +78,7 @@ class ExceptionManagerTest extends BaseModuleTestCase
                 'error' => 'No data yet. Please wait for the first cache refresh.',
             ],
             actual: json_decode(
-                json: $response->getContent(),
+                json: ($response->getContent() ?: throw new RuntimeException('Missing JSON content')),
                 associative: true,
                 flags: JSON_THROW_ON_ERROR,
             )
@@ -143,7 +143,7 @@ class ExceptionManagerTest extends BaseModuleTestCase
         self::assertSame(
             expected: $message,
             actual: json_decode(
-                json: $response->getContent(),
+                json: ($response->getContent() ?: throw new RuntimeException('Missing JSON content')),
                 associative: true,
                 flags: JSON_THROW_ON_ERROR,
             )[$field]

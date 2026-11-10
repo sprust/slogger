@@ -4,6 +4,7 @@ declare (strict_types=1);
 
 namespace Tests\Modules\Mcp\Infrastructure\Tools;
 
+use RuntimeException;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceDataTool;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
@@ -73,8 +74,10 @@ class TraceDataParityTest extends TestCase
         );
 
         $trace = $this->app->make(FindTraceDetailAction::class)->handle('trace-parity');
+        self::assertNotNull($trace);
+
         $http  = json_decode(
-            json_encode(new TraceDataResource($trace->data), JSON_THROW_ON_ERROR),
+            (json_encode(new TraceDataResource($trace->data), JSON_THROW_ON_ERROR) ?: throw new RuntimeException('Missing JSON content')),
             true,
             512,
             JSON_THROW_ON_ERROR,

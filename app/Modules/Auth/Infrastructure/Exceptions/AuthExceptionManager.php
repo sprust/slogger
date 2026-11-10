@@ -7,6 +7,7 @@ namespace App\Modules\Auth\Infrastructure\Exceptions;
 use App\Modules\Auth\Domain\Exceptions\AuthenticationFailedException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class AuthExceptionManager extends BaseExceptionManager
@@ -19,11 +20,9 @@ class AuthExceptionManager extends BaseExceptionManager
             return null;
         }
 
-        $httpStatus = 401;
-
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
-            httpStatus: $httpStatus,
+            httpStatus: SymfonyResponse::HTTP_UNAUTHORIZED,
         );
     }
 
@@ -34,11 +33,17 @@ class AuthExceptionManager extends BaseExceptionManager
 
     protected function getDontReport(): array
     {
-        return [AuthenticationFailedException::class];
+        return [
+            AuthenticationFailedException::class,
+        ];
     }
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof AuthenticationFailedException) {
+            return 'Authentication failed';
+        }
+
+        return 'Forbidden';
     }
 }

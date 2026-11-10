@@ -11,7 +11,7 @@ class TraceDataToObjectBuilder
 {
     private const int FILTERABLE_LIST_DEPTH = 1;
 
-    private string $key;
+    private string $key = '';
 
     /**
      * @param array<array-key, mixed>|string|bool|int|float|null $data data that is not an

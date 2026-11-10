@@ -211,7 +211,7 @@ class ModuleDispatchRegistrationTest extends TestCase
         foreach ($schedule->events() as $event) {
             if (!$event instanceof CallbackEvent) {
                 foreach ($expectedCommands as $name => [$expression, $withoutOverlapping]) {
-                    if (str_contains($event->command, $name)) {
+                    if (str_contains($event->command ?? '', $name)) {
                         self::assertSame(
                             $expression,
                             $event->expression
@@ -229,7 +229,7 @@ class ModuleDispatchRegistrationTest extends TestCase
 
             if (
                 !$event instanceof CallbackEvent
-                || !array_key_exists($event->description, $expectedSchedules)
+                || !array_key_exists($event->description ?? '', $expectedSchedules)
             ) {
                 continue;
             }

@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Notification\Infrastructure\Jobs;
 
+use App\Modules\Notification\Domain\UseCases\SendNotificationUseCase;
 use App\Modules\Notification\Domain\Actions\Mutations\SendNotificationAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindNotificationAction;
@@ -142,7 +143,7 @@ class SendNotificationJobTest extends TestCase
         )->method('handle');
 
         (new SendNotificationJob('68be1f000000000000000001'))->handle(
-            new \App\Modules\Notification\Domain\UseCases\SendNotificationUseCase(
+            new SendNotificationUseCase(
                 sendNotificationAction: $sendAction,
                 findNotificationAction: $this->findNotificationAction(null),
                 findChannelAction: $this->createMock(FindChannelAction::class),
@@ -159,7 +160,7 @@ class SendNotificationJobTest extends TestCase
         )->method('handle');
 
         (new SendNotificationJob('68be1f000000000000000001'))->handle(
-            new \App\Modules\Notification\Domain\UseCases\SendNotificationUseCase(
+            new SendNotificationUseCase(
                 sendNotificationAction: $sendAction,
                 findNotificationAction: $this->findNotificationAction(
                     $this->notification(
@@ -184,7 +185,7 @@ class SendNotificationJobTest extends TestCase
     }
 
     /**
-     * @return array{FindNotificationAction, FindChannelAction, SendNotificationAction}
+     * @return array{SendNotificationUseCase}
      */
     private function dependencies(NotificationObject $notification, SendResultObject $result): array
     {
@@ -199,7 +200,7 @@ class SendNotificationJobTest extends TestCase
         $sendAction->method('handle')->willReturn($result);
 
         return [
-            new \App\Modules\Notification\Domain\UseCases\SendNotificationUseCase(
+            new SendNotificationUseCase(
                 sendNotificationAction: $sendAction,
                 findNotificationAction: $this->findNotificationAction($notification),
                 findChannelAction: $findChannelAction,

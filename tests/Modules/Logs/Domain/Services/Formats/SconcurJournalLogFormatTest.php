@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Formats;
 
+use RuntimeException;
 use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\SconcurJournalLogFormat;
 use App\Modules\Logs\Entities\Entry\LogEntryFieldObject;
@@ -22,7 +23,7 @@ class SconcurJournalLogFormatTest extends TestCase
             [
                 new LogEntryStartObject(
                     offset: 0,
-                    loggedAt: gmmktime(6, 30, 6, 10, 28, 2026),
+                    loggedAt: (gmmktime(6, 30, 6, 10, 28, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
                     level: SconcurJournalLogLevelEnum::Error->value
                 ),
             ],

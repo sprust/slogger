@@ -307,7 +307,7 @@ class RegisterTriggerActionTest extends TestCase
         );
 
         return new WatcherIncidentObject(
-            id: $id,
+            id: (string) $id,
             watcherId: 1,
             status: WatcherIncidentStatusEnum::Opened,
             firstEventAt: $now,

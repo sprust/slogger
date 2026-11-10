@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Common\Domain\Exceptions\MutexLockTimeoutException;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
 use ArrayObject;
@@ -177,7 +178,13 @@ class MutexManagerTest extends TestCase
 
     public function testATimeoutNamesTheKeyAndLeavesNothingToUnlock(): void
     {
-        $foreignLock = Cache::store('array')
+        $cacheStore = Cache::store('array')->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+
+        $foreignLock = $cacheStore
             ->lock('mutex:a', 10);
         $foreignLock->get();
 
@@ -223,6 +230,7 @@ class MutexManagerTest extends TestCase
 
     public function testHandlersRunOnceWhileTheLockIsHeld(): void
     {
+        /** @var ArrayObject<int, array<bool|string>> $calls */
         $calls = new ArrayObject();
 
         $mutex = $this->makeMutex(

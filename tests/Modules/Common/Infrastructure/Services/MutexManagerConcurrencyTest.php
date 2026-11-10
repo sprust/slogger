@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
 use ArrayObject;
 use Illuminate\Support\Facades\Cache;
@@ -34,7 +35,13 @@ class MutexManagerConcurrencyTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->keys as $key) {
-            Cache::store(self::STORE)->lock("mutex:$key")->forceRelease();
+            $cacheStore = Cache::store(self::STORE)->getStore();
+            self::assertInstanceOf(
+                LockProvider::class,
+                $cacheStore
+            );
+
+            $cacheStore->lock("mutex:$key")->forceRelease();
         }
 
         parent::tearDown();
@@ -58,9 +65,9 @@ class MutexManagerConcurrencyTest extends TestCase
                 $this->manager->lock($mutex);
 
                 try {
-                    ++$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) + 1;
 
-                    $state['maxInside'] = max($state['maxInside'], $state['inside']);
+                    $state['maxInside'] = max($state['maxInside'] ?? 0, $state['inside'] ?? 0);
 
                     $counter = $state['counter'];
 
@@ -68,7 +75,7 @@ class MutexManagerConcurrencyTest extends TestCase
 
                     $state['counter'] = $counter + 1;
 
-                    --$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) - 1;
                 } finally {
                     $this->manager->unlock($mutex);
                 }
@@ -98,6 +105,7 @@ class MutexManagerConcurrencyTest extends TestCase
     {
         $key = $this->makeKey();
 
+        /** @var ArrayObject<int, string> $order */
         $order = new ArrayObject();
 
         $this->runCoroutines(
@@ -239,13 +247,13 @@ class MutexManagerConcurrencyTest extends TestCase
                 $this->manager->lock($mutex);
 
                 try {
-                    ++$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) + 1;
 
-                    $state['maxInside'] = max($state['maxInside'], $state['inside']);
+                    $state['maxInside'] = max($state['maxInside'] ?? 0, $state['inside'] ?? 0);
 
                     Sleeper::usleep(50_000);
 
-                    --$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) - 1;
                 } finally {
                     $this->manager->unlock($mutex);
                 }

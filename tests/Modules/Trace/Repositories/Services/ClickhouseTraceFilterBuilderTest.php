@@ -160,6 +160,9 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
                 )
             );
 
+        if ($sql === '') {
+            self::fail('Expected SQL prefix must not be empty.');
+        }
         self::assertStringStartsWith(
             $sql,
             $condition->sql

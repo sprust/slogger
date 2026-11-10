@@ -8,8 +8,10 @@ use JsonSerializable;
 
 readonly class LoginParameters implements JsonSerializable
 {
-    public function __construct(public string $email, public string $password)
-    {
+    public function __construct(
+        public string $email,
+        public string $password,
+    ) {
     }
 
     /** @return array{email: string, password: string} */

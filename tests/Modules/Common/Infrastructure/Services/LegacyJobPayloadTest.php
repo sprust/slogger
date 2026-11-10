@@ -4,6 +4,8 @@ declare (strict_types=1);
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use LogicException;
+use RuntimeException;
 use App\Modules\Trace\Infrastructure\Jobs\BuildTraceTreeCacheJob;
 use App\Modules\Trace\Infrastructure\Jobs\DeleteTraceTreeCacheJob;
 use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
@@ -45,7 +47,7 @@ class LegacyJobPayloadTest extends TestCase
 
         // Serialized by the job classes from the planning commit 71ee8ec9, before implementation.
         $payloads = json_decode(
-            file_get_contents(__DIR__ . '/Fixtures/legacy-jobs.json'),
+            (file_get_contents(__DIR__ . '/Fixtures/legacy-jobs.json') ?: throw new RuntimeException('Missing JSON content')),
             true,
             512,
             JSON_THROW_ON_ERROR,
@@ -56,20 +58,21 @@ class LegacyJobPayloadTest extends TestCase
                 'allowed_classes' => [$class],
             ],
         );
-        $current = match ($class) {
-            BuildTraceTreeCacheJob::class => new BuildTraceTreeCacheJob(
+        $current = match (true) {
+            is_a($class, BuildTraceTreeCacheJob::class, true) => new BuildTraceTreeCacheJob(
                 rootTraceId: 'root',
                 version: 'version',
                 depth: 2,
                 afterId: 'cursor',
             ),
-            DeleteTraceTreeCacheJob::class => new DeleteTraceTreeCacheJob(
+            is_a($class, DeleteTraceTreeCacheJob::class, true) => new DeleteTraceTreeCacheJob(
                 rootTraceId: 'root',
                 buildVersion: 'version',
             ),
-            ClearTracesJob::class              => new ClearTracesJob(),
-            RefreshDatabaseStatCacheJob::class => new RefreshDatabaseStatCacheJob(),
-            SendNotificationJob::class         => new SendNotificationJob('incident-notification'),
+            is_a($class, ClearTracesJob::class, true)              => new ClearTracesJob(),
+            is_a($class, RefreshDatabaseStatCacheJob::class, true) => new RefreshDatabaseStatCacheJob(),
+            is_a($class, SendNotificationJob::class, true)         => new SendNotificationJob('incident-notification'),
+            default                                                => throw new LogicException("Unsupported job: $class"),
         };
 
         $this->assertSame(

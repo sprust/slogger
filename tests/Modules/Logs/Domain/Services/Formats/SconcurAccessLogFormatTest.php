@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Formats;
 
+use RuntimeException;
 use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\SconcurAccessLogFormat;
 use App\Modules\Logs\Entities\Entry\LogEntryFieldObject;
@@ -19,7 +20,7 @@ class SconcurAccessLogFormatTest extends TestCase
             [
                 new LogEntryStartObject(
                     offset: 0,
-                    loggedAt: gmmktime(11, 36, 40, 10, 28, 2026),
+                    loggedAt: (gmmktime(11, 36, 40, 10, 28, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
                     level: HttpStatusClassEnum::ServerError->value
                 ),
             ],
@@ -59,7 +60,7 @@ class SconcurAccessLogFormatTest extends TestCase
         $starts = $this->find("2026-10-28T11:36:40.900000 GET / 200 150.00ms http#0 pid=22\n");
 
         $this->assertSame(
-            gmmktime(11, 36, 41, 10, 28, 2026),
+            (gmmktime(11, 36, 41, 10, 28, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
             $starts[0]->loggedAt
         );
     }
@@ -73,7 +74,7 @@ class SconcurAccessLogFormatTest extends TestCase
         );
 
         $this->assertSame(
-            [gmmktime(12, 0, 5, 10, 28, 2026), gmmktime(12, 0, 20, 10, 28, 2026)],
+            [(gmmktime(12, 0, 5, 10, 28, 2026) ?: throw new RuntimeException('Invalid test timestamp')), (gmmktime(12, 0, 20, 10, 28, 2026) ?: throw new RuntimeException('Invalid test timestamp'))],
             array_map(static fn(LogEntryStartObject $start): ?int => $start->loggedAt, $starts)
         );
     }

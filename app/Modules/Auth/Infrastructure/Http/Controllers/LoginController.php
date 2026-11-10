@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Infrastructure\Http\Controllers;
 
+use App\Modules\Auth\Domain\Exceptions\AuthenticationFailedException;
 use App\Modules\Auth\Domain\UseCases\LoginByAdminUseCase;
 use App\Modules\Auth\Infrastructure\Http\Requests\LoginRequest;
 use App\Modules\Auth\Infrastructure\Http\Resources\LoggedUserResource;
@@ -16,9 +17,13 @@ readonly class LoginController
     {
     }
 
+    /**
+     * @throws AuthenticationFailedException
+     */
     public function __invoke(LoginRequest $request): LoggedUserResource
     {
         $validated  = $request->validated();
+
         $loggedUser = $this->loginByAdminUseCase->handle(
             new LoginParameters(
                 email: ArrayValueGetter::string(

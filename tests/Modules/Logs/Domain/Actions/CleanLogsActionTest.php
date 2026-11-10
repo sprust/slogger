@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Actions;
 
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Logs\Domain\Actions\CleanLogsAction;
 use App\Modules\Logs\Domain\Actions\IndexLogsAction;
 use App\Modules\Logs\Enums\LogTypeEnum;
@@ -140,11 +141,16 @@ class CleanLogsActionTest extends TestCase
 
         unlink($this->tempDir . '/logs/laravel-2026-08-01.log');
 
-        Cache::store('array')
-            ->lock(
-                'mutex:logs-index:' . sha1($this->tempDir . '/logs/laravel-2026-08-01.log'),
-                10
-            )
+        $cacheStore = Cache::store('array')->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+
+        $cacheStore->lock(
+            'mutex:logs-index:' . sha1($this->tempDir . '/logs/laravel-2026-08-01.log'),
+            10
+        )
             ->get();
 
         $result = $this->app->make(CleanLogsAction::class)->handle($this->now);

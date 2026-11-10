@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Infrastructure\Http;
 
+use RuntimeException;
 use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
@@ -47,17 +48,17 @@ class LogFileDeleteHttpTest extends TestCase
 
         $this->write(
             'logs/laravel-2026-09-24.log',
-            gmmktime(23, 0, 0, 9, 24, 2026)
+            (gmmktime(23, 0, 0, 9, 24, 2026) ?: throw new RuntimeException('Invalid test timestamp'))
         );
 
         $this->write(
             'logs/laravel-2026-09-25.log',
-            gmmktime(10, 0, 0, 9, 25, 2026)
+            (gmmktime(10, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp'))
         );
 
         $this->write(
             'logs/nginx/error.log',
-            gmmktime(9, 0, 0, 9, 20, 2026)
+            (gmmktime(9, 0, 0, 9, 20, 2026) ?: throw new RuntimeException('Invalid test timestamp'))
         );
     }
 

@@ -171,7 +171,7 @@ class SlowTracesCheckerTest extends TestCase
                 )
             );
 
-        return new SlowTracesChecker($repository, new WatcherTimelineAnalyzer())->check(
+        $payload = new SlowTracesChecker($repository, new WatcherTimelineAnalyzer())->check(
             $this->watcher(
                 WatcherTypeEnum::SlowTraces,
                 new SlowTracesSettingsObject(
@@ -182,5 +182,11 @@ class SlowTracesCheckerTest extends TestCase
             ),
             new WatcherCheckContextObject($now, null)
         );
+
+        if ($payload !== null) {
+            self::assertInstanceOf(SlowTracesEventPayloadObject::class, $payload);
+        }
+
+        return $payload;
     }
 }

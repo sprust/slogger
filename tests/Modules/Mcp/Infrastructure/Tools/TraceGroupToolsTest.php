@@ -224,9 +224,11 @@ class TraceGroupToolsTest extends TestCase
             $result->isError
         );
 
+        self::assertNotNull($this->groupsParameters);
+        self::assertNotNull($this->groupsParameters->data);
         $this->assertCount(
             1,
-            $this->groupsParameters?->data?->filter ?? []
+            $this->groupsParameters->data->filter
         );
 
         $this->assertSame(

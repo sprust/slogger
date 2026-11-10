@@ -2,6 +2,8 @@
 
 namespace Tests\Modules\Logs\Domain\Actions;
 
+use Illuminate\Contracts\Cache\LockProvider;
+use RuntimeException;
 use App\Modules\Logs\Domain\Actions\FindLogErrorStatAction;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
@@ -77,7 +79,7 @@ class FindLogErrorStatActionTest extends TestCase
             [
                 ['10:00:30', 'ERROR', 'a day old'],
             ],
-            modifiedAt: gmmktime(23, 0, 0, 9, 24, 2026)
+            modifiedAt: (gmmktime(23, 0, 0, 9, 24, 2026) ?: throw new RuntimeException('Invalid test timestamp'))
         );
 
         file_put_contents(
@@ -167,10 +169,15 @@ class FindLogErrorStatActionTest extends TestCase
 
         file_put_contents($path, "[2026-09-25 10:00:50] local.ERROR: not indexed yet \n", FILE_APPEND);
 
-        touch($path, gmmktime(10, 5, 0, 9, 25, 2026));
+        touch($path, (gmmktime(10, 5, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')));
 
-        Cache::store('array')
-            ->lock('mutex:logs-index:' . sha1($path), 10)
+        $cacheStore = Cache::store('array')->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+
+        $cacheStore->lock('mutex:logs-index:' . sha1($path), 10)
             ->get();
 
         $this->assertSame(
@@ -204,6 +211,6 @@ class FindLogErrorStatActionTest extends TestCase
 
         file_put_contents($path, $contents);
 
-        touch($path, $modifiedAt ?? gmmktime(10, 5, 0, 9, 25, 2026));
+        touch($path, $modifiedAt ?? (gmmktime(10, 5, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')));
     }
 }

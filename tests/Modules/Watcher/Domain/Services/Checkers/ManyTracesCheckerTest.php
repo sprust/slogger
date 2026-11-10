@@ -206,13 +206,19 @@ class ManyTracesCheckerTest extends TestCase
                 new WatcherTimelineObject(1, $buckets)
             );
 
-        return new ManyTracesChecker($repository, $analyzer)->check(
+        $payload = new ManyTracesChecker($repository, $analyzer)->check(
             $this->manyTracesWatcher(
                 $settings,
                 $collectSince ?? $from->clone()->subMinute()
             ),
             new WatcherCheckContextObject($now, null)
         );
+
+        if ($payload !== null) {
+            self::assertInstanceOf(ManyTracesEventPayloadObject::class, $payload);
+        }
+
+        return $payload;
     }
 
     private function manyTracesWatcher(

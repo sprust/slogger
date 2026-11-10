@@ -7,6 +7,7 @@ namespace App\Modules\Trace\Parameters;
 use App\Modules\Trace\Enums\PeriodPresetEnum;
 use Illuminate\Support\Carbon;
 
+/** @phpstan-consistent-constructor */
 class PeriodParameters
 {
     public function __construct(

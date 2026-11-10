@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Watcher\Domain\Actions;
 
+use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Domain\Actions\Mutations\TrimWatcherTimelineAction;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
@@ -65,7 +66,7 @@ class TrimWatcherTimelineActionTest extends TestCase
         );
     }
 
-    private function assertCutAt(string $expected, object $settings): void
+    private function assertCutAt(string $expected, WatcherSettingsInterface $settings): void
     {
         $repository = $this->createMock(WatcherTimelineRepository::class);
         $repository

@@ -2,6 +2,8 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Index;
 
+use Illuminate\Contracts\Cache\LockProvider;
+use RuntimeException;
 use App\Modules\Logs\Domain\Exceptions\LogFileNotFoundException;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
 use App\Modules\Logs\Entities\File\LogFileObject;
@@ -85,9 +87,9 @@ class LogIndexerTest extends TestCase
         );
         $this->assertSame(
             [
-                gmmktime(5, 35, 29, 9, 25, 2026),
-                gmmktime(5, 35, 30, 9, 25, 2026),
-                gmmktime(5, 35, 31, 9, 25, 2026),
+                (gmmktime(5, 35, 29, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
+                (gmmktime(5, 35, 30, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
+                (gmmktime(5, 35, 31, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
             ],
             array_map(
                 static fn(
@@ -330,8 +332,13 @@ class LogIndexerTest extends TestCase
 
         $meta = $this->indexer()->ensureFresh($file);
 
-        Cache::store('array')
-            ->lock("mutex:logs-index:$file->id", 10)
+        $cacheStore = Cache::store('array')->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+
+        $cacheStore->lock("mutex:logs-index:$file->id", 10)
             ->get();
 
         $this->assertEquals(
@@ -398,7 +405,7 @@ class LogIndexerTest extends TestCase
             $this->readEntries($file)
         );
         $this->assertSame(
-            [gmmktime(10, 0, 0, 9, 25, 2026), gmmktime(10, 0, 0, 9, 25, 2026)],
+            [(gmmktime(10, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')), (gmmktime(10, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp'))],
             [$records[0]->loggedAt, $records[1]->loggedAt]
         );
         $this->assertEquals(

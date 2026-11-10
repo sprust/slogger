@@ -84,9 +84,10 @@ class SearchSloggerLogsToolTest extends TestCase
     public function testWithoutLevelsNoLevelFilter(): void
     {
         $this->callTool(['source' => 'Laravel']);
+        self::assertNotNull($this->captured);
 
         $this->assertNull(
-            $this->captured?->levelKeys
+            $this->captured->levelKeys
         );
         $this->assertSame(
             20,

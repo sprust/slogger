@@ -26,7 +26,7 @@ class HttpSendResultReaderTest extends TestCase
     }
 
     /**
-     * @return array<string, array{int}>
+     * @return array<int|string, array{int}>
      */
     public static function deliveredProvider(): array
     {

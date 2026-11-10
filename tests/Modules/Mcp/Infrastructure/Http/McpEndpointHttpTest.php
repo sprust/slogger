@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Mcp\Infrastructure\Http;
 
+use Symfony\Component\HttpFoundation\Response;
 use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
 use App\Modules\Mcp\Infrastructure\Tools\SearchTracesTool;
@@ -796,6 +797,8 @@ class McpEndpointHttpTest extends TestCase
     /**
      * @param array<string, mixed>  $params
      * @param array<string, string> $headers
+     *
+     * @return TestResponse<Response>
      */
     private function rpc(
         string $method,
@@ -853,8 +856,8 @@ class McpEndpointHttpTest extends TestCase
         ];
 
         foreach ($headers as $name => $value) {
-            $server['HTTP_'
-                . strtoupper(str_replace('-', '_', $name))] = $value;
+            $serverKey          = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+            $server[$serverKey] = $value;
         }
 
         return $server;

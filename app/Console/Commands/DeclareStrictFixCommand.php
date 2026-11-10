@@ -33,7 +33,6 @@ class DeclareStrictFixCommand extends Command
             return self::FAILURE;
         }
 
-        /** @var string[] $filePaths */
         $filePaths = [
             ...$this->findFilePaths(
                 app_path() . '/Modules'

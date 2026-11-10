@@ -11,7 +11,7 @@ class FindMcpSettingsActionTest extends TestCase
     public function testServerNameDefaultsToAppEnv(): void
     {
         $this->assertSame(
-            env('APP_ENV'),
+            config('app.env'),
             config('mcp.server_name')
         );
     }

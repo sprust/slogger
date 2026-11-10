@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Common\Domain\Exceptions\MutexLockTimeoutException;
 use App\Modules\Common\Domain\Services\Mutex\AbstractMutex;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
@@ -18,13 +19,7 @@ trait MutexTestTrait
         ?Closure $afterLock = null,
         ?Closure $beforeRelease = null
     ): AbstractMutex {
-        return new readonly class(
-            $key,
-            $waitForBlockSec,
-            $maxLockSec,
-            $afterLock,
-            $beforeRelease,
-        ) extends AbstractMutex {
+        return new readonly class($key, $waitForBlockSec, $maxLockSec, $afterLock, $beforeRelease) extends AbstractMutex {
             public function __construct(
                 private string $key,
                 private int $waitForBlockSec,
@@ -74,8 +69,12 @@ trait MutexTestTrait
 
     protected function isHeldIn(string $store, string $key): bool
     {
-        $probe = Cache::store($store)
-            ->lock("mutex:$key", 10);
+        $cacheStore = Cache::store($store)->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+        $probe = $cacheStore->lock("mutex:$key", 10);
 
         if ($probe->get()) {
             $probe->release();

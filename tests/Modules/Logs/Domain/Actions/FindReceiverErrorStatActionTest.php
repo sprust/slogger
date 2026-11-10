@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Actions;
 
+use RuntimeException;
 use App\Modules\Logs\Domain\Actions\FindLogErrorStatAction;
 use App\Modules\Logs\Domain\Actions\FindReceiverErrorStatAction;
 use App\Modules\Logs\Enums\LogTypeEnum;
@@ -124,6 +125,6 @@ class FindReceiverErrorStatActionTest extends TestCase
 
         file_put_contents($path, $contents);
 
-        touch($path, gmmktime(10, 5, 0, 9, 25, 2026));
+        touch($path, (gmmktime(10, 5, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')));
     }
 }

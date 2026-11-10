@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Formats;
 
+use RuntimeException;
 use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\NginxErrorLogFormat;
 use App\Modules\Logs\Entities\Index\LogEntryStartObject;
@@ -24,7 +25,7 @@ class NginxErrorLogFormatTest extends TestCase
             [
                 new LogEntryStartObject(
                     offset: 0,
-                    loggedAt: gmmktime(10, 0, 0, 9, 25, 2026),
+                    loggedAt: (gmmktime(10, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
                     level: NginxErrorLogLevelEnum::Error->value
                 ),
             ],

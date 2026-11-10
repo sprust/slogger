@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Formats;
 
+use RuntimeException;
 use App\Modules\Logs\Domain\Services\Formats\LaravelLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Entities\Index\LogEntryStartObject;
@@ -18,7 +19,7 @@ class LaravelLogFormatTest extends TestCase
             [
                 new LogEntryStartObject(
                     offset: 0,
-                    loggedAt: gmmktime(5, 35, 29, 9, 25, 2026),
+                    loggedAt: (gmmktime(5, 35, 29, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
                     level: LaravelLogLevelEnum::Error->value
                 ),
             ],
@@ -50,7 +51,7 @@ class LaravelLogFormatTest extends TestCase
         $starts = $this->find("[2026-09-25T05:35:29.123456+03:00] local.WARNING: w\n");
 
         $this->assertSame(
-            gmmktime(2, 35, 29, 9, 25, 2026),
+            (gmmktime(2, 35, 29, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')),
             $starts[0]->loggedAt
         );
         $this->assertSame(

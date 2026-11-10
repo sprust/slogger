@@ -2,6 +2,8 @@
 
 namespace Tests\Modules\Logs\Domain\Actions;
 
+use Illuminate\Contracts\Cache\LockProvider;
+use RuntimeException;
 use App\Modules\Logs\Entities\Entry\LogLevelKeyCountObject;
 use App\Modules\Logs\Entities\Entry\LogEntryFieldObject;
 use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
@@ -63,8 +65,8 @@ class FindLogEntriesActionTest extends TestCase
             ]
         );
 
-        $day1 = gmmktime(0, 0, 0, 9, 24, 2026);
-        $day2 = gmmktime(0, 0, 0, 9, 25, 2026);
+        $day1 = (gmmktime(0, 0, 0, 9, 24, 2026) ?: throw new RuntimeException('Invalid test timestamp'));
+        $day2 = (gmmktime(0, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp'));
 
         $this->writeLaravel(
             'laravel-day1',
@@ -247,7 +249,7 @@ class FindLogEntriesActionTest extends TestCase
 
         $line = sprintf(
             "[%s] local.ERROR: late arrival \n",
-            gmdate('Y-m-d H:i:s', gmmktime(23, 0, 0, 9, 25, 2026))
+            gmdate('Y-m-d H:i:s', (gmmktime(23, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp')))
         );
 
         file_put_contents($this->paths['laravel-day2'], $line, FILE_APPEND);
@@ -348,8 +350,8 @@ class FindLogEntriesActionTest extends TestCase
 
     public function testATimeRangeBoundsEveryFile(): void
     {
-        $from = gmmktime(0, 0, 20, 9, 25, 2026);
-        $to   = gmmktime(0, 0, 50, 9, 25, 2026);
+        $from = (gmmktime(0, 0, 20, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp'));
+        $to   = (gmmktime(0, 0, 50, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp'));
 
         $page = $this->find(
             perPage: 1000,
@@ -420,7 +422,7 @@ class FindLogEntriesActionTest extends TestCase
 
         file_put_contents(
             $this->paths['laravel-day2'],
-            sprintf("[%s] local.INFO: fresh file \n", gmdate('Y-m-d H:i:s', gmmktime(0, 0, 0, 9, 26, 2026)))
+            sprintf("[%s] local.INFO: fresh file \n", gmdate('Y-m-d H:i:s', (gmmktime(0, 0, 0, 9, 26, 2026) ?: throw new RuntimeException('Invalid test timestamp'))))
         );
 
         $next = $this->find(
@@ -463,11 +465,16 @@ class FindLogEntriesActionTest extends TestCase
     {
         config()->set('module-logs.search.index_budget_ms', 1000);
 
-        Cache::store('array')
-            ->lock(
-                'mutex:logs-index:' . sha1($this->paths['laravel-day1']),
-                10
-            )
+        $cacheStore = Cache::store('array')->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+
+        $cacheStore->lock(
+            'mutex:logs-index:' . sha1($this->paths['laravel-day1']),
+            10
+        )
             ->get();
 
         $page = $this->find(

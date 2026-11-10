@@ -91,6 +91,7 @@ class ClickhouseClientTest extends TestCase
             "it's",
             $query['param_type']
         );
+        self::assertIsString($query['query_id']);
         self::assertMatchesRegularExpression(
             '/^trace-list-[0-9a-f]{16}$/',
             $query['query_id']

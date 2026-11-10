@@ -118,17 +118,18 @@ class DataFilterParameterTransportTest extends TestCase
             $parameters->filter
         );
 
+        self::assertNotNull($parameters->filter[0]->numeric);
         $this->assertSame(
             'code',
             $parameters->filter[0]->field
         );
         $this->assertSame(
             500,
-            $parameters->filter[0]->numeric?->value
+            $parameters->filter[0]->numeric->value
         );
         $this->assertSame(
             TraceDataFilterCompNumericTypeEnum::Gte,
-            $parameters->filter[0]->numeric?->comp
+            $parameters->filter[0]->numeric->comp
         );
 
         $this->assertSame(
@@ -137,7 +138,7 @@ class DataFilterParameterTransportTest extends TestCase
         );
         $this->assertSame(
             TraceDataFilterCompStringTypeEnum::Con,
-            $parameters->filter[1]->string?->comp
+            $parameters->filter[1]->string->comp
         );
 
         $this->assertTrue(

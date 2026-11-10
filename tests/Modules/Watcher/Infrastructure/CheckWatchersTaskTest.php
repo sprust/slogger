@@ -291,30 +291,4 @@ class CheckWatchersTaskTest extends TestCase
             id: $id,
         );
     }
-
-    private function disabled(int $id = 1): WatcherObject
-    {
-        $watcher = $this->enabled(
-            id: $id,
-        );
-
-        return new WatcherObject(
-            id: $watcher->id,
-            name: $watcher->name,
-            type: $watcher->type,
-            enabled: false,
-            cooldownSeconds: $watcher->cooldownSeconds,
-            notificationChannelId: null,
-            notifyOnOpened: true,
-            notifyOnEvent: false,
-            notifyOnClosed: true,
-            settings: $watcher->settings,
-            match: null,
-            collectSince: null,
-            lastCheckedAt: null,
-            lastTriggeredAt: null,
-            createdAt: $watcher->createdAt,
-            updatedAt: $watcher->updatedAt,
-        );
-    }
 }

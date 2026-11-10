@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Reading;
 
+use RuntimeException;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
 use App\Modules\Logs\Domain\Services\Reading\LogFileStream;
 use App\Modules\Logs\Domain\Services\Reading\LogFileStreamFactory;
@@ -35,7 +36,7 @@ class LogFileStreamTest extends TestCase
 
         config()->set('cache.mutex_store', 'array');
 
-        $base = gmmktime(0, 0, 0, 9, 25, 2026);
+        $base = (gmmktime(0, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp'));
 
         $contents = '';
 
@@ -279,7 +280,7 @@ class LogFileStreamTest extends TestCase
 
     public function testATimeRangeKeepsOutEntriesWrittenOutOfOrder(): void
     {
-        $base = gmmktime(0, 0, 0, 9, 25, 2026);
+        $base = (gmmktime(0, 0, 0, 9, 25, 2026) ?: throw new RuntimeException('Invalid test timestamp'));
 
         $lines = [
             [$base + 3000, 'first, from a clock ahead'],

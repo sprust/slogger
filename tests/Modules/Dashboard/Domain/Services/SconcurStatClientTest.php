@@ -468,7 +468,7 @@ class SconcurStatClientTest extends TestCase
     }
 
     /**
-     * @param object[] $groups
+     * @param array<object{name: string}> $groups
      *
      * @return string[]
      */

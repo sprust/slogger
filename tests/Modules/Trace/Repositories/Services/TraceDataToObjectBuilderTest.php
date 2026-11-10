@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Trace\Repositories\Services;
 
+use RuntimeException;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use PHPUnit\Framework\TestCase;
@@ -80,8 +81,8 @@ class TraceDataToObjectBuilderTest extends TestCase
 
         $builder = new TraceDataToObjectBuilder($data);
 
-        $expected = json_decode(json_encode($expected), true);
-        $actual   = json_decode(json_encode($builder->build()), true);
+        $expected = json_decode((json_encode($expected) ?: throw new RuntimeException('Missing JSON content')), true);
+        $actual   = json_decode((json_encode($builder->build()) ?: throw new RuntimeException('Missing JSON content')), true);
 
         self::assertSame(
             expected: $expected,
@@ -102,6 +103,8 @@ class TraceDataToObjectBuilderTest extends TestCase
         ];
 
         $object = new TraceDataToObjectBuilder($data)->build();
+        self::assertNotNull($object->children);
+        self::assertNotNull($object->children[3]->children);
 
         self::assertSame(
             expected: ['sql', 'connection', 'bindings', '__trace'],

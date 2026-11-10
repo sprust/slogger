@@ -31,14 +31,18 @@ class WatcherFactoryTest extends TestCase
                 )
             );
 
+        self::assertNotNull($watcher);
+
         $this->assertSame(
             WatcherTypeEnum::SlowTraces,
             $watcher->type
         );
+
         $this->assertInstanceOf(
             SlowTracesSettingsObject::class,
             $watcher->settings
         );
+
         $this->assertSame(
             15.0,
             $watcher->settings->duration
@@ -61,6 +65,8 @@ class WatcherFactoryTest extends TestCase
                 )
             );
 
+        self::assertNotNull($watcher);
+
         $this->assertEquals(
             new WatcherMatchObject(
                 serviceIds: [3],
@@ -74,15 +80,9 @@ class WatcherFactoryTest extends TestCase
 
     public function testAWatcherTheReceiverIgnoresHasNoMatch(): void
     {
-        $this->assertNull(
-            $this
-                ->factory()
-                ->make(
-                    $this->dto(
-                        traceMatch: null
-                    )
-                )->match
-        );
+        $watcher = $this->factory()->make($this->dto(traceMatch: null));
+        self::assertNotNull($watcher);
+        $this->assertNull($watcher->match);
     }
 
     /**
@@ -100,9 +100,12 @@ class WatcherFactoryTest extends TestCase
                 )
             );
 
+        self::assertNotNull($watcher);
+
         $this->assertNotNull(
             $watcher->match
         );
+
         $this->assertSame(
             99,
             $watcher->match->version
@@ -120,17 +123,22 @@ class WatcherFactoryTest extends TestCase
                 )
             );
 
+        self::assertNotNull($watcher);
+
         $this->assertNotNull(
             $watcher->match
         );
+
         $this->assertSame(
             [],
             $watcher->match->serviceIds
         );
+
         $this->assertSame(
             [],
             $watcher->match->types
         );
+
         $this->assertSame(
             [],
             $watcher->match->tags
@@ -149,12 +157,16 @@ class WatcherFactoryTest extends TestCase
                 )
             );
 
+        self::assertNotNull($watcher);
+
         $this->assertFalse(
             $watcher->notifyOnOpened
         );
+
         $this->assertTrue(
             $watcher->notifyOnEvent
         );
+
         $this->assertFalse(
             $watcher->notifyOnClosed
         );

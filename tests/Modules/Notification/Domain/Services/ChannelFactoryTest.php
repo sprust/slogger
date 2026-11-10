@@ -25,18 +25,23 @@ class ChannelFactoryTest extends TestCase
                 )
             );
 
+        self::assertNotNull($channel);
+
         $this->assertSame(
             NotificationChannelTypeEnum::Telegram,
             $channel->type
         );
+
         $this->assertInstanceOf(
             TelegramSettingsObject::class,
             $channel->settings
         );
+
         $this->assertSame(
             '123:abc',
             $channel->settings->botToken
         );
+
         $this->assertSame(
             '@ops',
             $channel->settings->chatId
@@ -66,10 +71,13 @@ class ChannelFactoryTest extends TestCase
                 )
             );
 
+        self::assertNotNull($channel);
+
         $this->assertInstanceOf(
             TelegramSettingsObject::class,
             $channel->settings
         );
+
         $this->assertSame(
             '',
             $channel->settings->botToken

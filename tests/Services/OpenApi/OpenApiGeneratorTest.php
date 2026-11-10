@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Services\OpenApi;
 
+use RuntimeException;
 use App\Services\OpenApiGenerator\Sources\Illuminate\AdminApiRoutesParser;
 use BackedEnum;
 use Ifksco\OpenApiGenerator\JsonFileGenerator;
@@ -48,6 +49,7 @@ class OpenApiGeneratorTest extends TestCase
         ];
     }
 
+    /** @param class-string<BackedEnum> $class */
     #[DataProvider('enums')]
     public function testEnum(
         string $class,
@@ -89,10 +91,10 @@ class OpenApiGeneratorTest extends TestCase
             ],
         );
         $schema = json_decode(
-            json: json_encode(
+            json: (json_encode(
                 value: $parser->getScheme()->toArray(),
                 flags: JSON_THROW_ON_ERROR,
-            ),
+            ) ?: throw new RuntimeException('Missing JSON content')),
             associative: true,
             flags: JSON_THROW_ON_ERROR,
         );
@@ -232,7 +234,7 @@ class OpenApiGeneratorTest extends TestCase
         );
 
         $schema = json_decode(
-            json: $disk->get('public.json'),
+            json: ($disk->get('public.json') ?: throw new RuntimeException('Missing JSON content')),
             associative: true,
             flags: JSON_THROW_ON_ERROR,
         );
@@ -269,7 +271,7 @@ class OpenApiGeneratorTest extends TestCase
         );
 
         $schema = json_decode(
-            json: $disk->get('admin.json'),
+            json: ($disk->get('admin.json') ?: throw new RuntimeException('Missing JSON content')),
             associative: true,
             flags: JSON_THROW_ON_ERROR,
         );
@@ -295,7 +297,7 @@ class OpenApiGeneratorTest extends TestCase
         foreach (array_keys($schema['paths']) as $path) {
             self::assertStringStartsWith(
                 '/admin-api/',
-                $path
+                (string) $path
             );
         }
     }
