@@ -22,22 +22,22 @@ readonly class FindTraceServicesAction
     {
         if (!is_null($serviceIds) && !count($serviceIds)) {
             return new TraceServicesObject(
-                services: []
+                services: [],
             );
         }
 
         $services = $this->findServicesAction->handle(
-            ids: $serviceIds
+            ids: $serviceIds,
         );
 
         return new TraceServicesObject(
             services: array_map(
-                fn(ServiceObject $service) => new TraceServiceObject(
+                static fn(ServiceObject $service) => new TraceServiceObject(
                     id: $service->id,
                     name: $service->name,
                 ),
                 $services
-            )
+            ),
         );
     }
 }

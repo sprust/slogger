@@ -30,7 +30,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for(
             'api',
-            function (Request $request) {
+            static function (Request $request) {
                 return Limit::perMinute(60)->by(
                     $request->user()?->id ?: $request->ip()
                 );
@@ -38,17 +38,13 @@ class RouteServiceProvider extends ServiceProvider
         );
 
         $this->routes(
-            function () {
+            static function () {
                 Route::middleware('api')
                     ->prefix('api')
-                    ->group(
-                        base_path('routes/api.php')
-                    );
+                    ->group(base_path('routes/api.php'));
 
                 Route::middleware('web')
-                    ->group(
-                        base_path('routes/web.php')
-                    );
+                    ->group(base_path('routes/web.php'));
 
                 Route::prefix('admin-api')
                     ->as('admin-api.')
@@ -56,18 +52,14 @@ class RouteServiceProvider extends ServiceProvider
                         AuthMiddleware::class,
                         SLoggerHttpMiddleware::class,
                     ])
-                    ->group(
-                        base_path('routes/admin-api.php')
-                    );
+                    ->group(base_path('routes/admin-api.php'));
 
                 Route::middleware([
                     McpOriginMiddleware::class,
                     McpTokenMiddleware::class,
                     SLoggerHttpMiddleware::class,
                 ])
-                    ->group(
-                        base_path('routes/mcp.php')
-                    );
+                    ->group(base_path('routes/mcp.php'));
             }
         );
     }

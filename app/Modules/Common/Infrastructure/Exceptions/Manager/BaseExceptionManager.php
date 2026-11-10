@@ -38,7 +38,7 @@ abstract class BaseExceptionManager implements ExceptionManagerInterface
 
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
-            httpStatus: Response::HTTP_BAD_REQUEST
+            httpStatus: Response::HTTP_BAD_REQUEST,
         );
     }
 

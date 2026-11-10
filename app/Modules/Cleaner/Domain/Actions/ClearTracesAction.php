@@ -35,18 +35,14 @@ readonly class ClearTracesAction
 
         $process = $this->processRepository->create();
 
-        $deletedTraces = $this->deletePartitionsAction->handle(
-            loggedAtTo: $loggedAtTo
-        );
+        $deletedTraces = $this->deletePartitionsAction->handle($loggedAtTo);
 
         if (
             $deletedTraces->exception === null
             && $deletedTraces->partitionsCount === 0
             && $deletedTraces->tracesCount === 0
         ) {
-            $this->processRepository->deleteByProcessId(
-                processId: $process->id
-            );
+            $this->processRepository->deleteByProcessId($process->id);
 
             return;
         }
@@ -57,7 +53,7 @@ readonly class ClearTracesAction
             clearedCollectionsCount: $deletedTraces->partitionsCount,
             clearedTracesCount: $deletedTraces->tracesCount,
             clearedAt: Carbon::now(),
-            exception: $deletedTraces->exception
+            exception: $deletedTraces->exception,
         );
     }
 
@@ -67,9 +63,7 @@ readonly class ClearTracesAction
      */
     private function closeStaleProcess(): void
     {
-        $process = $this->processRepository->exists(
-            clearedAtIsNull: true
-        );
+        $process = $this->processRepository->exists(true);
 
         if ($process === null) {
             return;
@@ -91,7 +85,7 @@ readonly class ClearTracesAction
                     'The run did not finish within %d minutes',
                     self::STALE_PROCESS_MINUTES,
                 )
-            )
+            ),
         );
     }
 }

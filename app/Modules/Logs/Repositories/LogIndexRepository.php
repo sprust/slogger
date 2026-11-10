@@ -29,15 +29,17 @@ readonly class LogIndexRepository
     {
         $path = $this->makeMetaPath($fileId);
 
-        if (!Files::exists(
-            path: $path
-        )) {
+        if (
+            !Files::exists(
+                path: $path,
+            )
+        ) {
             return null;
         }
 
         $data = json_decode(
             Files::read(
-                path: $path
+                path: $path,
             ),
             true
         );
@@ -57,7 +59,7 @@ readonly class LogIndexRepository
         foreach ((array) ($data['levelCounts'] ?? []) as $level => $count) {
             $levelCounts[] = new LogLevelCountObject(
                 level: (int) $level,
-                count: (int) $count
+                count: (int) $count,
             );
         }
 
@@ -70,7 +72,7 @@ readonly class LogIndexRepository
             headLength: (int) ($data['headLength'] ?? 0),
             headHash: (string) ($data['headHash'] ?? ''),
             entriesCount: (int) ($data['entriesCount'] ?? 0),
-            levelCounts: $levelCounts
+            levelCounts: $levelCounts,
         );
     }
 
@@ -96,7 +98,7 @@ readonly class LogIndexRepository
                 'headHash'      => $meta->headHash,
                 'entriesCount'  => $meta->entriesCount,
                 'levelCounts'   => (object) $levelCounts,
-            ])
+            ]),
         );
     }
 
@@ -130,16 +132,22 @@ readonly class LogIndexRepository
         }
 
         Files::write(
-            path: $this->makeRecordsPath($fileId, null),
+            path: $this->makeRecordsPath(
+                fileId: $fileId,
+                level: null,
+            ),
             contents: implode('', $all),
-            mode: FileWriteMode::Append
+            mode: FileWriteMode::Append,
         );
 
         foreach ($levels as $level => $packedRecords) {
             Files::write(
-                path: $this->makeRecordsPath($fileId, $level),
+                path: $this->makeRecordsPath(
+                    fileId: $fileId,
+                    level: $level,
+                ),
                 contents: implode('', $packedRecords),
-                mode: FileWriteMode::Append
+                mode: FileWriteMode::Append,
             );
         }
     }
@@ -147,7 +155,10 @@ readonly class LogIndexRepository
     public function countRecords(string $fileId, ?int $level): int
     {
         $stat = Files::stat(
-            path: $this->makeRecordsPath($fileId, $level)
+            path: $this->makeRecordsPath(
+                fileId: $fileId,
+                level: $level,
+            ),
         );
 
         if (!$stat->exists) {
@@ -167,10 +178,13 @@ readonly class LogIndexRepository
         }
 
         $data = Files::read(
-            path: $this->makeRecordsPath($fileId, $level),
+            path: $this->makeRecordsPath(
+                fileId: $fileId,
+                level: $level,
+            ),
             offsetBytes: $from * self::RECORD_BYTES,
             lengthBytes: $count * self::RECORD_BYTES,
-            maxReadBytes: 0
+            maxReadBytes: 0,
         );
 
         $records = [];
@@ -186,7 +200,7 @@ readonly class LogIndexRepository
                 offset: $values['offset'],
                 length: $values['length'],
                 loggedAt: $values['loggedAt'],
-                level: $values['level']
+                level: $values['level'],
             );
         }
 
@@ -198,15 +212,22 @@ readonly class LogIndexRepository
      */
     public function findLevels(string $fileId): array
     {
-        if (!Files::exists(
-            path: $this->makeDirectoryPath($fileId)
-        )) {
+        if (
+            !Files::exists(
+                path: $this->makeDirectoryPath($fileId),
+            )
+        ) {
             return [];
         }
 
         $levels = [];
 
-        foreach (Files::list(path: $this->makeDirectoryPath($fileId), pattern: 'level-*.idx') as $entry) {
+        $entries = Files::list(
+            path: $this->makeDirectoryPath($fileId),
+            pattern: 'level-*.idx',
+        );
+
+        foreach ($entries as $entry) {
             if (preg_match('/^level-(\d+)\.idx$/', $entry->name, $match) === 1) {
                 $levels[] = (int) $match[1];
             }
@@ -219,17 +240,22 @@ readonly class LogIndexRepository
 
     public function truncateRecords(string $fileId, ?int $level, int $count): void
     {
-        $path = $this->makeRecordsPath($fileId, $level);
+        $path = $this->makeRecordsPath(
+            fileId: $fileId,
+            level: $level,
+        );
 
-        if (!Files::exists(
-            path: $path
-        )) {
+        if (
+            !Files::exists(
+                path: $path,
+            )
+        ) {
             return;
         }
 
         Files::truncate(
             path: $path,
-            sizeBytes: $count * self::RECORD_BYTES
+            sizeBytes: $count * self::RECORD_BYTES,
         );
     }
 
@@ -238,15 +264,21 @@ readonly class LogIndexRepository
      */
     public function findFileIds(): array
     {
-        if (!Files::exists(
-            path: $this->indexPath
-        )) {
+        if (
+            !Files::exists(
+                path: $this->indexPath,
+            )
+        ) {
             return [];
         }
 
         $fileIds = [];
 
-        foreach (Files::list(path: $this->indexPath) as $entry) {
+        $entries = Files::list(
+            path: $this->indexPath,
+        );
+
+        foreach ($entries as $entry) {
             if ($entry->isDirectory) {
                 $fileIds[] = $entry->name;
             }
@@ -260,7 +292,7 @@ readonly class LogIndexRepository
         Files::removeDirectory(
             path: $this->makeDirectoryPath($fileId),
             recursive: true,
-            missingOk: true
+            missingOk: true,
         );
     }
 
@@ -268,7 +300,7 @@ readonly class LogIndexRepository
     {
         Files::makeDirectory(
             path: $this->makeDirectoryPath($fileId),
-            recursive: true
+            recursive: true,
         );
     }
 

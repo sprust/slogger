@@ -24,10 +24,19 @@ readonly class InvalidBufferGrownEventPayloadMapper implements WatcherEventPaylo
 
         /** @var array<string, mixed> $settings */
         /** @var array<string, mixed> $measured */
-        $settingsThreshold = ArrayValueGetter::intNull($settings, 'threshold');
+        $settingsThreshold = ArrayValueGetter::intNull(
+            data: $settings,
+            key: 'threshold',
+        );
 
-        $measuredInvalidCount = ArrayValueGetter::intNull($measured, 'invalid_count');
-        $measuredSince        = ArrayValueGetter::stringNull($measured, 'since');
+        $measuredInvalidCount = ArrayValueGetter::intNull(
+            data: $measured,
+            key: 'invalid_count',
+        );
+        $measuredSince        = ArrayValueGetter::stringNull(
+            data: $measured,
+            key: 'since',
+        );
 
         if (
             is_null($settingsThreshold)
@@ -39,12 +48,12 @@ readonly class InvalidBufferGrownEventPayloadMapper implements WatcherEventPaylo
 
         return new InvalidBufferGrownEventPayloadObject(
             settings: new InvalidBufferGrownEventSettingsObject(
-                threshold: $settingsThreshold
+                threshold: $settingsThreshold,
             ),
             measured: new InvalidBufferGrownEventMeasuredObject(
                 invalidCount: $measuredInvalidCount,
-                since: $measuredSince
-            )
+                since: $measuredSince,
+            ),
         );
     }
 

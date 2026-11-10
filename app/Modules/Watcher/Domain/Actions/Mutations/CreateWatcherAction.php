@@ -45,7 +45,7 @@ readonly class CreateWatcherAction
                 ),
                 collectSince: $this->collectionStart->afterNextReload(
                     Carbon::now()
-                )
+                ),
             )
         );
 

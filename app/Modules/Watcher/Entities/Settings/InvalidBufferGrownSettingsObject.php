@@ -9,9 +9,8 @@ readonly class InvalidBufferGrownSettingsObject implements WatcherSettingsInterf
     /**
      * @param int $threshold how many new invalid documents since the last check are too many
      */
-    public function __construct(
-        public int $threshold = 1
-    ) {
+    public function __construct(public int $threshold = 1)
+    {
     }
 
     public function toArray(): array

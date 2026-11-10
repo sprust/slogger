@@ -30,13 +30,13 @@ readonly class InvestigateErrorsPrompt implements McpPromptInterface
             new McpPromptArgument(
                 name: 'service',
                 description: 'Service name or id.',
-                required: true
+                required: true,
             ),
             new McpPromptArgument(
                 name: 'period',
                 description: 'Period to look at, in words or times, within the time traces are kept, '
                     . 'for example "last 3 hours".',
-                required: true
+                required: true,
             ),
         ];
     }

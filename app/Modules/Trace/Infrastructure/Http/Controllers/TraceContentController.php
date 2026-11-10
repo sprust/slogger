@@ -34,9 +34,8 @@ readonly class TraceContentController
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
-    public function types(
-        TraceFindTypesRequest $request
-    ): AnonymousResourceCollection {
+    public function types(TraceFindTypesRequest $request): AnonymousResourceCollection
+    {
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(
@@ -88,9 +87,8 @@ readonly class TraceContentController
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
-    public function tags(
-        TraceFindTagsRequest $request
-    ): AnonymousResourceCollection {
+    public function tags(TraceFindTagsRequest $request): AnonymousResourceCollection
+    {
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(
@@ -142,9 +140,8 @@ readonly class TraceContentController
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
-    public function statuses(
-        TraceFindStatusesRequest $request
-    ): AnonymousResourceCollection {
+    public function statuses(TraceFindStatusesRequest $request): AnonymousResourceCollection
+    {
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(

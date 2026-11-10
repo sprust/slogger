@@ -20,8 +20,6 @@ readonly class FindLogEntriesByAdminUseCase
      */
     public function handle(FindLogEntriesParameters $parameters): LogEntriesPageObject
     {
-        return $this->findLogEntriesAction->handle(
-            parameters: $parameters,
-        );
+        return $this->findLogEntriesAction->handle($parameters);
     }
 }

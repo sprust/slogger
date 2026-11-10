@@ -26,7 +26,8 @@ readonly class LogEntryController
     public function index(FindLogEntriesRequest $request): LogEntriesPageResource
     {
         $validated = $request->validated();
-        $from      = ArrayValueGetter::stringNull(
+
+        $from = ArrayValueGetter::stringNull(
             data: $validated,
             key: 'from',
         );
@@ -51,14 +52,8 @@ readonly class LogEntryController
                     ) ?? []
                 ),
                 levelKeys: $levelKeys === null ? null : array_values($levelKeys),
-                fromTime: $from === null ? null : Carbon::parse(
-                    time: $from,
-                )
-                    ->getTimestamp(),
-                toTime: $to === null ? null : Carbon::parse(
-                    time: $to,
-                )
-                    ->getTimestamp(),
+                fromTime: $from === null ? null : Carbon::parse($from)->getTimestamp(),
+                toTime: $to === null ? null : Carbon::parse($to)->getTimestamp(),
                 searchQuery: ArrayValueGetter::stringNull(
                     data: $validated,
                     key: 'search_query',
@@ -73,9 +68,7 @@ readonly class LogEntryController
                 perPage: ArrayValueGetter::intNull(
                     data: $validated,
                     key: 'per_page',
-                ) ?? (int) config(
-                    key: 'module-logs.search.per_page',
-                ),
+                ) ?? (int) config('module-logs.search.per_page'),
             )
         );
 

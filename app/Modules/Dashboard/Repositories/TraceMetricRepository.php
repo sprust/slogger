@@ -12,9 +12,8 @@ use SConcur\Bson\UTCDateTime;
 
 readonly class TraceMetricRepository
 {
-    public function __construct(
-        private TraceMetricReader $reader
-    ) {
+    public function __construct(private TraceMetricReader $reader)
+    {
     }
 
     /**

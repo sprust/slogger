@@ -112,7 +112,7 @@ readonly class TraceGroupsRepository
                 ...$condition->params,
                 'limit' => $limit,
             ],
-            queryIdPrefix: 'trace-groups'
+            queryIdPrefix: 'trace-groups',
         );
 
         return array_map(
@@ -128,7 +128,7 @@ readonly class TraceGroupsRepository
                     durationAvg: $this->readFloat($row['avg'] ?? null),
                     durationP95: $this->readFloat($row['p95'] ?? null),
                     durationMax: $this->readFloat($row['max'] ?? null),
-                    exampleTraceId: ($row['example'] ?? '') === '' ? null : (string) $row['example']
+                    exampleTraceId: ($row['example'] ?? '') === '' ? null : (string) $row['example'],
                 );
             },
             $rows
@@ -188,14 +188,14 @@ readonly class TraceGroupsRepository
                 'groupA' => array_values($groupAStatuses),
             ],
             queryIdPrefix: 'trace-compare',
-            settings: ['allow_suspicious_types_in_group_by' => 1]
+            settings: ['allow_suspicious_types_in_group_by' => 1],
         );
 
         return array_map(
             fn(array $row): TraceGroupComparisonCountObject => new TraceGroupComparisonCountObject(
                 value: $this->readValue($row['value'] ?? null),
                 inGroupA: (bool) $row['inA'],
-                count: (int) $row['count']
+                count: (int) $row['count'],
             ),
             $rows
         );

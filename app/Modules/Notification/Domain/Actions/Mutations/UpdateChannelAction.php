@@ -34,14 +34,14 @@ readonly class UpdateChannelAction
             ->for($channel->type)
             ->makeUpdatedSettings(
                 submitted: $parameters->settings,
-                stored: $channel->settings
+                stored: $channel->settings,
             );
 
         $this->channelRepository->update(
             id: $parameters->id,
             name: $parameters->name,
             enabled: $parameters->enabled,
-            settings: $settings->toArray()
+            settings: $settings->toArray(),
         );
     }
 }

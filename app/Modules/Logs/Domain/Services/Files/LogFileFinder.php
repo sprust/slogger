@@ -81,7 +81,7 @@ readonly class LogFileFinder
                     sizeBytes: $file->sizeBytes,
                     modifiedAtMs: $file->modifiedAtMs,
                     keepDays: $file->keepDays,
-                    deletable: false
+                    deletable: false,
                 ),
             $files
         );
@@ -103,7 +103,7 @@ readonly class LogFileFinder
                 pattern: (string) $source['pattern'],
                 type: $type instanceof LogTypeEnum ? $type : LogTypeEnum::from((string) $type),
                 keepDays: $this->makeKeepDays($source),
-                deletable: (bool) ($source['deletable'] ?? false)
+                deletable: (bool) ($source['deletable'] ?? false),
             );
         }
 

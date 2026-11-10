@@ -53,9 +53,7 @@ readonly class CloseIncidentAction
         $changed = $this->incidentRepository->findById($incidentId);
 
         if (!is_null($changed)) {
-            $this->dispatcher->event(
-                new WatcherIncidentChangedEvent($changed)
-            );
+            $this->dispatcher->event(new WatcherIncidentChangedEvent($changed));
         }
     }
 }

@@ -65,9 +65,9 @@ readonly class TraceTimestampsController
                         data: $validated,
                         key: 'service_ids',
                     ),
-                    loggedAtTo: $validated['logging_to'] ?? null ? (new Carbon(
-                        time: $validated['logging_to'],
-                    ))->setTimezone('UTC') : null,
+                    loggedAtTo: ($validated['logging_to'] ?? null)
+                        ? (new Carbon($validated['logging_to']))->setTimezone('UTC')
+                        : null,
                     types: ArrayValueGetter::arrayStringNull(
                         data: $validated,
                         key: 'types',

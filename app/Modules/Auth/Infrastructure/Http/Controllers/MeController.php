@@ -25,7 +25,9 @@ readonly class MeController
         $bearerToken = $request->bearerToken();
 
         $me = $this->findUserByTokenByAdminUseCase->handle(
-            new TokenParameters($bearerToken ?? '')
+            new TokenParameters(
+                token: $bearerToken ?? '',
+            )
         );
 
         return new LoggedUserResource($me);

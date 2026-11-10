@@ -50,7 +50,8 @@ readonly class ServiceController
     public function create(CreateServiceRequest $request): ServiceDetailResource
     {
         $validated = $request->validated();
-        $service   = $this->createServiceByAdminUseCase->handle(
+
+        $service = $this->createServiceByAdminUseCase->handle(
             new ServiceCreateParameters(
                 name: ArrayValueGetter::string(
                     data: $validated,
@@ -65,7 +66,8 @@ readonly class ServiceController
     public function update(int $id, UpdateServiceRequest $request): ServiceDetailResource
     {
         $validated = $request->validated();
-        $service   = $this->updateServiceByAdminUseCase->handle(
+
+        $service = $this->updateServiceByAdminUseCase->handle(
             new ServiceUpdateParameters(
                 id: $id,
                 name: ArrayValueGetter::string(

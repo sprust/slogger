@@ -51,7 +51,7 @@ readonly class MutexManager implements MutexManagerInterface
             $this->saveHolder(
                 key: $key,
                 lock: $holder->lock,
-                level: $holder->level + 1
+                level: $holder->level + 1,
             );
 
             return;
@@ -75,7 +75,7 @@ readonly class MutexManager implements MutexManagerInterface
 
                 throw new RuntimeException(
                     $exception->getMessage(),
-                    previous: $exception
+                    previous: $exception,
                 );
             }
         }
@@ -83,7 +83,7 @@ readonly class MutexManager implements MutexManagerInterface
         $this->saveHolder(
             key: $key,
             lock: $lock,
-            level: 1
+            level: 1,
         );
     }
 
@@ -103,7 +103,7 @@ readonly class MutexManager implements MutexManagerInterface
             $this->saveHolder(
                 key: $key,
                 lock: $holder->lock,
-                level: $level
+                level: $level,
             );
 
             return;
@@ -126,9 +126,7 @@ readonly class MutexManager implements MutexManagerInterface
 
     private function findOwnHolder(string $key): ?MutexHolder
     {
-        $holder = Context::current()->find(
-            $this->makeContextKey($key)
-        );
+        $holder = Context::current()->find($this->makeContextKey($key));
 
         if (!$holder instanceof MutexHolder || $holder->fiberId !== $this->currentFiberId()) {
             return null;
@@ -145,9 +143,9 @@ readonly class MutexManager implements MutexManagerInterface
                 value: new MutexHolder(
                     lock: $lock,
                     level: $level,
-                    fiberId: $this->currentFiberId()
+                    fiberId: $this->currentFiberId(),
                 ),
-                replace: true
+                replace: true,
             );
     }
 

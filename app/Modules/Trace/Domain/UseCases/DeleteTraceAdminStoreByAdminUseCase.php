@@ -15,8 +15,6 @@ readonly class DeleteTraceAdminStoreByAdminUseCase
 
     public function handle(string $id): bool
     {
-        return $this->deleteTraceAdminStoreAction->handle(
-            id: $id,
-        );
+        return $this->deleteTraceAdminStoreAction->handle($id);
     }
 }

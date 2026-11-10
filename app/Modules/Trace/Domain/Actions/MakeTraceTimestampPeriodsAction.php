@@ -31,7 +31,7 @@ readonly class MakeTraceTimestampPeriodsAction
                         title: $this->getTimestampTitle($timestamp),
                     ),
                     $this->traceTimestampMetricsFactory->getTimestampsByDate($period)
-                )
+                ),
             ),
             TraceTimestampPeriodEnum::cases()
         );

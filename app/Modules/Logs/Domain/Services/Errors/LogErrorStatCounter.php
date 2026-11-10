@@ -68,7 +68,9 @@ readonly class LogErrorStatCounter
                 continue;
             }
 
-            $levelCounter = new LogLevelCounter($meta->levelCounts);
+            $levelCounter = new LogLevelCounter(
+                levelCounts: $meta->levelCounts,
+            );
 
             foreach ($levels as $level) {
                 $levelCount = $levelCounter->get($level);
@@ -78,7 +80,7 @@ readonly class LogErrorStatCounter
                         fileId: $file->id,
                         level: $level,
                         from: $from,
-                        count: min(self::SCAN_RECORDS, $levelCount - $from)
+                        count: min(self::SCAN_RECORDS, $levelCount - $from),
                     );
 
                     foreach ($records as $record) {
@@ -90,7 +92,12 @@ readonly class LogErrorStatCounter
 
                         if (
                             $lastRecord === null
-                            || $this->isLater($record, $file, $lastRecord, $lastFile)
+                            || $this->isLater(
+                                record: $record,
+                                file: $file,
+                                lastRecord: $lastRecord,
+                                lastFile: $lastFile,
+                            )
                         ) {
                             $lastFile   = $file;
                             $lastRecord = $record;
@@ -102,10 +109,12 @@ readonly class LogErrorStatCounter
 
         return new LogLevelStatObject(
             count: $count,
-            lastMessage: $lastFile === null || $lastRecord === null ? null : $this->readMessage(
-                $lastFile,
-                $lastRecord
-            )
+            lastMessage: $lastFile === null || $lastRecord === null
+                ? null
+                : $this->readMessage(
+                    file: $lastFile,
+                    record: $lastRecord,
+                ),
         );
     }
 
@@ -114,7 +123,7 @@ readonly class LogErrorStatCounter
         try {
             return $this->logIndexer->ensureFresh(
                 file: $file,
-                waitForLockSec: (int) config('module-logs.errors.wait_for_lock_sec')
+                waitForLockSec: (int) config('module-logs.errors.wait_for_lock_sec'),
             );
         } catch (LogFileNotFoundException) {
             return null;
@@ -142,7 +151,13 @@ readonly class LogErrorStatCounter
 
     private function readMessage(LogFileObject $file, LogIndexRecordObject $record): ?string
     {
-        foreach ($this->logTextReader->read($file->path, [$record], self::MAX_MESSAGE_BYTES) as $entryText) {
+        $entryTexts = $this->logTextReader->read(
+            path: $file->path,
+            records: [$record],
+            maxEntryBytes: self::MAX_MESSAGE_BYTES,
+        );
+
+        foreach ($entryTexts as $entryText) {
             return $this->logFormatRegistry
                 ->get($file->type)
                 ->parseEntry($entryText->text)->message;

@@ -131,9 +131,7 @@ readonly class SearchTraceTreeTool implements McpToolInterface
             data: [
                 'root_trace_id' => $tree->rootTraceId,
                 'nodes'         => array_map(
-                    fn(
-                        McpTraceTreeNodeObject $node
-                    ) => $this->formatter->treeNode($node),
+                    fn(McpTraceTreeNodeObject $node) => $this->formatter->treeNode($node),
                     $tree->nodes
                 ),
                 'matched_count' => $tree->matchedCount,

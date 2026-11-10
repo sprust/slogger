@@ -25,7 +25,7 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
             return new LogEntryDetailsObject(
                 message: $line,
                 context: null,
-                fields: []
+                fields: [],
             );
         }
 
@@ -37,41 +37,41 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
             fields: [
                 new LogEntryFieldObject(
                     key: 'ip',
-                    value: $match[1]
+                    value: $match[1],
                 ),
                 new LogEntryFieldObject(
                     key: 'user',
-                    value: $this->nullIfDash($match[2])
+                    value: $this->nullIfDash($match[2]),
                 ),
                 new LogEntryFieldObject(
                     key: 'method',
-                    value: count($request) === 3 ? $request[0] : null
+                    value: count($request) === 3 ? $request[0] : null,
                 ),
                 new LogEntryFieldObject(
                     key: 'path',
-                    value: count($request) === 3 ? $request[1] : null
+                    value: count($request) === 3 ? $request[1] : null,
                 ),
                 new LogEntryFieldObject(
                     key: 'protocol',
-                    value: count($request) === 3 ? $request[2] : null
+                    value: count($request) === 3 ? $request[2] : null,
                 ),
                 new LogEntryFieldObject(
                     key: 'status',
-                    value: $match[4]
+                    value: $match[4],
                 ),
                 new LogEntryFieldObject(
                     key: 'bytes',
-                    value: $this->nullIfDash($match[5])
+                    value: $this->nullIfDash($match[5]),
                 ),
                 new LogEntryFieldObject(
                     key: 'referer',
-                    value: $this->nullIfDash($match[6] ?? '-')
+                    value: $this->nullIfDash($match[6] ?? '-'),
                 ),
                 new LogEntryFieldObject(
                     key: 'user_agent',
-                    value: $this->nullIfDash($match[7] ?? '-')
+                    value: $this->nullIfDash($match[7] ?? '-'),
                 ),
-            ]
+            ],
         );
     }
 
@@ -82,7 +82,7 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
         foreach (HttpStatusClassEnum::cases() as $case) {
             $names[] = new LogLevelNameObject(
                 level: $case->value,
-                name: sprintf('%dxx', $case->value)
+                name: sprintf('%dxx', $case->value),
             );
         }
 
@@ -111,7 +111,7 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
             hour: (int) substr($text, 12, 2),
             minute: (int) substr($text, 15, 2),
             second: (int) substr($text, 18, 2),
-            zone: substr($text, 21, 5)
+            zone: substr($text, 21, 5),
         );
     }
 

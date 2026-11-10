@@ -34,9 +34,15 @@ readonly class ReceiverErrorsChecker implements WatcherCheckerInterface
             return null;
         }
 
-        $since = $this->countWindow->start($watcher, $context->now);
+        $since = $this->countWindow->start(
+            watcher: $watcher,
+            now: $context->now,
+        );
 
-        $stat = $this->findReceiverErrorStatAction->handle($since, $context->now);
+        $stat = $this->findReceiverErrorStatAction->handle(
+            since: $since,
+            until: $context->now,
+        );
 
         if ($stat->count < $settings->threshold) {
             return null;
@@ -44,13 +50,13 @@ readonly class ReceiverErrorsChecker implements WatcherCheckerInterface
 
         return new LogErrorsEventPayloadObject(
             settings: new LogErrorsEventSettingsObject(
-                threshold: $settings->threshold
+                threshold: $settings->threshold,
             ),
             measured: new LogErrorsEventMeasuredObject(
                 errorCount: $stat->count,
                 since: $since->toDateTimeString(),
-                lastMessage: mb_strimwidth($stat->lastMessage ?? '', 0, self::MAX_MESSAGE_LENGTH, '…')
-            )
+                lastMessage: mb_strimwidth($stat->lastMessage ?? '', 0, self::MAX_MESSAGE_LENGTH, '…'),
+            ),
         );
     }
 }

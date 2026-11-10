@@ -31,7 +31,7 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
             return new LogEntryDetailsObject(
                 message: $line,
                 context: null,
-                fields: []
+                fields: [],
             );
         }
 
@@ -41,29 +41,29 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
             fields: [
                 new LogEntryFieldObject(
                     key: 'method',
-                    value: $match[1]
+                    value: $match[1],
                 ),
                 new LogEntryFieldObject(
                     key: 'path',
-                    value: $match[2]
+                    value: $match[2],
                 ),
                 new LogEntryFieldObject(
                     key: 'status',
-                    value: $match[3]
+                    value: $match[3],
                 ),
                 new LogEntryFieldObject(
                     key: 'duration_ms',
-                    value: $match[4]
+                    value: $match[4],
                 ),
                 new LogEntryFieldObject(
                     key: 'worker',
-                    value: ($match[5] ?? '') === '' ? null : $match[5]
+                    value: ($match[5] ?? '') === '' ? null : $match[5],
                 ),
                 new LogEntryFieldObject(
                     key: 'pid',
-                    value: ($match[6] ?? '') === '' ? null : $match[6]
+                    value: ($match[6] ?? '') === '' ? null : $match[6],
                 ),
-            ]
+            ],
         );
     }
 
@@ -74,7 +74,7 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
         foreach (HttpStatusClassEnum::cases() as $case) {
             $names[] = new LogLevelNameObject(
                 level: $case->value,
-                name: sprintf('%dxx', $case->value)
+                name: sprintf('%dxx', $case->value),
             );
         }
 
@@ -98,7 +98,7 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
             hour: (int) substr($text, 11, 2),
             minute: (int) substr($text, 14, 2),
             second: (int) substr($text, 17, 2),
-            zone: null
+            zone: null,
         );
 
         if ($start === null) {

@@ -17,8 +17,6 @@ readonly class ClearTracesUseCase
 
     public function handle(): void
     {
-        $this->clearTracesAction->handle(
-            $this->findTraceLifetimeAction->handle()
-        );
+        $this->clearTracesAction->handle($this->findTraceLifetimeAction->handle());
     }
 }

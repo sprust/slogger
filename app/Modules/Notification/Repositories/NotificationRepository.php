@@ -78,7 +78,7 @@ readonly class NotificationRepository
             text: $text,
             sentAt: null,
             error: null,
-            createdAt: $createdAt
+            createdAt: $createdAt,
         );
     }
 
@@ -140,9 +140,15 @@ readonly class NotificationRepository
             incidentId: isset($document['incidentId']) ? (string) $document['incidentId'] : null,
             kind: NotificationKindEnum::from((string) $document['kind']),
             text: (string) $document['text'],
-            sentAt: $this->readDate($document, 'sentAt'),
+            sentAt: $this->readDate(
+                document: $document,
+                key: 'sentAt',
+            ),
             error: isset($document['error']) ? (string) $document['error'] : null,
-            createdAt: $this->readDate($document, 'createdAt') ?? Carbon::now()
+            createdAt: $this->readDate(
+                document: $document,
+                key: 'createdAt',
+            ) ?? Carbon::now(),
         );
     }
 

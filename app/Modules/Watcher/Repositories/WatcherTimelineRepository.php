@@ -19,9 +19,8 @@ use SConcur\Bson\UTCDateTime;
  */
 readonly class WatcherTimelineRepository
 {
-    public function __construct(
-        private WatcherTimelineReader $reader
-    ) {
+    public function __construct(private WatcherTimelineReader $reader)
+    {
     }
 
     public function find(int $watcherId): WatcherTimelineObject
@@ -33,7 +32,7 @@ readonly class WatcherTimelineRepository
 
         return $this->reader->read(
             watcherId: $watcherId,
-            buckets: is_array($buckets) ? array_values($buckets) : []
+            buckets: is_array($buckets) ? array_values($buckets) : [],
         );
     }
 

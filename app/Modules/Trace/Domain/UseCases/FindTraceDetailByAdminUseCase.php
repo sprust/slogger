@@ -22,8 +22,6 @@ readonly class FindTraceDetailByAdminUseCase
      */
     public function handle(string $traceId): TraceDetailObject
     {
-        return $this->findTraceDetailAction->handle(
-            traceId: $traceId,
-        ) ?? throw new TraceNotFoundException();
+        return $this->findTraceDetailAction->handle($traceId) ?? throw new TraceNotFoundException();
     }
 }

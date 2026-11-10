@@ -13,9 +13,8 @@ use Throwable;
 
 readonly class SconcurStatClient
 {
-    public function __construct(
-        private Client $client = new Client(),
-    ) {
+    public function __construct(private Client $client = new Client())
+    {
     }
 
     /**
@@ -92,7 +91,7 @@ readonly class SconcurStatClient
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
             work: $this->mapWork(
                 requests: $totals['requests'] ?? null,
-                consumers: $totals['consumers'] ?? null
+                consumers: $totals['consumers'] ?? null,
             ),
             masterCpuPercent: (float) ($master['cpuPercent'] ?? 0),
             masterMemoryRssBytes: (int) ($master['memory']['rssBytes'] ?? 0),
@@ -245,7 +244,7 @@ readonly class SconcurStatClient
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
             work: $this->mapWork(
                 requests: $totals['requests'] ?? null,
-                consumers: $totals['consumers'] ?? null
+                consumers: $totals['consumers'] ?? null,
             ),
         );
     }
@@ -266,7 +265,7 @@ readonly class SconcurStatClient
             runtimeTasks: (int) ($worker['runtimeTasks'] ?? 0),
             work: $this->mapWork(
                 requests: $worker['requests'] ?? null,
-                consumers: $worker['consumers'] ?? null
+                consumers: $worker['consumers'] ?? null,
             ),
         );
     }

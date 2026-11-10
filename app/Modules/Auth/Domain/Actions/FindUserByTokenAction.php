@@ -30,7 +30,7 @@ readonly class FindUserByTokenAction
             firstName: $user->firstName,
             lastName: $user->lastName,
             email: $user->email,
-            apiToken: $token
+            apiToken: $token,
         );
     }
 }

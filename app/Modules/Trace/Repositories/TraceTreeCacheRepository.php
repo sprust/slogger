@@ -62,9 +62,11 @@ class TraceTreeCacheRepository
         $cursor = TraceTreeCache::sconcur()
             ->find(
                 filter: ['rootTraceId' => $rootTraceId],
-                projection: ['_id' => 1],
+                projection: [
+                    '_id' => 1,
+                ],
                 limit: $limit,
-                batchSize: $limit
+                batchSize: $limit,
             );
 
         $ids = [];
@@ -137,7 +139,9 @@ class TraceTreeCacheRepository
                     'rootTraceId' => $rootTraceId,
                     'depth'       => $depth,
                 ],
-                projection: ['_id' => 1]
+                projection: [
+                    '_id' => 1,
+                ],
             ) !== null;
     }
 
@@ -169,7 +173,7 @@ class TraceTreeCacheRepository
                 ],
                 sort: ['_id' => 1],
                 limit: $limit,
-                batchSize: $limit
+                batchSize: $limit,
             );
 
         $traceIds = [];
@@ -184,7 +188,7 @@ class TraceTreeCacheRepository
 
         return new TraceTreeCachePageDto(
             traceIds: $traceIds,
-            lastId: $lastId
+            lastId: $lastId,
         );
     }
 
@@ -193,7 +197,9 @@ class TraceTreeCacheRepository
         return TraceTreeCache::sconcur()
             ->findOne(
                 filter: ['rootTraceId' => $rootTraceId],
-                projection: ['_id' => 1]
+                projection: [
+                    '_id' => 1,
+                ],
             ) !== null;
     }
 
@@ -218,7 +224,7 @@ class TraceTreeCacheRepository
                     '_id'     => 0,
                     'traceId' => 1,
                 ],
-                batchSize: $batchCount
+                batchSize: $batchCount,
             );
 
         $traceIds = [];
@@ -252,12 +258,12 @@ class TraceTreeCacheRepository
                         '$project' => ['_id' => 0] + self::NODE_PROJECTION,
                     ],
                 ],
-                batchSize: self::DUMP_BATCH_SIZE
+                batchSize: self::DUMP_BATCH_SIZE,
             );
 
         return new TraceTreeRawIterator(
             transport: static fn(array $item): TraceTreeRawObject => self::makeRawObject($item),
-            iterator: $cursor
+            iterator: $cursor,
         );
     }
 
@@ -278,7 +284,7 @@ class TraceTreeCacheRepository
                     'rootTraceId' => $rootTraceId,
                     'depth'       => ['$gte' => self::ANCESTOR_DEPTH, '$lte' => self::ROOT_DEPTH],
                 ],
-                projection: ['_id' => 0] + self::NODE_PROJECTION
+                projection: ['_id' => 0] + self::NODE_PROJECTION,
             );
 
         /** @var array<string, array<string, mixed>> $items */
@@ -344,7 +350,7 @@ class TraceTreeCacheRepository
                 projection: ['_id' => 1] + self::NODE_PROJECTION,
                 sort: ['loggedAt' => 1, '_id' => 1],
                 limit: $limit + 1,
-                batchSize: $limit + 1
+                batchSize: $limit + 1,
             );
 
         $items = [];
@@ -451,7 +457,7 @@ class TraceTreeCacheRepository
                 sort: ['depth' => 1, '_id' => 1],
                 limit: $limit,
                 batchSize: min($limit, self::DUMP_BATCH_SIZE),
-                hint: ['rootTraceId' => 1, 'depth' => 1, '_id' => 1]
+                hint: ['rootTraceId' => 1, 'depth' => 1, '_id' => 1],
             );
 
         $items = [];
@@ -482,7 +488,7 @@ class TraceTreeCacheRepository
                     'traceId'     => ['$in' => $traceIds],
                 ],
                 projection: ['_id' => 0] + self::NODE_PROJECTION,
-                batchSize: min(count($traceIds), self::DUMP_BATCH_SIZE)
+                batchSize: min(count($traceIds), self::DUMP_BATCH_SIZE),
             );
 
         $items = [];

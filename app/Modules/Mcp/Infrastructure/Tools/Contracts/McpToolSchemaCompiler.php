@@ -53,27 +53,53 @@ readonly class McpToolSchemaCompiler
                         $presence,
                         'string',
                         ...$this->boundRules(
-                            $property,
-                            minDefault: 1
+                            property: $property,
+                            minDefault: 1,
                         ),
                         ...$this->enumRules($property),
                     ];
                     break;
                 case McpToolPropertyTypeEnum::Integer:
-                    $rules[$property->name] = [$presence, 'integer', ...$this->boundRules($property)];
+                    $rules[$property->name] = [
+                        $presence,
+                        'integer',
+                        ...$this->boundRules(
+                            property: $property,
+                        ),
+                    ];
                     break;
                 case McpToolPropertyTypeEnum::Number:
-                    $rules[$property->name] = [$presence, 'numeric', ...$this->boundRules($property)];
+                    $rules[$property->name] = [
+                        $presence,
+                        'numeric',
+                        ...$this->boundRules(
+                            property: $property,
+                        ),
+                    ];
                     break;
                 case McpToolPropertyTypeEnum::Boolean:
                     $rules[$property->name] = [$presence, 'boolean'];
                     break;
                 case McpToolPropertyTypeEnum::StringList:
-                    $rules[$property->name]     = [$presence, 'array', 'list', ...$this->boundRules($property)];
+                    $rules[$property->name]     = [
+                        $presence,
+                        'array',
+                        'list',
+                        ...$this->boundRules(
+                            property: $property,
+                        ),
+                    ];
                     $rules["$property->name.*"] = ['required', 'string', 'min:1', ...$this->enumRules($property)];
                     break;
                 case McpToolPropertyTypeEnum::IntegerList:
-                    $rules[$property->name]     = [$presence, 'array', 'list', ...$this->boundRules($property)];
+                    $rules[$property->name]     = [
+                        $presence,
+                        'array',
+                        'list',
+                        ...$this->boundRules(
+                            property: $property,
+                        ),
+                    ];
                     $rules["$property->name.*"] = ['required', 'integer'];
                     break;
             }
@@ -106,8 +132,8 @@ readonly class McpToolSchemaCompiler
             return [
                 ...$schema,
                 ...$this->bounds(
-                    $property,
-                    $property->type === McpToolPropertyTypeEnum::String
+                    property: $property,
+                    isString: $property->type === McpToolPropertyTypeEnum::String,
                 ),
             ];
         }

@@ -19,8 +19,6 @@ readonly class FindServiceByAdminUseCase
      */
     public function handle(int $id): ServiceObject
     {
-        return $this->findServiceAction->handle(
-            id: $id,
-        ) ?? throw new ServiceNotFoundException($id);
+        return $this->findServiceAction->handle($id) ?? throw new ServiceNotFoundException($id);
     }
 }

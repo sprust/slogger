@@ -9,9 +9,8 @@ use App\Modules\Dashboard\Entities\SconcurStatObject;
 
 readonly class FindSconcurStatAction
 {
-    public function __construct(
-        private SconcurStatClient $client
-    ) {
+    public function __construct(private SconcurStatClient $client)
+    {
     }
 
     public function handle(): SconcurStatObject

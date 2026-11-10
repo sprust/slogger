@@ -30,7 +30,7 @@ readonly class ExplainTracePrompt implements McpPromptInterface
             new McpPromptArgument(
                 name: 'trace_id',
                 description: 'Trace id.',
-                required: true
+                required: true,
             ),
         ];
     }

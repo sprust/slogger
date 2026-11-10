@@ -9,9 +9,8 @@ use App\Modules\Setting\Repositories\SettingRepository;
 
 readonly class ResetSettingAction
 {
-    public function __construct(
-        private SettingRepository $settingRepository
-    ) {
+    public function __construct(private SettingRepository $settingRepository)
+    {
     }
 
     public function handle(SettingKeyEnum $key): void

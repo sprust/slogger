@@ -18,9 +18,8 @@ readonly class TraceTreeRepository
     private int $treeTraversalChunkSize;
     private int $treeTraversalConcurrency;
 
-    public function __construct(
-        private ClickhouseClient $client,
-    ) {
+    public function __construct(private ClickhouseClient $client)
+    {
         $this->maxDepthForFindParent    = 100;
         $this->treeTraversalChunkSize   = 1000;
         $this->treeTraversalConcurrency = 8;
@@ -186,7 +185,7 @@ readonly class TraceTreeRepository
             $rows = $this->client->select(
                 sql: 'SELECT DISTINCT tid FROM traces WHERE ptid IN {parents:Array(String)}',
                 params: ['parents' => $parentTraceIdsChunk],
-                queryIdPrefix: 'trace-tree-children'
+                queryIdPrefix: 'trace-tree-children',
             );
 
             foreach ($rows as $row) {
@@ -219,7 +218,7 @@ readonly class TraceTreeRepository
         $rows = $this->client->select(
             sql: 'SELECT tid, ptid FROM traces WHERE tid = {tid:String} ORDER BY uat DESC LIMIT 1',
             params: ['tid' => $traceId],
-            queryIdPrefix: 'trace-tree-link'
+            queryIdPrefix: 'trace-tree-link',
         );
 
         if (!isset($rows[0])) {
@@ -275,7 +274,12 @@ readonly class TraceTreeRepository
     {
         $childIds = [];
 
-        foreach ($this->findChildrenTraceIds($parentTraceIds, $this->treeTraversalChunkSize) as $childIdsChunk) {
+        $childTraceIdBatches = $this->findChildrenTraceIds(
+            parentTraceIds: $parentTraceIds,
+            batchCount: $this->treeTraversalChunkSize,
+        );
+
+        foreach ($childTraceIdBatches as $childIdsChunk) {
             foreach ($childIdsChunk as $childTraceId) {
                 $childIds[] = $childTraceId;
             }

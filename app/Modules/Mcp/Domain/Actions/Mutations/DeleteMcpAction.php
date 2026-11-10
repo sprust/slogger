@@ -9,9 +9,8 @@ use App\Modules\Mcp\Repositories\McpRepository;
 
 readonly class DeleteMcpAction
 {
-    public function __construct(
-        private McpRepository $mcpRepository
-    ) {
+    public function __construct(private McpRepository $mcpRepository)
+    {
     }
 
     /**

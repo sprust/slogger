@@ -44,8 +44,14 @@ class WsKeysGenerateCommand extends Command
 
         if (
             !$this->option('force')
-            && $this->isFilled($env, 'SCONCUR_WS_APP_KEY')
-            && $this->isFilled($env, 'SCONCUR_WS_APP_SECRET')
+            && $this->isFilled(
+                env: $env,
+                name: 'SCONCUR_WS_APP_KEY',
+            )
+            && $this->isFilled(
+                env: $env,
+                name: 'SCONCUR_WS_APP_SECRET',
+            )
         ) {
             $this->components->info('The ws credentials are already set; use --force to replace them.');
 
@@ -58,9 +64,13 @@ class WsKeysGenerateCommand extends Command
         file_put_contents(
             $envPath,
             $this->set(
-                $this->set($env, 'SCONCUR_WS_APP_KEY', $key),
-                'SCONCUR_WS_APP_SECRET',
-                $secret
+                env: $this->set(
+                    env: $env,
+                    name: 'SCONCUR_WS_APP_KEY',
+                    value: $key,
+                ),
+                name: 'SCONCUR_WS_APP_SECRET',
+                value: $secret,
             )
         );
 
@@ -79,7 +89,7 @@ class WsKeysGenerateCommand extends Command
         $frontendEnv = $this->set(
             env: (string) file_get_contents($frontendEnvPath),
             name: 'SCONCUR_WS_KEY',
-            value: $key
+            value: $key,
         );
 
         // Vite only exposes what is prefixed VITE_, and on a frontend/.env that predates
@@ -87,11 +97,16 @@ class WsKeysGenerateCommand extends Command
         // without it, and the panel would sit on its polling fallback saying nothing.
         // Added, not overwritten: an example-copied file already interpolates it, and that
         // form survives the next key without a rebuild of this file.
-        if (!$this->isFilled($frontendEnv, 'VITE_SCONCUR_WS_KEY')) {
+        if (
+            !$this->isFilled(
+                env: $frontendEnv,
+                name: 'VITE_SCONCUR_WS_KEY',
+            )
+        ) {
             $frontendEnv = $this->set(
                 env: $frontendEnv,
                 name: 'VITE_SCONCUR_WS_KEY',
-                value: '${SCONCUR_WS_KEY}'
+                value: '${SCONCUR_WS_KEY}',
             );
         }
 

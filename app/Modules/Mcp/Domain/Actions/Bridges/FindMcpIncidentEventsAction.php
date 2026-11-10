@@ -73,9 +73,7 @@ readonly class FindMcpIncidentEventsAction
                 watcher: $watcher,
             ),
             items: array_map(
-                fn(
-                    WatcherIncidentEventObject $event
-                ) => $this->mcpIncidentEventObjectTransport->fromWatcher(
+                fn(WatcherIncidentEventObject $event) => $this->mcpIncidentEventObjectTransport->fromWatcher(
                     watcherIncidentEventObject: $event,
                     numbers: $event->payload === null
                         ? null

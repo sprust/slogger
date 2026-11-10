@@ -41,7 +41,9 @@ class McpExceptionManager extends BaseExceptionManager
 
     protected function getDontReport(): array
     {
-        return [McpNotFoundException::class];
+        return [
+            McpNotFoundException::class,
+        ];
     }
 
     protected function onMakeMessage(Throwable $exception): string

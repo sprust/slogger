@@ -19,8 +19,6 @@ readonly class FindMcpByAdminUseCase
      */
     public function handle(int $id): McpObject
     {
-        return $this->findMcpAction->handle(
-            id: $id,
-        ) ?? throw new McpNotFoundException($id);
+        return $this->findMcpAction->handle($id) ?? throw new McpNotFoundException($id);
     }
 }

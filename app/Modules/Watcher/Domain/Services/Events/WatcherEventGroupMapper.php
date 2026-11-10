@@ -14,9 +14,8 @@ use Psr\Log\LoggerInterface;
  */
 readonly class WatcherEventGroupMapper
 {
-    public function __construct(
-        private LoggerInterface $logger
-    ) {
+    public function __construct(private LoggerInterface $logger)
+    {
     }
 
     /**
@@ -43,9 +42,18 @@ readonly class WatcherEventGroupMapper
             }
 
             /** @var array<string, mixed> $group */
-            $serviceId = ArrayValueGetter::intNull($group, 'service_id');
-            $type      = ArrayValueGetter::stringNull($group, 'type');
-            $count     = ArrayValueGetter::intNull($group, 'count');
+            $serviceId = ArrayValueGetter::intNull(
+                data: $group,
+                key: 'service_id',
+            );
+            $type      = ArrayValueGetter::stringNull(
+                data: $group,
+                key: 'type',
+            );
+            $count     = ArrayValueGetter::intNull(
+                data: $group,
+                key: 'count',
+            );
 
             if (is_null($serviceId) || is_null($type) || is_null($count)) {
                 $this->logger->warning('A watcher incident event carries an unreadable group');
@@ -57,12 +65,24 @@ readonly class WatcherEventGroupMapper
                 serviceId: $serviceId,
                 type: $type,
                 tags: array_values(
-                    ArrayValueGetter::arrayStringNull($group, 'tags') ?? []
+                    ArrayValueGetter::arrayStringNull(
+                        data: $group,
+                        key: 'tags',
+                    ) ?? []
                 ),
                 count: $count,
-                durationMax: ArrayValueGetter::floatNull($group, 'duration_max'),
-                slowestTraceId: ArrayValueGetter::stringNull($group, 'trace_id'),
-                slowestTraceLoggedAt: ArrayValueGetter::stringNull($group, 'trace_logged_at')
+                durationMax: ArrayValueGetter::floatNull(
+                    data: $group,
+                    key: 'duration_max',
+                ),
+                slowestTraceId: ArrayValueGetter::stringNull(
+                    data: $group,
+                    key: 'trace_id',
+                ),
+                slowestTraceLoggedAt: ArrayValueGetter::stringNull(
+                    data: $group,
+                    key: 'trace_logged_at',
+                ),
             );
         }
 

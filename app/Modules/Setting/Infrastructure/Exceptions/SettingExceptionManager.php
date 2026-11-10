@@ -39,7 +39,9 @@ class SettingExceptionManager extends BaseExceptionManager
 
     protected function getDontReport(): array
     {
-        return [SettingValueOutOfRangeException::class];
+        return [
+            SettingValueOutOfRangeException::class,
+        ];
     }
 
     protected function onMakeMessage(Throwable $exception): string

@@ -67,9 +67,7 @@ readonly class AggregateTracesTool implements McpToolInterface
                     description: 'Fields to group by.',
                     required: true,
                     enum: array_map(
-                        static fn(
-                            TraceGroupFieldEnum $field
-                        ) => $field->value,
+                        static fn(TraceGroupFieldEnum $field) => $field->value,
                         TraceGroupFieldEnum::cases()
                     ),
                     min: 1,

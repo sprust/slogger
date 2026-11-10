@@ -55,9 +55,11 @@ readonly class FindMcpTraceGroupsAction
                 statuses: $parameters->statuses,
                 durationFrom: $parameters->durationFrom,
                 durationTo: $parameters->durationTo,
-                data: count($filter) > 0 ? new TraceDataFilterParameters(
-                    filter: $filter,
-                ) : null,
+                data: count($filter) > 0
+                    ? new TraceDataFilterParameters(
+                        filter: $filter,
+                    )
+                    : null,
             )
         );
 
@@ -101,9 +103,8 @@ readonly class FindMcpTraceGroupsAction
 
         $timeFields = array_filter(
             $fields,
-            static fn(
-                TraceGroupFieldEnum $field
-            ) => $field === TraceGroupFieldEnum::Hour || $field === TraceGroupFieldEnum::Minute10,
+            static fn(TraceGroupFieldEnum $field) => $field === TraceGroupFieldEnum::Hour
+                || $field === TraceGroupFieldEnum::Minute10,
         );
 
         if (count($timeFields) > 1) {

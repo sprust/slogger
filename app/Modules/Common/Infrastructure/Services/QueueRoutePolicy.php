@@ -32,7 +32,7 @@ readonly class QueueRoutePolicy
 
         $rabbitmqQueues = $this->configRepository->get(
             key: 'sconcur.queue.rabbitmq.queues',
-            default: []
+            default: [],
         );
 
         $allowed = $connectionName !== '' && $queueName !== ''

@@ -13,8 +13,7 @@ class LogMergeSlot
      */
     public array $pending = [];
 
-    public function __construct(
-        public readonly LogFileStream $stream
-    ) {
+    public function __construct(public readonly LogFileStream $stream)
+    {
     }
 }

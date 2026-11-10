@@ -28,7 +28,9 @@ readonly class LogoutController
 
         if ($bearerToken) {
             $this->logoutByAdminUseCase->handle(
-                new TokenParameters($bearerToken)
+                new TokenParameters(
+                    token: $bearerToken,
+                )
             );
         }
 

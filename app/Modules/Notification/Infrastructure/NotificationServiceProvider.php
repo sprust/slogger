@@ -51,7 +51,7 @@ class NotificationServiceProvider extends BaseServiceProvider
         $this->app->singleton(
             abstract: TelegramSender::class,
             concrete: static fn(): TelegramSender => new TelegramSender(
-                httpClient: self::makeHttpClient(),
+                self::makeHttpClient(),
             ),
         );
 
@@ -78,16 +78,16 @@ class NotificationServiceProvider extends BaseServiceProvider
         $this->app->singleton(
             abstract: IncidentMessageFactory::class,
             concrete: static fn(Application $app): IncidentMessageFactory => new IncidentMessageFactory(
-                appName: (string) config(
-                    key: 'app.name',
-                ),
+                (string) config('app.name'),
             ),
         );
     }
 
     protected function getJobs(): array
     {
-        return [SendNotificationJob::class];
+        return [
+            SendNotificationJob::class,
+        ];
     }
 
     protected function getListeners(): array

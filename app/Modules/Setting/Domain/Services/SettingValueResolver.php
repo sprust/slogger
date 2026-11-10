@@ -25,7 +25,10 @@ readonly class SettingValueResolver
     ): ?int {
         if (
             is_null($stored)
-            || !$this->isValid($definition, $stored->value)
+            || !$this->isValid(
+                definition: $definition,
+                value: $stored->value,
+            )
         ) {
             return null;
         }

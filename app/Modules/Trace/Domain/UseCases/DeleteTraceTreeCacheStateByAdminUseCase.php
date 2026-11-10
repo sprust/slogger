@@ -15,8 +15,6 @@ readonly class DeleteTraceTreeCacheStateByAdminUseCase
 
     public function handle(string $rootTraceId): void
     {
-        $this->deleteTraceTreeCacheStateAction->handle(
-            rootTraceId: $rootTraceId,
-        );
+        $this->deleteTraceTreeCacheStateAction->handle($rootTraceId);
     }
 }

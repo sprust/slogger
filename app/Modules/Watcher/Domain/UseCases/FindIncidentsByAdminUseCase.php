@@ -19,8 +19,6 @@ readonly class FindIncidentsByAdminUseCase
      */
     public function handle(FindIncidentsParameters $parameters): array
     {
-        return $this->findIncidentsAction->handle(
-            parameters: $parameters,
-        );
+        return $this->findIncidentsAction->handle($parameters);
     }
 }

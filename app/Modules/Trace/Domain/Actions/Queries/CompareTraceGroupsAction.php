@@ -41,7 +41,7 @@ readonly class CompareTraceGroupsAction
             dataKey: $parameters->dataKey,
             serviceIds: $parameters->serviceIds,
             types: $parameters->types,
-            statuses: $statuses
+            statuses: $statuses,
         );
 
         $groupATotal = 0;
@@ -77,9 +77,15 @@ readonly class CompareTraceGroupsAction
             $rows[] = new TraceGroupComparisonRowObject(
                 value: $valueCounts[0]->value,
                 groupACount: $groupACount,
-                groupAShare: $this->share($groupACount, $groupATotal),
+                groupAShare: $this->share(
+                    count: $groupACount,
+                    total: $groupATotal,
+                ),
                 groupBCount: $groupBCount,
-                groupBShare: $this->share($groupBCount, $groupBTotal)
+                groupBShare: $this->share(
+                    count: $groupBCount,
+                    total: $groupBTotal,
+                ),
             );
         }
 
@@ -98,7 +104,7 @@ readonly class CompareTraceGroupsAction
             groupATotal: $groupATotal,
             groupBTotal: $groupBTotal,
             rows: array_slice($rows, 0, $parameters->limit),
-            truncated: count($rows) > $parameters->limit
+            truncated: count($rows) > $parameters->limit,
         );
     }
 

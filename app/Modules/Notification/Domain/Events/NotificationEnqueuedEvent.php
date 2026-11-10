@@ -6,8 +6,7 @@ namespace App\Modules\Notification\Domain\Events;
 
 readonly class NotificationEnqueuedEvent
 {
-    public function __construct(
-        public string $notificationId
-    ) {
+    public function __construct(public string $notificationId)
+    {
     }
 }

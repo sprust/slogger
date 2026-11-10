@@ -12,9 +12,8 @@ use Illuminate\Support\Carbon;
 
 readonly class FindReceiverErrorStatAction
 {
-    public function __construct(
-        private LogErrorStatCounter $logErrorStatCounter
-    ) {
+    public function __construct(private LogErrorStatCounter $logErrorStatCounter)
+    {
     }
 
     public function handle(Carbon $since, Carbon $until): LogLevelStatObject
@@ -23,7 +22,7 @@ readonly class FindReceiverErrorStatAction
             type: LogTypeEnum::Receiver,
             levels: [ReceiverLogLevelEnum::Error->value],
             since: $since,
-            until: $until
+            until: $until,
         );
     }
 }

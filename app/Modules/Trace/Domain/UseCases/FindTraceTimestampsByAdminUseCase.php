@@ -21,8 +21,6 @@ readonly class FindTraceTimestampsByAdminUseCase
      */
     public function handle(FindTraceTimestampsParameters $parameters): TraceTimestampsObjects
     {
-        return $this->findTraceTimestampsAction->handle(
-            parameters: $parameters,
-        );
+        return $this->findTraceTimestampsAction->handle($parameters);
     }
 }

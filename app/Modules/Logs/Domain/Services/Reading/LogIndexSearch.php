@@ -12,9 +12,8 @@ readonly class LogIndexSearch
 {
     private const int SCAN_RECORDS = 512;
 
-    public function __construct(
-        private LogIndexRepository $logIndexRepository
-    ) {
+    public function __construct(private LogIndexRepository $logIndexRepository)
+    {
     }
 
     public function lowerBoundByEntryNo(string $fileId, ?int $level, int $count, int $entryNo): int
@@ -23,7 +22,7 @@ readonly class LogIndexSearch
             fileId: $fileId,
             level: $level,
             count: $count,
-            isBelow: static fn(LogIndexRecordObject $record): bool => $record->entryNo < $entryNo
+            isBelow: static fn(LogIndexRecordObject $record): bool => $record->entryNo < $entryNo,
         );
     }
 
@@ -33,7 +32,7 @@ readonly class LogIndexSearch
             fileId: $fileId,
             level: $level,
             count: $count,
-            isBelow: static fn(LogIndexRecordObject $record): bool => $record->loggedAt < $time
+            isBelow: static fn(LogIndexRecordObject $record): bool => $record->loggedAt < $time,
         );
     }
 
@@ -48,7 +47,12 @@ readonly class LogIndexSearch
         while ($high - $low > self::SCAN_RECORDS) {
             $middle = intdiv($low + $high, 2);
 
-            $record = $this->logIndexRepository->readRecords($fileId, $level, $middle, 1)[0] ?? null;
+            $record = $this->logIndexRepository->readRecords(
+                fileId: $fileId,
+                level: $level,
+                from: $middle,
+                count: 1,
+            )[0] ?? null;
 
             if ($record === null) {
                 $high = $middle;
@@ -59,7 +63,14 @@ readonly class LogIndexSearch
             }
         }
 
-        foreach ($this->logIndexRepository->readRecords($fileId, $level, $low, $high - $low) as $record) {
+        $records = $this->logIndexRepository->readRecords(
+            fileId: $fileId,
+            level: $level,
+            from: $low,
+            count: $high - $low,
+        );
+
+        foreach ($records as $record) {
             if (!$isBelow($record)) {
                 return $low;
             }

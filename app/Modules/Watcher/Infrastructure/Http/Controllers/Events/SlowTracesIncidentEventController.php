@@ -19,9 +19,9 @@ readonly class SlowTracesIncidentEventController extends AbstractIncidentEventCo
     ): AnonymousResourceCollection {
         return SlowTracesIncidentEventResource::collection(
             $this->incidentEvents(
-                WatcherTypeEnum::SlowTraces,
-                $id,
-                $request->validated()
+                type: WatcherTypeEnum::SlowTraces,
+                incidentId: $id,
+                validated: $request->validated(),
             )
         );
     }

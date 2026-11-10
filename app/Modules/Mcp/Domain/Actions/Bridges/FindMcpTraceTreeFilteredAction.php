@@ -77,9 +77,7 @@ readonly class FindMcpTraceTreeFilteredAction
             error: null,
             nodes: $this->nodeFactory->make(
                 nodes: array_map(
-                    fn(
-                        TraceTreeRawObject $node
-                    ) => $this->traceObjectTransport->toTraceTreeNodeParameters($node),
+                    fn(TraceTreeRawObject $node) => $this->traceObjectTransport->toTraceTreeNodeParameters($node),
                     array_slice($matched, 0, $limit)
                 ),
                 childrenCounts: null,

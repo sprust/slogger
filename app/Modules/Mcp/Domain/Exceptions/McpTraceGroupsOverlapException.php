@@ -9,9 +9,8 @@ class McpTraceGroupsOverlapException extends AbstractMcpException
     /**
      * @param string[] $statuses
      */
-    public function __construct(
-        public readonly array $statuses
-    ) {
+    public function __construct(public readonly array $statuses)
+    {
         parent::__construct(
             'Statuses in both groups: '
                 . implode(', ', $statuses)

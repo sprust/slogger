@@ -89,18 +89,21 @@ readonly class FindTracesAction
         $traceServices = $this->findTraceServicesAction->handle(
             serviceIds: $serviceIds,
         );
-        $resultItems = [];
+        $resultItems   = [];
 
         foreach ($tracesDto as $traceDto) {
-            $service       = $traceDto->serviceId
+            $service = $traceDto->serviceId
                 ? $traceServices->getById($traceDto->serviceId)
                 : null;
+
             $resultItems[] = new TraceItemObject(
                 trace: new TraceItemTraceObject(
-                    service: $service ? new TraceServiceObject(
-                        id: $service->id,
-                        name: $service->name,
-                    ) : null,
+                    service: $service
+                        ? new TraceServiceObject(
+                            id: $service->id,
+                            name: $service->name,
+                        )
+                        : null,
                     traceId: $traceDto->traceId,
                     parentTraceId: $traceDto->parentTraceId,
                     type: $traceDto->type,

@@ -36,7 +36,7 @@ readonly class McpTracePeriodResolver
 
         return new McpTracePeriodObject(
             from: $from,
-            to: $to
+            to: $to,
         );
     }
 }

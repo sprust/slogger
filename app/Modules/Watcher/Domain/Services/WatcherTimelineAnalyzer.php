@@ -51,7 +51,13 @@ readonly class WatcherTimelineAnalyzer
     {
         $count = 0;
 
-        foreach ($this->bucketsIn($timeline, $from, $to) as $bucket) {
+        $buckets = $this->bucketsIn(
+            timeline: $timeline,
+            from: $from,
+            to: $to,
+        );
+
+        foreach ($buckets as $bucket) {
             $count += $bucket->count;
         }
 
@@ -69,12 +75,21 @@ readonly class WatcherTimelineAnalyzer
         /** @var array<string, WatcherTimelineGroupObject> $groups */
         $groups = [];
 
-        foreach ($this->bucketsIn($timeline, $from, $to) as $bucket) {
+        $buckets = $this->bucketsIn(
+            timeline: $timeline,
+            from: $from,
+            to: $to,
+        );
+
+        foreach ($buckets as $bucket) {
             foreach ($bucket->groups as $group) {
                 $key = $this->key($group);
 
                 $groups[$key] = isset($groups[$key])
-                    ? $this->merge($groups[$key], $group)
+                    ? $this->merge(
+                        first: $groups[$key],
+                        second: $group,
+                    )
                     : $group;
             }
         }
@@ -111,7 +126,7 @@ readonly class WatcherTimelineAnalyzer
             // id. Falling back to the other group's used to report a trace that ran for
             // less than the number printed next to it.
             slowestTraceId: $slower->slowestTraceId,
-            slowestTraceLoggedAt: $slower->slowestTraceLoggedAt
+            slowestTraceLoggedAt: $slower->slowestTraceLoggedAt,
         );
     }
 

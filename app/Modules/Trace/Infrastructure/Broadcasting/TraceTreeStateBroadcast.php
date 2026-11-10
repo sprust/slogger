@@ -23,9 +23,8 @@ use Illuminate\Contracts\Broadcasting\ShouldRescue;
  */
 class TraceTreeStateBroadcast implements ShouldBroadcastNow, ShouldRescue
 {
-    public function __construct(
-        private readonly TraceTreeCacheStateObject $state,
-    ) {
+    public function __construct(private readonly TraceTreeCacheStateObject $state)
+    {
     }
 
     /**

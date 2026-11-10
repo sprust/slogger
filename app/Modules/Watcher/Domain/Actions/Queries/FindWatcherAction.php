@@ -22,7 +22,10 @@ readonly class FindWatcherAction
      */
     public function handle(int $id, bool $withTrashed = false): ?WatcherObject
     {
-        $dto = $this->watcherRepository->findById($id, $withTrashed);
+        $dto = $this->watcherRepository->findById(
+            id: $id,
+            withTrashed: $withTrashed,
+        );
 
         return is_null($dto) ? null : $this->watcherFactory->make($dto);
     }

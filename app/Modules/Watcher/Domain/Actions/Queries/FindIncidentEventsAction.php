@@ -34,10 +34,15 @@ readonly class FindIncidentEventsAction
         int $perPage = 50
     ): array {
         return array_map(
-            fn(
-                WatcherIncidentEventDto $dto
-            ): WatcherIncidentEventObject => $this->eventFactory->make($dto, $type),
-            $this->eventRepository->findByIncidentId($incidentId, $page, $perPage)
+            fn(WatcherIncidentEventDto $dto): WatcherIncidentEventObject => $this->eventFactory->make(
+                dto: $dto,
+                type: $type,
+            ),
+            $this->eventRepository->findByIncidentId(
+                incidentId: $incidentId,
+                page: $page,
+                perPage: $perPage,
+            )
         );
     }
 }

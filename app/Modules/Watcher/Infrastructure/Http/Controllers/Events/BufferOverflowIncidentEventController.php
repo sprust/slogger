@@ -19,9 +19,9 @@ readonly class BufferOverflowIncidentEventController extends AbstractIncidentEve
     ): AnonymousResourceCollection {
         return BufferOverflowIncidentEventResource::collection(
             $this->incidentEvents(
-                WatcherTypeEnum::BufferOverflow,
-                $id,
-                $request->validated()
+                type: WatcherTypeEnum::BufferOverflow,
+                incidentId: $id,
+                validated: $request->validated(),
             )
         );
     }

@@ -44,27 +44,29 @@ readonly class GetTraceTreeTool implements McpToolInterface
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            new McpToolProperty(
-                name: 'trace_id',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Any trace id of the tree.',
-                required: true,
-                max: 255
-            ),
-            new McpToolProperty(
-                name: 'parent_trace_id',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Return the children of this node.',
-                max: 255
-            ),
-            new McpToolProperty(
-                name: 'cursor',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'next_cursor of the previous call for the same parent_trace_id.',
-                max: 1024
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                new McpToolProperty(
+                    name: 'trace_id',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Any trace id of the tree.',
+                    required: true,
+                    max: 255,
+                ),
+                new McpToolProperty(
+                    name: 'parent_trace_id',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Return the children of this node.',
+                    max: 255,
+                ),
+                new McpToolProperty(
+                    name: 'cursor',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'next_cursor of the previous call for the same parent_trace_id.',
+                    max: 1024,
+                ),
+            ],
+        );
     }
 
     /**
@@ -79,7 +81,7 @@ readonly class GetTraceTreeTool implements McpToolInterface
             traceId: $traceId,
             parentTraceId: $parentTraceId,
             cursor: $arguments->stringNull('cursor'),
-            limit: $this->findMcpSettingsAction->handle()->treeNodesLimit
+            limit: $this->findMcpSettingsAction->handle()->treeNodesLimit,
         );
 
         if (is_null($tree)) {
@@ -88,7 +90,7 @@ readonly class GetTraceTreeTool implements McpToolInterface
 
         $notReady = $this->formatter->treeNotReady(
             tree: $tree,
-            buildingHint: 'The tree is being built in the background. Repeat the SAME get_trace_tree call later.'
+            buildingHint: 'The tree is being built in the background. Repeat the SAME get_trace_tree call later.',
         );
 
         if (!is_null($notReady)) {
@@ -105,7 +107,7 @@ readonly class GetTraceTreeTool implements McpToolInterface
                     $tree->nodes
                 ),
                 'next_cursor'     => $tree->nextCursor,
-            ]
+            ],
         );
     }
 }

@@ -58,7 +58,7 @@ readonly class FindTraceTimestampsAction
             if ($field === TraceMetricFieldEnum::Count) {
                 $fieldsFilter[] = new TraceMetricFieldsFilterDto(
                     field: $field,
-                    aggregations: [TraceMetricFieldAggregatorEnum::Sum]
+                    aggregations: [TraceMetricFieldAggregatorEnum::Sum],
                 );
 
                 continue;
@@ -66,7 +66,7 @@ readonly class FindTraceTimestampsAction
 
             $fieldsFilter[] = new TraceMetricFieldsFilterDto(
                 field: $field,
-                aggregations: $aggregations
+                aggregations: $aggregations,
             );
         }
 
@@ -81,7 +81,7 @@ readonly class FindTraceTimestampsAction
             foreach ($parameters->dataFields as $dataField) {
                 $dataFieldsFilter[] = new TraceMetricDataFieldsFilterDto(
                     field: $dataField,
-                    aggregations: $aggregations
+                    aggregations: $aggregations,
                 );
             }
         }
@@ -90,12 +90,12 @@ readonly class FindTraceTimestampsAction
 
         $loggedAtFrom = $this->traceTimestampMetricsFactory->calcLoggedAtFrom(
             timestampPeriod: $parameters->timestampPeriod,
-            date: $loggedAtTo
+            date: $loggedAtTo,
         );
 
         $loggedAtFrom = $this->traceTimestampMetricsFactory->prepareDateByTimestamp(
             date: $loggedAtFrom,
-            timestamp: $parameters->timestampStep
+            timestamp: $parameters->timestampStep,
         );
 
         $data = $parameters->data;
@@ -155,7 +155,7 @@ readonly class FindTraceTimestampsAction
             foreach ($timestampsList->timestamps as $foundTimestamp) {
                 $existsTimestamp = Arr::first(
                     $timestampsResult,
-                    fn(TraceTimestampsDto $timestampResult) => $timestampResult->timestamp
+                    static fn(TraceTimestampsDto $timestampResult) => $timestampResult->timestamp
                         ->eq($foundTimestamp->timestamp)
                 );
 
@@ -169,7 +169,7 @@ readonly class FindTraceTimestampsAction
             foreach ($timestampsList->emptyIndicators as $foundEmptyIndicator) {
                 $existsEmptyIndicator = Arr::first(
                     $emptyIndicatorsResult,
-                    fn(TraceTimestampFieldDto $emptyIndicatorResult) => $emptyIndicatorResult->field
+                    static fn(TraceTimestampFieldDto $emptyIndicatorResult) => $emptyIndicatorResult->field
                         === $foundEmptyIndicator->field
                 );
 
@@ -183,7 +183,7 @@ readonly class FindTraceTimestampsAction
 
         $timestampsResult = Arr::sort(
             $timestampsResult,
-            fn(TraceTimestampsDto $timestampResult) => $timestampResult->timestamp->getTimestampMs()
+            static fn(TraceTimestampsDto $timestampResult) => $timestampResult->timestamp->getTimestampMs()
         );
 
         $items = $this->traceTimestampMetricsFactory->makeTimeLine(
@@ -199,20 +199,20 @@ readonly class FindTraceTimestampsAction
                     timestamp: $dto->timestamp,
                     timestampTo: $this->traceTimestampMetricsFactory->makeNextTimestamp(
                         date: $dto->timestamp,
-                        timestamp: $parameters->timestampStep
+                        timestamp: $parameters->timestampStep,
                     ),
                     fields: array_map(
                         fn(TraceTimestampFieldDto $dto) => $this->transportField($dto),
                         $dto->indicators
-                    )
+                    ),
                 ),
                 $timestampsResult
-            )
+            ),
         );
 
         return new TraceTimestampsObjects(
             loggedAtFrom: $loggedAtFrom,
-            items: $items
+            items: $items,
         );
     }
 
@@ -221,9 +221,9 @@ readonly class FindTraceTimestampsAction
         return new TraceTimestampFieldObject(
             field: $dto->field,
             indicators: array_map(
-                fn(TraceTimestampFieldIndicatorDto $dto) => new TraceTimestampFieldIndicatorObject(
+                static fn(TraceTimestampFieldIndicatorDto $dto) => new TraceTimestampFieldIndicatorObject(
                     name: $dto->name,
-                    value: $dto->value
+                    value: $dto->value,
                 ),
                 $dto->indicators
             ),

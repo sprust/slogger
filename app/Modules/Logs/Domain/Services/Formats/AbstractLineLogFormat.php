@@ -14,9 +14,8 @@ abstract readonly class AbstractLineLogFormat implements LogFormatInterface
 
     abstract protected function parseLevel(string $text): int;
 
-    public function __construct(
-        protected LogTimeParser $timeParser
-    ) {
+    public function __construct(protected LogTimeParser $timeParser)
+    {
     }
 
     public function findEntryStarts(string $chunk): array
@@ -39,7 +38,7 @@ abstract readonly class AbstractLineLogFormat implements LogFormatInterface
                     $starts[] = new LogEntryStartObject(
                         offset: $offset,
                         loggedAt: null,
-                        level: 0
+                        level: 0,
                     );
                 } else {
                     if ($timeText !== $lastText) {
@@ -50,7 +49,7 @@ abstract readonly class AbstractLineLogFormat implements LogFormatInterface
                     $starts[] = new LogEntryStartObject(
                         offset: $offset,
                         loggedAt: $lastTime,
-                        level: $this->parseLevel($matches[2][$index])
+                        level: $this->parseLevel($matches[2][$index]),
                     );
                 }
             }

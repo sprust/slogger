@@ -28,7 +28,7 @@ readonly class FindUserByTokenByAdminUseCase
         }
 
         return $this->findUserByTokenAction->handle(
-            token: $token,
+            $token,
         ) ?? throw new AuthenticationFailedException();
     }
 }

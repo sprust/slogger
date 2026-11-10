@@ -28,7 +28,7 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
             return new LogEntryDetailsObject(
                 message: $line,
                 context: null,
-                fields: []
+                fields: [],
             );
         }
 
@@ -46,17 +46,17 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
             fields: [
                 new LogEntryFieldObject(
                     key: 'process',
-                    value: $match[1]
+                    value: $match[1],
                 ),
                 new LogEntryFieldObject(
                     key: 'pid',
-                    value: $match[2]
+                    value: $match[2],
                 ),
                 new LogEntryFieldObject(
                     key: 'worker',
-                    value: $worker
+                    value: $worker,
                 ),
-            ]
+            ],
         );
     }
 
@@ -67,7 +67,7 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
         foreach (SconcurJournalLogLevelEnum::cases() as $case) {
             $names[] = new LogLevelNameObject(
                 level: $case->value,
-                name: strtoupper($case->name)
+                name: strtoupper($case->name),
             );
         }
 
@@ -88,7 +88,7 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
             hour: (int) substr($text, 11, 2),
             minute: (int) substr($text, 14, 2),
             second: (int) substr($text, 17, 2),
-            zone: null
+            zone: null,
         );
     }
 

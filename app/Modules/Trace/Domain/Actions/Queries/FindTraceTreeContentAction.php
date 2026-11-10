@@ -33,7 +33,7 @@ readonly class FindTraceTreeContentAction
         $rootTraceId = $isChild
             ? $traceId
             : $this->traceTreeRepository->findParentTraceId(
-                traceId: $traceId
+                $traceId
             );
 
         if (!$rootTraceId) {
@@ -41,7 +41,7 @@ readonly class FindTraceTreeContentAction
         }
 
         $state = $this->traceTreeCacheStateRepository->findOneByRootTraceId(
-            rootTraceId: $rootTraceId
+            $rootTraceId
         );
 
         if ($state?->status !== TraceTreeCacheStateStatusEnum::Finished) {
@@ -55,35 +55,35 @@ readonly class FindTraceTreeContentAction
         $servicesKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
                 ->findServices(
-                    rootTraceId: $rootTraceId
+                    $rootTraceId
                 )
         );
 
         $typesKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
                 ->findTypes(
-                    rootTraceId: $rootTraceId
+                    $rootTraceId
                 )
         );
 
         $tagsKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
                 ->findTags(
-                    rootTraceId: $rootTraceId
+                    $rootTraceId
                 )
         );
 
         $statusesKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
                 ->findStatuses(
-                    rootTraceId: $rootTraceId
+                    $rootTraceId
                 )
         );
 
         $countKey = $waitGroup->add(
             static fn() => $traceTreeCacheRepository
                 ->findCount(
-                    rootTraceId: $rootTraceId
+                    $rootTraceId
                 )
         );
 
@@ -92,7 +92,7 @@ readonly class FindTraceTreeContentAction
         $services = $this->findTraceServicesAction->handle(
             serviceIds: array_unique(
                 array_map(static fn(TraceTreeServiceDto $item) => $item->id, $results[$servicesKey])
-            )
+            ),
         );
 
         $treeServices = [];

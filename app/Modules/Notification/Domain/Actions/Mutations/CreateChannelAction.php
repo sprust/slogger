@@ -29,7 +29,7 @@ readonly class CreateChannelAction
                 name: $parameters->name,
                 type: $parameters->type->value,
                 enabled: $parameters->enabled,
-                settings: $settings->toArray()
+                settings: $settings->toArray(),
             )
         );
 

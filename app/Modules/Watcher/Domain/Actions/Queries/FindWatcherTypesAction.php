@@ -9,9 +9,8 @@ use App\Modules\Watcher\Entities\WatcherTypeObject;
 
 readonly class FindWatcherTypesAction
 {
-    public function __construct(
-        private WatcherTypeRegistry $types
-    ) {
+    public function __construct(private WatcherTypeRegistry $types)
+    {
     }
 
     /**

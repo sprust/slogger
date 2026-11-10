@@ -43,7 +43,7 @@ readonly class SendTestNotificationAction
                     '',
                     '✅ If you can read this, the channel works.',
                 ]
-            )
+            ),
         );
     }
 }

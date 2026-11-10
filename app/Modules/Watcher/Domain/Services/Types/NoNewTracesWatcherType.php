@@ -29,8 +29,11 @@ readonly class NoNewTracesWatcherType implements WatcherTypeDefinitionInterface
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
         return new NoNewTracesSettingsObject(
-            periodMinutes: ArrayValueGetter::intNull($settings, 'period_minutes') ?? 10,
-            filter: $this->filterOf($settings)
+            periodMinutes: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'period_minutes',
+            ) ?? 10,
+            filter: $this->filterOf($settings),
         );
     }
 
@@ -48,9 +51,9 @@ readonly class NoNewTracesWatcherType implements WatcherTypeDefinitionInterface
                     title: 'Minutes without traces',
                     valueType: 'int',
                     default: new NoNewTracesSettingsObject()->periodMinutes,
-                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
+                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES,
                 ),
-            ]
+            ],
         );
     }
 

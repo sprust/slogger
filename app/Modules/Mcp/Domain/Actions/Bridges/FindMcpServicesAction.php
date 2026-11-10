@@ -23,9 +23,9 @@ readonly class FindMcpServicesAction
     public function handle(?string $query): array
     {
         $services = array_map(
-            fn(
-                ServiceObject $serviceObject
-            ): McpServiceObject => $this->mcpServiceObjectTransport->fromService($serviceObject),
+            fn(ServiceObject $serviceObject): McpServiceObject => $this->mcpServiceObjectTransport->fromService(
+                $serviceObject
+            ),
             $this->findServicesAction->handle()
         );
 

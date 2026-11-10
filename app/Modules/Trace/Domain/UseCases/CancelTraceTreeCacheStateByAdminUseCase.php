@@ -21,7 +21,7 @@ readonly class CancelTraceTreeCacheStateByAdminUseCase
     public function handle(string $rootTraceId): TraceTreeCacheStateObject
     {
         return $this->cancelTraceTreeCacheStateAction->handle(
-            rootTraceId: $rootTraceId,
+            $rootTraceId,
         ) ?? throw new TraceTreeStateNotFoundException(
             message: 'State not found',
         );

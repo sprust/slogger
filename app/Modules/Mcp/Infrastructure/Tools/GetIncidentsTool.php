@@ -52,9 +52,7 @@ readonly class GetIncidentsTool implements McpToolInterface
                     type: McpToolPropertyTypeEnum::String,
                     description: 'Only incidents in this status.',
                     enum: array_map(
-                        static fn(
-                            McpIncidentStatusEnum $status
-                        ) => $status->value,
+                        static fn(McpIncidentStatusEnum $status) => $status->value,
                         McpIncidentStatusEnum::cases()
                     ),
                 ),
@@ -89,9 +87,7 @@ readonly class GetIncidentsTool implements McpToolInterface
         return new McpToolResult(
             data: [
                 'incidents' => array_map(
-                    fn(
-                        McpIncidentObject $incident
-                    ) => $this->formatter->incident($incident),
+                    fn(McpIncidentObject $incident) => $this->formatter->incident($incident),
                     $result->items
                 ),
                 'page'      => $page,

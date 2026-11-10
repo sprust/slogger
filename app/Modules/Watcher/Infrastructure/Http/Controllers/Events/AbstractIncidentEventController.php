@@ -40,8 +40,14 @@ abstract readonly class AbstractIncidentEventController
         return $this->findIncidentEventsByAdminUseCase->handle(
             type: $type,
             incidentId: $incidentId,
-            page: ArrayValueGetter::intNull($validated, 'page') ?? 1,
-            perPage: ArrayValueGetter::intNull($validated, 'per_page') ?? 50
+            page: ArrayValueGetter::intNull(
+                data: $validated,
+                key: 'page',
+            ) ?? 1,
+            perPage: ArrayValueGetter::intNull(
+                data: $validated,
+                key: 'per_page',
+            ) ?? 50,
         );
     }
 }

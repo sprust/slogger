@@ -15,9 +15,8 @@ use Illuminate\Support\Carbon;
  */
 readonly class DeleteExpiredUserTokensAction
 {
-    public function __construct(
-        private UserTokenRepository $userTokenRepository,
-    ) {
+    public function __construct(private UserTokenRepository $userTokenRepository)
+    {
     }
 
     public function handle(): int

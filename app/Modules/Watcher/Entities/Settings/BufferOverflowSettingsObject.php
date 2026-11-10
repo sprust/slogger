@@ -9,9 +9,8 @@ readonly class BufferOverflowSettingsObject implements WatcherSettingsInterface
     /**
      * @param int $threshold how many documents in the buffer are too many
      */
-    public function __construct(
-        public int $threshold = 1000
-    ) {
+    public function __construct(public int $threshold = 1000)
+    {
     }
 
     public function toArray(): array

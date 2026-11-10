@@ -46,9 +46,8 @@ readonly class NotificationChannelController
     }
 
     #[OaListItemTypeAttribute(NotificationResource::class)]
-    public function deliveries(
-        int $id
-    ): AnonymousResourceCollection {
+    public function deliveries(int $id): AnonymousResourceCollection
+    {
         return NotificationResource::collection(
             $this->findNotificationsByAdminUseCase->handle(
                 channelId: $id,

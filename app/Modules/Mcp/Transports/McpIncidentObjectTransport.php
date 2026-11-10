@@ -29,12 +29,14 @@ readonly class McpIncidentObjectTransport
                 closedAt: $incident->closedAt,
                 closedByUserId: $incident->closedByUserId,
             ),
-            watcher: $watcher === null ? null : new McpIncidentWatcherObject(
-                id: $watcher->id,
-                name: $watcher->name,
-                type: McpWatcherTypeEnum::from($watcher->type->value),
-                serviceIds: $watcher->match->serviceIds ?? [],
-            ),
+            watcher: $watcher === null
+                ? null
+                : new McpIncidentWatcherObject(
+                    id: $watcher->id,
+                    name: $watcher->name,
+                    type: McpWatcherTypeEnum::from($watcher->type->value),
+                    serviceIds: $watcher->match->serviceIds ?? [],
+                ),
         );
     }
 }

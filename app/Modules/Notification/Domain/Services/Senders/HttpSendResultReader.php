@@ -27,17 +27,21 @@ readonly class HttpSendResultReader
 
         if ($status >= 200 && $status < 300) {
             return new SendResultObject(
-                delivered: true
+                delivered: true,
             );
         }
 
-        $error = $this->describe($response, $endpointName, $status);
+        $error = $this->describe(
+            response: $response,
+            endpointName: $endpointName,
+            status: $status,
+        );
 
         if ($status === 429) {
             return new SendResultObject(
                 delivered: false,
                 error: $error,
-                retryAfterSeconds: $this->retryAfter($response)
+                retryAfterSeconds: $this->retryAfter($response),
             );
         }
 
@@ -45,13 +49,13 @@ readonly class HttpSendResultReader
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: $error
+                error: $error,
             );
         }
 
         return new SendResultObject(
             delivered: false,
-            error: $error
+            error: $error,
         );
     }
 

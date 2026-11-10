@@ -50,7 +50,8 @@ readonly class TraceAdminStoreController
     public function create(TraceAdminStoreCreateRequest $request): TraceAdminStoreResource
     {
         $validated = $request->validated();
-        $store     = $this->createTraceAdminStoreByAdminUseCase->handle(
+
+        $store = $this->createTraceAdminStoreByAdminUseCase->handle(
             title: ArrayValueGetter::string(
                 data: $validated,
                 key: 'title',

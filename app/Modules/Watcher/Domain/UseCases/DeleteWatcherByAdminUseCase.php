@@ -14,8 +14,6 @@ readonly class DeleteWatcherByAdminUseCase
 
     public function handle(int $watcherId): void
     {
-        $this->deleteWatcherAction->handle(
-            watcherId: $watcherId,
-        );
+        $this->deleteWatcherAction->handle($watcherId);
     }
 }

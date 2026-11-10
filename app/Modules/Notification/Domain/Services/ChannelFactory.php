@@ -41,7 +41,7 @@ readonly class ChannelFactory
             enabled: $dto->enabled,
             settings: $this->types->for($type)->makeSettings($dto->settings),
             createdAt: $dto->createdAt,
-            updatedAt: $dto->updatedAt
+            updatedAt: $dto->updatedAt,
         );
     }
 }

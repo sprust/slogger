@@ -23,7 +23,10 @@ readonly class FindUserByTokenAction
 
     public function handle(string $token): ?UserDetailObject
     {
-        $userId = $this->userTokenRepository->findUserIdByToken($token, Carbon::now());
+        $userId = $this->userTokenRepository->findUserIdByToken(
+            token: $token,
+            now: Carbon::now(),
+        );
 
         if ($userId === null) {
             return null;

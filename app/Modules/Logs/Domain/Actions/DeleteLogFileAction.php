@@ -45,7 +45,7 @@ readonly class DeleteLogFileAction
         // The index is dropped with the file, under the lock an indexer takes.
         $mutex = new LogIndexMutex(
             fileId: $file->id,
-            waitForBlockSec: self::WAIT_FOR_LOCK_SEC
+            waitForBlockSec: self::WAIT_FOR_LOCK_SEC,
         );
 
         $this->mutexManager->lock($mutex);

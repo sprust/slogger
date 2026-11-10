@@ -10,9 +10,8 @@ use App\Modules\Watcher\Repositories\WatcherIncidentRepository;
 
 readonly class FindIncidentsAction
 {
-    public function __construct(
-        private WatcherIncidentRepository $incidentRepository
-    ) {
+    public function __construct(private WatcherIncidentRepository $incidentRepository)
+    {
     }
 
     /**

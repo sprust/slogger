@@ -16,9 +16,7 @@ readonly class FindToolLinksAction
         return [
             new ToolLinksObject(
                 name: 'RabbitMQ',
-                url: config(
-                    key: 'tools.rabbitmq.admin-url',
-                ),
+                url: config('tools.rabbitmq.admin-url'),
             ),
         ];
     }

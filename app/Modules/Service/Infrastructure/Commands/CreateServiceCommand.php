@@ -39,7 +39,7 @@ class CreateServiceCommand extends Command
         try {
             $service = $createServiceAction->handle(
                 new ServiceCreateParameters(
-                    name: $serviceName
+                    name: $serviceName,
                 )
             );
         } catch (ServiceAlreadyExistsException $exception) {

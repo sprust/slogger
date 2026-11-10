@@ -30,7 +30,7 @@ readonly class ExplainIncidentPrompt implements McpPromptInterface
             new McpPromptArgument(
                 name: 'incident_id',
                 description: 'Incident id from get_incidents.',
-                required: true
+                required: true,
             ),
         ];
     }

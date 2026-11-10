@@ -34,7 +34,9 @@ readonly class UpdateWatcherAction
      */
     public function handle(UpdateWatcherParameters $parameters): void
     {
-        $watcher = $this->findWatcherAction->handle($parameters->id);
+        $watcher = $this->findWatcherAction->handle(
+            id: $parameters->id,
+        );
 
         if (is_null($watcher)) {
             throw new WatcherNotFoundException($parameters->id);
@@ -44,7 +46,10 @@ readonly class UpdateWatcherAction
 
         $match = $this->matchFactory->make($settings);
 
-        $filterChanged = !$this->sameMatch($watcher->match, $match);
+        $filterChanged = !$this->sameMatch(
+            first: $watcher->match,
+            second: $match,
+        );
 
         $deepened = $this->depthOf($settings) > $this->depthOf($watcher->settings);
 
@@ -67,7 +72,7 @@ readonly class UpdateWatcherAction
                 ? $this->collectionStart->afterNextReload(
                     Carbon::now()
                 )
-                : $watcher->collectSince
+                : $watcher->collectSince,
         );
     }
 

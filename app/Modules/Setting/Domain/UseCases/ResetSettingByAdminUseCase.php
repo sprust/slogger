@@ -15,8 +15,6 @@ readonly class ResetSettingByAdminUseCase
 
     public function handle(SettingKeyEnum $key): void
     {
-        $this->resetSettingAction->handle(
-            key: $key,
-        );
+        $this->resetSettingAction->handle($key);
     }
 }

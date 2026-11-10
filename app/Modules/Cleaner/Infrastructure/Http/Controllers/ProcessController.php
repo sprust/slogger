@@ -20,9 +20,7 @@ readonly class ProcessController
     public function index(): AnonymousResourceCollection
     {
         return ProcessResource::collection(
-            $this->findProcessesByAdminUseCase->handle(
-                page: 1,
-            )
+            $this->findProcessesByAdminUseCase->handle(1)
         );
     }
 }

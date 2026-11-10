@@ -125,8 +125,6 @@ readonly class BuildTraceTreeCacheAction
             return;
         }
 
-        $this->dispatcher->event(
-            new TraceTreeCacheStateChangedEvent($state)
-        );
+        $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
     }
 }

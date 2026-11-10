@@ -23,8 +23,6 @@ readonly class BroadcastTraceTreeStateListener
 
     public function handle(TraceTreeCacheStateChangedEvent $event): void
     {
-        $this->dispatcher->event(
-            new TraceTreeStateBroadcast($event->state)
-        );
+        $this->dispatcher->event(new TraceTreeStateBroadcast($event->state));
     }
 }

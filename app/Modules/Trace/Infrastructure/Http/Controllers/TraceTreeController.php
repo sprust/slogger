@@ -36,10 +36,10 @@ readonly class TraceTreeController
      * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceTreeResource::class)]
-    public function tree(
-        TraceTreeTreeRequest $request
-    ): TraceTreeResponse {
+    public function tree(TraceTreeTreeRequest $request): TraceTreeResponse
+    {
         $validated = $request->validated();
+
         $traceTree = $this->findTraceTreeByAdminUseCase->handle(
             traceId: ArrayValueGetter::string(
                 data: $validated,

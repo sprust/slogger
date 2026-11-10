@@ -29,7 +29,7 @@ readonly class UpdateMcpAction
         $this->mcpRepository->update(
             id: $parameters->id,
             name: $parameters->name,
-            enabled: $parameters->enabled
+            enabled: $parameters->enabled,
         );
     }
 }

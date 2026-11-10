@@ -75,8 +75,6 @@ readonly class RegisterTriggerAction
         // database, and whoever listens is shown the row as it now stands.
         $changed = $this->incidentRepository->findById($incident->id) ?? $incident;
 
-        $this->dispatcher->event(
-            new WatcherIncidentChangedEvent($changed)
-        );
+        $this->dispatcher->event(new WatcherIncidentChangedEvent($changed));
     }
 }

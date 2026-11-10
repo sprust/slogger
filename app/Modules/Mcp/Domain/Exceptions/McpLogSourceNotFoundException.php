@@ -9,9 +9,8 @@ class McpLogSourceNotFoundException extends AbstractMcpException
     /**
      * @param string[] $sources
      */
-    public function __construct(
-        public readonly array $sources
-    ) {
+    public function __construct(public readonly array $sources)
+    {
         parent::__construct('Unknown log source');
     }
 }

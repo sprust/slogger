@@ -9,9 +9,8 @@ use App\Modules\Mcp\Repositories\McpRepository;
 
 readonly class FindMcpAction
 {
-    public function __construct(
-        private McpRepository $mcpRepository
-    ) {
+    public function __construct(private McpRepository $mcpRepository)
+    {
     }
 
     public function handle(int $id): ?McpObject

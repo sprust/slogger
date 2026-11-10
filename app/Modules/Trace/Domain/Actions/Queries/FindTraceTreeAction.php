@@ -32,7 +32,7 @@ readonly class FindTraceTreeAction
     public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeResultObject
     {
         $rootTraceId = $isChild ? $traceId : $this->traceTreeRepository->findParentTraceId(
-            traceId: $traceId,
+            $traceId,
         );
 
         if (!$rootTraceId) {
@@ -44,7 +44,7 @@ readonly class FindTraceTreeAction
         }
 
         $state = $this->traceTreeCacheStateRepository->findOneByRootTraceId(
-            rootTraceId: $rootTraceId,
+            $rootTraceId,
         );
 
         if ($fresh || $state === null) {
@@ -73,7 +73,7 @@ readonly class FindTraceTreeAction
                     rootTraceId: $rootTraceId,
                     version: $state->version,
                     count: $this->traceTreeCacheRepository->findCount(
-                        rootTraceId: $rootTraceId,
+                        $rootTraceId,
                     ),
                 );
             }
@@ -81,11 +81,7 @@ readonly class FindTraceTreeAction
             // Past this the tree is not read at all: sending it whole outlives the handler's
             // deadline long before it reaches a browser that could not build it anyway.
             // The panel opens it branch by branch through FindTraceTreeChildrenAction.
-            if (
-                $state->count > (int) config(
-                    key: 'module-trace.tree.full_load_limit',
-                )
-            ) {
+            if ($state->count > (int) config('module-trace.tree.full_load_limit')) {
                 return new TraceTreeResultObject(
                     state: $state,
                     items: null,
@@ -96,7 +92,7 @@ readonly class FindTraceTreeAction
             return new TraceTreeResultObject(
                 state: $state,
                 items: $this->traceTreeCacheRepository->findMany(
-                    rootTraceId: $rootTraceId,
+                    $rootTraceId,
                 ),
             );
         }

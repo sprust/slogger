@@ -24,7 +24,7 @@ class TraceTreeResponse extends AbstractStreamedApiResource
     public function __construct(TraceTreeResultObject $resource)
     {
         parent::__construct(
-            chunks: self::chunks($resource),
+            self::chunks($resource),
         );
     }
 

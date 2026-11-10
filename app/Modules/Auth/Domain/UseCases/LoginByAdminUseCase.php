@@ -21,7 +21,7 @@ readonly class LoginByAdminUseCase
     public function handle(LoginParameters $parameters): LoggedUserObject
     {
         return $this->loginAction->handle(
-            parameters: $parameters,
+            $parameters,
         ) ?? throw new AuthenticationFailedException();
     }
 }

@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
                     password: (string) $config['password'],
                     timeoutSeconds: (int) $config['timeout'],
                 );
-            }
+            },
         );
 
         $this->app->singleton(
@@ -50,15 +50,15 @@ class AppServiceProvider extends ServiceProvider
                         options: new HttpClientOptions(
                             requestTimeoutMs: $config->timeoutSeconds * 1000,
                             connectTimeoutMs: 3_000,
-                            responseHeaderTimeoutMs: $config->timeoutSeconds * 1000
-                        )
+                            responseHeaderTimeoutMs: $config->timeoutSeconds * 1000,
+                        ),
                     ),
                     requestFactory: $httpFactory,
                     streamFactory: $httpFactory,
                     config: $config,
                     parameterFormatter: new ClickhouseParameterFormatter(),
                 );
-            }
+            },
         );
     }
 
@@ -81,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
                                 'pid' => getmypid(),
                             ]
                         );
-                    }
+                    },
                 );
         }
     }

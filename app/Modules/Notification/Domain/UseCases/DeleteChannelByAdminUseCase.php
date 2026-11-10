@@ -14,8 +14,6 @@ readonly class DeleteChannelByAdminUseCase
 
     public function handle(int $channelId): void
     {
-        $this->deleteChannelAction->handle(
-            channelId: $channelId,
-        );
+        $this->deleteChannelAction->handle($channelId);
     }
 }

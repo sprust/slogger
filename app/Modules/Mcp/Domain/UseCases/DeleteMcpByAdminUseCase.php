@@ -18,8 +18,6 @@ readonly class DeleteMcpByAdminUseCase
      */
     public function handle(int $id): void
     {
-        $this->deleteMcpAction->handle(
-            id: $id,
-        );
+        $this->deleteMcpAction->handle($id);
     }
 }

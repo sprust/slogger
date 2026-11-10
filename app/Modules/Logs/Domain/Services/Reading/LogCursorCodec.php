@@ -93,13 +93,13 @@ readonly class LogCursorCodec
                 fileId: $fileId,
                 position: $value[0],
                 headLength: $value[1],
-                headHash: $value[2]
+                headHash: $value[2],
             );
         }
 
         return new LogCursorObject(
             direction: $direction,
-            positions: $positions
+            positions: $positions,
         );
     }
 }

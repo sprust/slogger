@@ -21,13 +21,8 @@ class DeleteTraceTreeCacheJob implements ShouldQueue
         private readonly string $rootTraceId,
         private readonly ?string $buildVersion = null,
     ) {
-        $this
-            ->onConnection(
-                config('module-trace.queue.connection')
-            )
-            ->onQueue(
-                config('module-trace.queue.name')
-            );
+        $this->onConnection(config('module-trace.queue.connection'))
+            ->onQueue(config('module-trace.queue.name'));
     }
 
     public function handle(

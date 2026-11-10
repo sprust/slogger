@@ -48,7 +48,7 @@ readonly class WatcherIncidentEventFactory
             id: $dto->id,
             incidentId: $dto->incidentId,
             payload: $payload,
-            occurredAt: $dto->occurredAt
+            occurredAt: $dto->occurredAt,
         );
     }
 }

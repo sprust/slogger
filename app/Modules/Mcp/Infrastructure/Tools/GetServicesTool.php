@@ -59,9 +59,7 @@ readonly class GetServicesTool implements McpToolInterface
                         'id'   => $service->id,
                         'name' => $service->name,
                     ],
-                    $this->findMcpServicesAction->handle(
-                        $arguments->stringNull('query')
-                    )
+                    $this->findMcpServicesAction->handle($arguments->stringNull('query'))
                 ),
             ],
         );

@@ -97,7 +97,7 @@ readonly class WatcherIncidentEventRepository
             payload: $payload,
             occurredAt: $occurredAt instanceof UTCDateTime
                 ? Carbon::parse($occurredAt->toDateTime())
-                : Carbon::now()
+                : Carbon::now(),
         );
     }
 }

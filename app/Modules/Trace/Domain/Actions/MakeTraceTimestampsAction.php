@@ -21,7 +21,7 @@ readonly class MakeTraceTimestampsAction
     public function handle(Carbon $date): array
     {
         return $this->traceTimestampMetricsFactory->makeMetricsByDate(
-            date: $date->clone()
+            $date->clone()
         );
     }
 }

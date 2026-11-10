@@ -32,7 +32,7 @@ readonly class FindMcpSettingsAction
             maxStringLength: (int) config('mcp.max_string_length'),
             treeNodesLimit: (int) config('mcp.tree_nodes_limit'),
             facetsLimit: (int) config('mcp.facets_limit'),
-            listTtlMs: (int) config('mcp.list_ttl_ms')
+            listTtlMs: (int) config('mcp.list_ttl_ms'),
         );
     }
 }

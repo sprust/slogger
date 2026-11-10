@@ -70,9 +70,9 @@ readonly class McpTraceDataFilterParser
             return $this->item(
                 key: $matches['key'],
                 boolean: new TraceDataFilterBooleanParameters(
-                    $matches['op'] === '='
+                    value: $matches['op'] === '='
                         ? $isTrue
-                        : !$isTrue
+                        : !$isTrue,
                 ),
             );
         }

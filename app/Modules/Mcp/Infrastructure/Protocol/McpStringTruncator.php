@@ -15,7 +15,10 @@ readonly class McpStringTruncator
     {
         foreach ($data as $key => $value) {
             if (is_array($value)) {
-                $data[$key] = $this->truncate($value, $maxLength);
+                $data[$key] = $this->truncate(
+                    data: $value,
+                    maxLength: $maxLength,
+                );
             } elseif (is_string($value) && mb_strlen($value) > $maxLength) {
                 $data[$key] = sprintf(
                     '%s…[truncated, %d chars total]',

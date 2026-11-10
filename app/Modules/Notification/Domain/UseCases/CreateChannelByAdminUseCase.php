@@ -16,8 +16,6 @@ readonly class CreateChannelByAdminUseCase
 
     public function handle(CreateChannelParameters $parameters): ChannelObject
     {
-        return $this->createChannelAction->handle(
-            parameters: $parameters,
-        );
+        return $this->createChannelAction->handle($parameters);
     }
 }

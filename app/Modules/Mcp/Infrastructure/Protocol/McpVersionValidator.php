@@ -27,7 +27,7 @@ readonly class McpVersionValidator
                 'supported' => [self::SUPPORTED_VERSION],
                 'requested' => $requestedVersion,
             ],
-            requestId: $message->id
+            requestId: $message->id,
         );
     }
 }

@@ -69,7 +69,7 @@ class ClickhouseDataPathTypes
         $this->cache->put(
             key: self::CACHE_KEY,
             value: $paths,
-            ttl: self::CACHE_TTL_SECONDS
+            ttl: self::CACHE_TTL_SECONDS,
         );
 
         return $paths;
@@ -86,7 +86,7 @@ class ClickhouseDataPathTypes
             sql: 'SELECT distinctJSONPathsAndTypes(dt) AS paths FROM '
                 . '(SELECT dt FROM traces WHERE lat >= now64(6) - INTERVAL 1 DAY LIMIT {sample:UInt32})',
             params: ['sample' => self::SAMPLE_ROWS],
-            queryIdPrefix: 'trace-data-paths'
+            queryIdPrefix: 'trace-data-paths',
         );
 
         /** @var array<string, string[]> $pathTypes */

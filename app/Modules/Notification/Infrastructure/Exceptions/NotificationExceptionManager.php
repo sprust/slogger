@@ -39,7 +39,9 @@ class NotificationExceptionManager extends BaseExceptionManager
 
     protected function getDontReport(): array
     {
-        return [NotificationChannelNotFoundException::class];
+        return [
+            NotificationChannelNotFoundException::class,
+        ];
     }
 
     protected function onMakeMessage(Throwable $exception): string

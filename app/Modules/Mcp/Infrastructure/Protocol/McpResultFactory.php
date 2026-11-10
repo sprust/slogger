@@ -38,12 +38,12 @@ readonly class McpResultFactory
     public function cacheable(McpSettingsObject $settings, array $result): array
     {
         return $this->complete(
-            $settings,
-            [
+            settings: $settings,
+            result: [
                 ...$result,
                 'ttlMs'      => $settings->listTtlMs,
                 'cacheScope' => 'private',
-            ]
+            ],
         );
     }
 }

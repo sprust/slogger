@@ -16,8 +16,6 @@ readonly class CreateServiceByAdminUseCase
 
     public function handle(ServiceCreateParameters $parameters): ServiceObject
     {
-        return $this->createServiceAction->handle(
-            parameters: $parameters,
-        );
+        return $this->createServiceAction->handle($parameters);
     }
 }

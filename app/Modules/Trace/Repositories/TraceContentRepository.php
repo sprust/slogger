@@ -67,7 +67,7 @@ readonly class TraceContentRepository
                 cpuTo: $cpuTo,
                 data: $data,
             ),
-            queryIdPrefix: 'trace-types'
+            queryIdPrefix: 'trace-types',
         );
     }
 
@@ -112,7 +112,7 @@ readonly class TraceContentRepository
                 cpuTo: $cpuTo,
                 data: $data,
             ),
-            queryIdPrefix: 'trace-tags'
+            queryIdPrefix: 'trace-tags',
         );
     }
 
@@ -157,7 +157,7 @@ readonly class TraceContentRepository
                 cpuTo: $cpuTo,
                 data: $data,
             ),
-            queryIdPrefix: 'trace-statuses'
+            queryIdPrefix: 'trace-statuses',
         );
     }
 
@@ -196,13 +196,13 @@ readonly class TraceContentRepository
                 $having
             ),
             params: $params,
-            queryIdPrefix: $queryIdPrefix
+            queryIdPrefix: $queryIdPrefix,
         );
 
         return array_map(
             static fn(array $row): TraceStringFieldObject => new TraceStringFieldObject(
                 name: (string) $row['name'],
-                count: (int) $row['count']
+                count: (int) $row['count'],
             ),
             $rows
         );

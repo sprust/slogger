@@ -18,9 +18,8 @@ readonly class LaravelLogFormat implements LogFormatInterface
     private const string HEADER_PATTERN = ('/^\[(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{'
         . '2}:?\d{2})?)\] \S+?\.([A-Z]+): /m');
 
-    public function __construct(
-        private LogTimeParser $timeParser
-    ) {
+    public function __construct(private LogTimeParser $timeParser)
+    {
     }
 
     public function findEntryStarts(string $chunk): array
@@ -43,7 +42,7 @@ readonly class LaravelLogFormat implements LogFormatInterface
             $starts[] = new LogEntryStartObject(
                 offset: $match[1],
                 loggedAt: $lastTime,
-                level: $this->parseLevel($matches[2][$index][0])
+                level: $this->parseLevel($matches[2][$index][0]),
             );
         }
 
@@ -56,7 +55,7 @@ readonly class LaravelLogFormat implements LogFormatInterface
             return new LogEntryDetailsObject(
                 message: rtrim($text),
                 context: null,
-                fields: []
+                fields: [],
             );
         }
 
@@ -81,9 +80,9 @@ readonly class LaravelLogFormat implements LogFormatInterface
             fields: [
                 new LogEntryFieldObject(
                     key: 'env',
-                    value: $match[1]
+                    value: $match[1],
                 ),
-            ]
+            ],
         );
     }
 
@@ -94,7 +93,7 @@ readonly class LaravelLogFormat implements LogFormatInterface
         foreach (LaravelLogLevelEnum::cases() as $case) {
             $names[] = new LogLevelNameObject(
                 level: $case->value,
-                name: strtoupper($case->name)
+                name: strtoupper($case->name),
             );
         }
 
@@ -151,7 +150,7 @@ readonly class LaravelLogFormat implements LogFormatInterface
             hour: (int) substr($text, 11, 2),
             minute: (int) substr($text, 14, 2),
             second: (int) substr($text, 17, 2),
-            zone: $zone === '' ? null : $zone
+            zone: $zone === '' ? null : $zone,
         );
     }
 

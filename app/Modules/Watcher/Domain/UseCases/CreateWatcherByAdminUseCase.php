@@ -16,8 +16,6 @@ readonly class CreateWatcherByAdminUseCase
 
     public function handle(CreateWatcherParameters $parameters): WatcherObject
     {
-        return $this->createWatcherAction->handle(
-            parameters: $parameters,
-        );
+        return $this->createWatcherAction->handle($parameters);
     }
 }

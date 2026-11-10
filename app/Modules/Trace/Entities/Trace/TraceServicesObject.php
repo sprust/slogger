@@ -14,9 +14,8 @@ readonly class TraceServicesObject
     /**
      * @param TraceServiceObject[] $services
      */
-    public function __construct(
-        array $services
-    ) {
+    public function __construct(array $services)
+    {
         $servicesKeById = [];
 
         foreach ($services as $service) {

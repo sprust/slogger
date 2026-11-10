@@ -34,13 +34,13 @@ readonly class StreamLogFileAction
             throw new LogFileTooLargeException(
                 name: $file->name,
                 sizeBytes: $file->sizeBytes,
-                maxBytes: $maxBytes
+                maxBytes: $maxBytes,
             );
         }
 
         return new LogFileDownloadObject(
             file: $file,
-            chunks: $this->logFileRepository->readChunks($file->path)
+            chunks: $this->logFileRepository->readChunks($file->path),
         );
     }
 }

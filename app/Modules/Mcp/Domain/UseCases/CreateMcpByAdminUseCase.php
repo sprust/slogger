@@ -16,8 +16,6 @@ readonly class CreateMcpByAdminUseCase
 
     public function handle(CreateMcpParameters $parameters): McpObject
     {
-        return $this->createMcpAction->handle(
-            parameters: $parameters,
-        );
+        return $this->createMcpAction->handle($parameters);
     }
 }

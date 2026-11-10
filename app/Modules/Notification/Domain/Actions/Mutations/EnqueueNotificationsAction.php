@@ -72,9 +72,7 @@ readonly class EnqueueNotificationsAction
 
         // Written first and queued after: a broker that will not take the job still
         // leaves a row saying the message was meant to go.
-        $this->dispatcher->event(
-            new NotificationEnqueuedEvent($notification->id)
-        );
+        $this->dispatcher->event(new NotificationEnqueuedEvent($notification->id));
     }
 
     /** One that was switched off or removed counts as none: the watcher goes quiet. */

@@ -37,7 +37,8 @@ readonly class TraceTreeStateController
     public function cancelProcess(TraceTreeRootTraceStateRequest $request): TraceTreeStateResource
     {
         $validated = $request->validated();
-        $state     = $this->cancelTraceTreeCacheStateByAdminUseCase->handle(
+
+        $state = $this->cancelTraceTreeCacheStateByAdminUseCase->handle(
             ArrayValueGetter::string(
                 data: $validated,
                 key: 'root_trace_id',
@@ -52,7 +53,7 @@ readonly class TraceTreeStateController
         $validated = $request->validated();
 
         $this->deleteTraceTreeCacheStateByAdminUseCase->handle(
-            rootTraceId: ArrayValueGetter::string(
+            ArrayValueGetter::string(
                 data: $validated,
                 key: 'root_trace_id',
             ),

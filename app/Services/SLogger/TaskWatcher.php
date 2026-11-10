@@ -79,7 +79,7 @@ class TaskWatcher implements WatcherInterface
                 'task' => $event->name,
             ],
             loggedAt: $loggedAt,
-            customParentTraceId: null
+            customParentTraceId: null,
         );
 
         $ticks = $this->getOpenTicks();
@@ -128,7 +128,7 @@ class TaskWatcher implements WatcherInterface
             tags: null,
             data: $data,
             duration: TraceHelper::calcDuration($startedAt),
-            parentLoggedAt: $startedAt
+            parentLoggedAt: $startedAt,
         );
     }
 
@@ -137,7 +137,7 @@ class TaskWatcher implements WatcherInterface
         return in_array(
             $name,
             $this->exceptedTasks,
-            strict: true
+            strict: true,
         );
     }
 

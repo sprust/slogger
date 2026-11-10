@@ -26,7 +26,10 @@ readonly class BufferOverflowWatcherType implements WatcherTypeDefinitionInterfa
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
         return new BufferOverflowSettingsObject(
-            threshold: ArrayValueGetter::intNull($settings, 'threshold') ?? 1000
+            threshold: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'threshold',
+            ) ?? 1000,
         );
     }
 
@@ -44,9 +47,9 @@ readonly class BufferOverflowWatcherType implements WatcherTypeDefinitionInterfa
                     key: 'threshold',
                     title: 'Traces in the buffer',
                     valueType: 'int',
-                    default: new BufferOverflowSettingsObject()->threshold
+                    default: new BufferOverflowSettingsObject()->threshold,
                 ),
-            ]
+            ],
         );
     }
 

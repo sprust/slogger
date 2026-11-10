@@ -19,8 +19,6 @@ readonly class UpdateSettingByAdminUseCase
      */
     public function handle(SettingUpdateParameters $parameters): void
     {
-        $this->updateSettingAction->handle(
-            parameters: $parameters,
-        );
+        $this->updateSettingAction->handle($parameters);
     }
 }

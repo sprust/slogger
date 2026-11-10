@@ -21,7 +21,7 @@ readonly class IndexLogsAction
         return $this->logIndexBatchRefresher->refresh(
             files: $this->logFileFinder->findAll(),
             timeBudgetMs: 0,
-            concurrency: max(1, (int) config('module-logs.search.concurrency'))
+            concurrency: max(1, (int) config('module-logs.search.concurrency')),
         );
     }
 }

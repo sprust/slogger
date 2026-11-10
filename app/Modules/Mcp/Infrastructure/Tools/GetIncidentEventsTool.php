@@ -42,21 +42,23 @@ readonly class GetIncidentEventsTool implements McpToolInterface
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            new McpToolProperty(
-                name: 'incident_id',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Incident id from get_incidents.',
-                required: true,
-                max: 64
-            ),
-            new McpToolProperty(
-                name: 'page',
-                type: McpToolPropertyTypeEnum::Integer,
-                description: 'Page number, starting at 1.',
-                min: 1
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                new McpToolProperty(
+                    name: 'incident_id',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Incident id from get_incidents.',
+                    required: true,
+                    max: 64,
+                ),
+                new McpToolProperty(
+                    name: 'page',
+                    type: McpToolPropertyTypeEnum::Integer,
+                    description: 'Page number, starting at 1.',
+                    min: 1,
+                ),
+            ],
+        );
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
@@ -64,12 +66,15 @@ readonly class GetIncidentEventsTool implements McpToolInterface
         $incidentId = $arguments->string('incident_id');
         $page       = $arguments->intNull('page') ?? 1;
 
-        $result = $this->findMcpIncidentEventsAction->handle($incidentId, $page);
+        $result = $this->findMcpIncidentEventsAction->handle(
+            incidentId: $incidentId,
+            page: $page,
+        );
 
         if (is_null($result)) {
             return $this->formatter->error(
                 error: 'incident_not_found',
-                hint: "Incident [$incidentId] not found. Take ids from get_incidents of the same installation."
+                hint: "Incident [$incidentId] not found. Take ids from get_incidents of the same installation.",
             );
         }
 
@@ -85,7 +90,7 @@ readonly class GetIncidentEventsTool implements McpToolInterface
                 ),
                 'page'     => $page,
                 'has_more' => $result->hasMore,
-            ]
+            ],
         );
     }
 }

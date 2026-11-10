@@ -38,7 +38,7 @@ readonly class FindTraceTreeChildrenAction
                 rootTraceId: $rootTraceId,
                 parentTraceId: $parentTraceId,
                 after: $cursor === null ? null : TraceTreeChildrenCursorObject::fromString($cursor),
-                limit: $limit
+                limit: $limit,
             );
 
             $items = $page->items;
@@ -53,7 +53,7 @@ readonly class FindTraceTreeChildrenAction
                 parentTraceIds: array_map(
                     static fn(TraceTreeRawObject $item): string => $item->traceId,
                     $items
-                )
+                ),
             ),
             nextCursor: $nextCursor,
         );

@@ -77,7 +77,7 @@ class ProcessRepository
             error: null,
             clearedAt: null,
             createdAt: $createdAt,
-            updatedAt: $createdAt
+            updatedAt: $createdAt,
         );
     }
 
@@ -129,7 +129,7 @@ class ProcessRepository
                 ? new Carbon($document['clearedAt']->toDateTime())
                 : null,
             createdAt: new Carbon($document['createdAt']->toDateTime()),
-            updatedAt: new Carbon($document['updatedAt']->toDateTime())
+            updatedAt: new Carbon($document['updatedAt']->toDateTime()),
         );
     }
 }

@@ -47,14 +47,18 @@ readonly class LogIndexer
 
         if (
             $meta !== null
-            && $this->isFresh($meta, $file, $stat)
+            && $this->isFresh(
+                meta: $meta,
+                file: $file,
+                stat: $stat,
+            )
         ) {
             return $meta;
         }
 
         $mutex = new LogIndexMutex(
             fileId: $file->id,
-            waitForBlockSec: $waitForLockSec
+            waitForBlockSec: $waitForLockSec,
         );
 
         $this->mutexManager->lock($mutex);
@@ -65,7 +69,11 @@ readonly class LogIndexer
 
             if (
                 $meta !== null
-                && $this->isFresh($meta, $file, $stat)
+                && $this->isFresh(
+                    meta: $meta,
+                    file: $file,
+                    stat: $stat,
+                )
             ) {
                 return $meta;
             }
@@ -74,7 +82,7 @@ readonly class LogIndexer
                 file: $file,
                 stat: $stat,
                 meta: $meta,
-                timeBudgetMs: $timeBudgetMs
+                timeBudgetMs: $timeBudgetMs,
             );
         } finally {
             $this->mutexManager->unlock($mutex);
@@ -100,7 +108,10 @@ readonly class LogIndexer
         LogFileObject $file,
         LogFileStatObject $stat
     ): bool {
-        return $this->isCompatible($meta, $file)
+        return $this->isCompatible(
+            meta: $meta,
+            file: $file,
+        )
             && $meta->indexedBytes === $stat->sizeBytes;
     }
 
@@ -123,7 +134,11 @@ readonly class LogIndexer
 
         if (
             $meta !== null
-            && !$this->canContinue($meta, $file, $size)
+            && !$this->canContinue(
+                meta: $meta,
+                file: $file,
+                size: $size,
+            )
         ) {
             $meta = null;
         }
@@ -136,30 +151,47 @@ readonly class LogIndexer
             $position     = 0;
             $lastTime     = null;
         } else {
-            $this->dropUncommittedRecords($file->id, $meta);
+            $this->dropUncommittedRecords(
+                fileId: $file->id,
+                meta: $meta,
+            );
 
             $entriesCount = $meta->entriesCount;
-            $levelCounter = new LogLevelCounter($meta->levelCounts);
+            $levelCounter = new LogLevelCounter(
+                levelCounts: $meta->levelCounts,
+            );
             $position     = $meta->indexedBytes;
             $lastTime     = null;
 
             $lastRecord = $entriesCount > 0
-                ? $this->logIndexRepository->readRecords($file->id, null, $entriesCount - 1, 1)[0] ?? null
+                ? $this->logIndexRepository->readRecords(
+                    fileId: $file->id,
+                    level: null,
+                    from: $entriesCount - 1,
+                    count: 1,
+                )[0] ?? null
                 : null;
 
             if ($lastRecord !== null) {
                 $lastTime = $lastRecord->loggedAt;
 
                 if ($meta->lastEntryOpen) {
-                    $this->logIndexRepository->truncateRecords($file->id, null, $entriesCount - 1);
+                    $this->logIndexRepository->truncateRecords(
+                        fileId: $file->id,
+                        level: null,
+                        count: $entriesCount - 1,
+                    );
                     $this->logIndexRepository->truncateRecords(
                         fileId: $file->id,
                         level: $lastRecord->level,
-                        count: $levelCounter->get($lastRecord->level) - 1
+                        count: $levelCounter->get($lastRecord->level) - 1,
                     );
 
                     --$entriesCount;
-                    $levelCounter->add($lastRecord->level, -1);
+                    $levelCounter->add(
+                        level: $lastRecord->level,
+                        count: -1,
+                    );
 
                     $position = $lastRecord->offset;
                 }
@@ -167,7 +199,13 @@ readonly class LogIndexer
         }
 
         $headLength = min(self::HEAD_BYTES, $size);
-        $headHash   = md5($this->logFileRepository->read($file->path, 0, $headLength));
+        $headHash   = md5(
+            $this->logFileRepository->read(
+                path: $file->path,
+                offset: 0,
+                length: $headLength,
+            )
+        );
 
         $format = $this->logFormatRegistry->get($file->type);
 
@@ -181,12 +219,16 @@ readonly class LogIndexer
             headLength: $headLength,
             headHash: $headHash,
             entriesCount: $entriesCount,
-            levelCounts: $levelCounter->getLevelCounts()
+            levelCounts: $levelCounter->getLevelCounts(),
         );
 
         while ($position < $size) {
             $length = min($window, $size - $position);
-            $chunk  = $this->logFileRepository->read($file->path, $position, $length);
+            $chunk  = $this->logFileRepository->read(
+                path: $file->path,
+                offset: $position,
+                length: $length,
+            );
             $length = strlen($chunk);
 
             if ($length === 0) {
@@ -194,7 +236,10 @@ readonly class LogIndexer
             }
 
             $isEof  = $position + $length >= $size;
-            $starts = $this->findStarts($format, $chunk);
+            $starts = $this->findStarts(
+                format: $format,
+                chunk: $chunk,
+            );
 
             if (!$isEof && count($starts) < 2 && $window < self::MAX_WINDOW_BYTES) {
                 $window = min($window * 2, self::MAX_WINDOW_BYTES);
@@ -233,17 +278,23 @@ readonly class LogIndexer
                     offset: $position + $start->offset,
                     length: $ends[$index] - $start->offset,
                     loggedAt: $loggedAt,
-                    level: $start->level
+                    level: $start->level,
                 );
 
                 ++$entriesCount;
 
-                $levelCounter->add($start->level, 1);
+                $levelCounter->add(
+                    level: $start->level,
+                    count: 1,
+                );
 
                 $lastTime = $loggedAt;
             }
 
-            $this->logIndexRepository->appendRecords($file->id, $records);
+            $this->logIndexRepository->appendRecords(
+                fileId: $file->id,
+                records: $records,
+            );
 
             $position += $consumed;
             $window = $baseWindow;
@@ -255,7 +306,7 @@ readonly class LogIndexer
                 headLength: $headLength,
                 headHash: $headHash,
                 entriesCount: $entriesCount,
-                levelCounts: $levelCounter->getLevelCounts()
+                levelCounts: $levelCounter->getLevelCounts(),
             );
 
             if ($timeBudgetMs > 0 && (hrtime(true) - $startedAt) / 1_000_000 >= $timeBudgetMs) {
@@ -263,7 +314,10 @@ readonly class LogIndexer
             }
         }
 
-        $this->logIndexRepository->saveMeta($file->id, $meta);
+        $this->logIndexRepository->saveMeta(
+            fileId: $file->id,
+            meta: $meta,
+        );
 
         return $meta;
     }
@@ -271,27 +325,42 @@ readonly class LogIndexer
     private function canContinue(LogIndexMetaObject $meta, LogFileObject $file, int $size): bool
     {
         if (
-            !$this->isCompatible($meta, $file)
+            !$this->isCompatible(
+                meta: $meta,
+                file: $file,
+            )
             || $size < $meta->indexedBytes
             || $size < $meta->headLength
         ) {
             return false;
         }
 
-        $head = $this->logFileRepository->read($file->path, 0, $meta->headLength);
+        $head = $this->logFileRepository->read(
+            path: $file->path,
+            offset: 0,
+            length: $meta->headLength,
+        );
 
         return md5($head) === $meta->headHash;
     }
 
     private function dropUncommittedRecords(string $fileId, LogIndexMetaObject $meta): void
     {
-        $this->logIndexRepository->truncateRecords($fileId, null, $meta->entriesCount);
+        $this->logIndexRepository->truncateRecords(
+            fileId: $fileId,
+            level: null,
+            count: $meta->entriesCount,
+        );
 
         foreach ($this->logIndexRepository->findLevels($fileId) as $level) {
+            $logLevelCounter = new LogLevelCounter(
+                levelCounts: $meta->levelCounts,
+            );
+
             $this->logIndexRepository->truncateRecords(
                 fileId: $fileId,
                 level: $level,
-                count: new LogLevelCounter($meta->levelCounts)->get($level)
+                count: $logLevelCounter->get($level),
             );
         }
     }
@@ -309,7 +378,7 @@ readonly class LogIndexer
                 new LogEntryStartObject(
                     offset: 0,
                     loggedAt: null,
-                    level: 0
+                    level: 0,
                 )
             );
         }
@@ -352,7 +421,7 @@ readonly class LogIndexer
             headLength: $headLength,
             headHash: $headHash,
             entriesCount: $entriesCount,
-            levelCounts: $levelCounts
+            levelCounts: $levelCounts,
         );
     }
 }

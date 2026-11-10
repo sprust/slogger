@@ -16,9 +16,8 @@ class DatabaseStatCacheRepository
 {
     private string $cacheKey = 'dashboard:database-stat';
 
-    public function __construct(
-        private readonly CacheRepository $cache,
-    ) {
+    public function __construct(private readonly CacheRepository $cache)
+    {
     }
 
     /**
@@ -31,13 +30,13 @@ class DatabaseStatCacheRepository
             value: json_encode([
                 'cached_at' => Carbon::now()->toDateTimeString(),
                 'stats'     => array_map(
-                    fn(DatabaseStatObject $stat) => [
+                    static fn(DatabaseStatObject $stat) => [
                         'name'                => $stat->name,
                         'size'                => $stat->size,
                         'totalDocumentsCount' => $stat->totalDocumentsCount,
                         'memoryUsage'         => $stat->memoryUsage,
                         'collections'         => array_map(
-                            fn(DatabaseCollectionStatObject $col) => [
+                            static fn(DatabaseCollectionStatObject $col) => [
                                 'name'        => $col->name,
                                 'size'        => $col->size,
                                 'indexesSize' => $col->indexesSize,
@@ -45,7 +44,7 @@ class DatabaseStatCacheRepository
                                 'count'       => $col->count,
                                 'avgObjSize'  => $col->avgObjSize,
                                 'indexes'     => array_map(
-                                    fn(DatabaseCollectionIndexStatObject $idx) => [
+                                    static fn(DatabaseCollectionIndexStatObject $idx) => [
                                         'name'  => $idx->name,
                                         'size'  => $idx->size,
                                         'usage' => $idx->usage,
@@ -74,13 +73,13 @@ class DatabaseStatCacheRepository
             $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
             $stats = array_map(
-                fn(array $item) => new DatabaseStatObject(
+                static fn(array $item) => new DatabaseStatObject(
                     name: $item['name'],
                     size: $item['size'],
                     totalDocumentsCount: $item['totalDocumentsCount'],
                     memoryUsage: $item['memoryUsage'],
                     collections: array_map(
-                        fn(array $col) => new DatabaseCollectionStatObject(
+                        static fn(array $col) => new DatabaseCollectionStatObject(
                             name: $col['name'],
                             size: $col['size'],
                             indexesSize: $col['indexesSize'],
@@ -88,7 +87,7 @@ class DatabaseStatCacheRepository
                             count: $col['count'],
                             avgObjSize: $col['avgObjSize'],
                             indexes: array_map(
-                                fn(array $idx) => new DatabaseCollectionIndexStatObject(
+                                static fn(array $idx) => new DatabaseCollectionIndexStatObject(
                                     name: $idx['name'],
                                     size: $idx['size'],
                                     usage: $idx['usage'],

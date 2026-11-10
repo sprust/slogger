@@ -80,7 +80,7 @@ readonly class McpRepository
                 'requests_count',
                 extra: [
                     'last_used_at' => $lastUsedAt,
-                ]
+                ],
             );
     }
 
@@ -101,7 +101,7 @@ readonly class McpRepository
             requestsCount: $mcp->requests_count,
             lastUsedAt: $mcp->last_used_at,
             createdAt: $mcp->created_at,
-            updatedAt: $mcp->updated_at
+            updatedAt: $mcp->updated_at,
         );
     }
 }

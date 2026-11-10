@@ -10,9 +10,8 @@ readonly class LogLevelKeys
 {
     public const string NONE = 'none';
 
-    public function __construct(
-        private LogFormatRegistry $logFormatRegistry
-    ) {
+    public function __construct(private LogFormatRegistry $logFormatRegistry)
+    {
     }
 
     public function makeKey(LogTypeEnum $type, int $level): string

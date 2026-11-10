@@ -6,9 +6,8 @@ namespace App\Modules\Notification\Entities\Settings;
 
 readonly class SlackSettingsObject implements ChannelSettingsInterface
 {
-    public function __construct(
-        public string $webhookUrl = ''
-    ) {
+    public function __construct(public string $webhookUrl = '')
+    {
     }
 
     public function toArray(): array

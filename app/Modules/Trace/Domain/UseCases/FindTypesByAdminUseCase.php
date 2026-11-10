@@ -22,8 +22,6 @@ readonly class FindTypesByAdminUseCase
      */
     public function handle(TraceFindTypesParameters $parameters): array
     {
-        return $this->findTypesAction->handle(
-            parameters: $parameters,
-        );
+        return $this->findTypesAction->handle($parameters);
     }
 }

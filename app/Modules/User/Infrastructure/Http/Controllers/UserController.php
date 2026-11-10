@@ -36,7 +36,8 @@ readonly class UserController
     public function create(CreateUserRequest $request): UserResource
     {
         $validated = $request->validated();
-        $user      = $this->createUserByAdminUseCase->handle(
+
+        $user = $this->createUserByAdminUseCase->handle(
             new UserCreateParameters(
                 firstName: ArrayValueGetter::string(
                     data: $validated,
@@ -63,7 +64,8 @@ readonly class UserController
     public function update(int $id, UpdateUserRequest $request): UserResource
     {
         $validated = $request->validated();
-        $user      = $this->updateUserByAdminUseCase->handle(
+
+        $user = $this->updateUserByAdminUseCase->handle(
             new UserUpdateParameters(
                 id: $id,
                 firstName: ArrayValueGetter::string(

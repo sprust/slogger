@@ -25,7 +25,7 @@ readonly class CreateTraceAdminStoreAction
             storeVersion: $storeVersion,
             storeDataHash: md5($storeData),
             storeData: $storeData,
-            auto: $auto
+            auto: $auto,
         );
     }
 }

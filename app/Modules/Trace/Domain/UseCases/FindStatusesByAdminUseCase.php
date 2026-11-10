@@ -22,8 +22,6 @@ readonly class FindStatusesByAdminUseCase
      */
     public function handle(TraceFindStatusesParameters $parameters): array
     {
-        return $this->findStatusesAction->handle(
-            parameters: $parameters,
-        );
+        return $this->findStatusesAction->handle($parameters);
     }
 }

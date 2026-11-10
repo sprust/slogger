@@ -197,7 +197,7 @@ readonly class TraceTreeCacheBuilderService
     private function createRoot(string $rootTraceId, string $version): void
     {
         $rootTrace = $this->traceRepository->findOneDetailByTraceId(
-            traceId: $rootTraceId,
+            $rootTraceId,
         );
 
         if ($rootTrace === null) {
@@ -239,7 +239,7 @@ readonly class TraceTreeCacheBuilderService
     private function createAncestors(string $rootTraceId, string $version): void
     {
         $ancestorTraceIds = $this->traceTreeRepository->findChainToParentTraceId(
-            traceId: $rootTraceId,
+            $rootTraceId,
         );
 
         if ($ancestorTraceIds === []) {
@@ -276,9 +276,7 @@ readonly class TraceTreeCacheBuilderService
             return;
         }
 
-        $this->dispatcher->event(
-            new TraceTreeCacheStateChangedEvent($state)
-        );
+        $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
     }
 
     /**
@@ -295,7 +293,7 @@ readonly class TraceTreeCacheBuilderService
         int $depth
     ): int {
         $foundNodes = $this->traceRepository->findTreeNodesByTraceIds(
-            traceIds: $childIdsChunk,
+            $childIdsChunk,
         );
         /** @var CreateTraceTreeCacheParameters[] $cacheParametersList */
         $cacheParametersList = [];

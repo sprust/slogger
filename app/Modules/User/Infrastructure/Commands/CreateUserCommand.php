@@ -37,25 +37,31 @@ class CreateUserCommand extends Command
         CreateUserAction $createUserAction,
         FindUserByIdAction $findUserByIdAction
     ): int {
-        $firstName = $this->askAndCheck('First name *', true);
+        $firstName = $this->askAndCheck(
+            title: 'First name *',
+            required: true,
+        );
 
         if (!is_string($firstName) || !$firstName) {
             return self::FAILURE;
         }
 
-        $lastName = $this->askAndCheck('Last name', false);
+        $lastName = $this->askAndCheck(
+            title: 'Last name',
+            required: false,
+        );
 
         if (!is_string($lastName) && !is_null($lastName)) {
             return self::FAILURE;
         }
 
         $email = $this->askAndCheck(
-            'Email *',
-            true,
-            [
+            title: 'Email *',
+            required: true,
+            rules: [
                 'email',
                 'unique:users,email',
-            ]
+            ],
         );
 
         if (!is_string($email) || !$email) {
@@ -63,13 +69,13 @@ class CreateUserCommand extends Command
         }
 
         $password = $this->askAndCheck(
-            'Password [8-10] *',
-            true,
-            [
+            title: 'Password [8-10] *',
+            required: true,
+            rules: [
                 'string',
                 'min:8',
                 'max:10',
-            ]
+            ],
         );
 
         if (!is_string($password) || !$password) {
@@ -82,7 +88,7 @@ class CreateUserCommand extends Command
                     firstName: $firstName,
                     lastName: $lastName,
                     email: $email,
-                    password: $password
+                    password: $password,
                 )
             );
         } catch (UserAlreadyExistsException $exception) {

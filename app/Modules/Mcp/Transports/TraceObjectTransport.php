@@ -94,9 +94,9 @@ readonly class TraceObjectTransport
             key: $sourceTraceDataObject->key,
             value: $sourceTraceDataObject->value,
             children: $sourceTraceDataObject->children === null ? null : array_map(
-                fn(
-                    SourceTraceDataObject $sourceTraceDataObject
-                ): TraceDataObject => $this->fromTraceDataObject($sourceTraceDataObject),
+                fn(SourceTraceDataObject $sourceTraceDataObject): TraceDataObject => $this->fromTraceDataObject(
+                    $sourceTraceDataObject
+                ),
                 $sourceTraceDataObject->children
             ),
             filterKey: $sourceTraceDataObject->filterKey,
@@ -118,9 +118,9 @@ readonly class TraceObjectTransport
     ): TraceItemObjects {
         return new TraceItemObjects(
             items: array_map(
-                fn(
-                    SourceTraceItemObject $sourceTraceItemObject
-                ): TraceItemObject => $this->fromTraceItemObject($sourceTraceItemObject),
+                fn(SourceTraceItemObject $sourceTraceItemObject): TraceItemObject => $this->fromTraceItemObject(
+                    $sourceTraceItemObject
+                ),
                 $sourceTraceItemObjects->items
             ),
             paginationInfo: $sourceTraceItemObjects->paginationInfo,
@@ -170,9 +170,9 @@ readonly class TraceObjectTransport
     ): TraceGroupsObject {
         return new TraceGroupsObject(
             items: array_map(
-                fn(
-                    SourceTraceGroupObject $sourceTraceGroupObject
-                ): TraceGroupObject => $this->fromTraceGroupObject($sourceTraceGroupObject),
+                fn(SourceTraceGroupObject $sourceTraceGroupObject): TraceGroupObject => $this->fromTraceGroupObject(
+                    $sourceTraceGroupObject
+                ),
                 $sourceTraceGroupsObject->items
             ),
             truncated: $sourceTraceGroupsObject->truncated,

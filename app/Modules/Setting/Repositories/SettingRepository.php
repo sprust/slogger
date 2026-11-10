@@ -69,7 +69,7 @@ class SettingRepository
         return new SettingValueObject(
             key: $key,
             value: $value,
-            updatedAt: $setting->updated_at
+            updatedAt: $setting->updated_at,
         );
     }
 }

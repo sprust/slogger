@@ -10,9 +10,8 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceDataRangeAction
 {
-    public function __construct(
-        private TraceRepository $traceRepository,
-    ) {
+    public function __construct(private TraceRepository $traceRepository)
+    {
     }
 
     /**

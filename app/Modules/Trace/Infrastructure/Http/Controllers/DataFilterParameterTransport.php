@@ -28,15 +28,30 @@ class DataFilterParameterTransport
 
         return new TraceDataFilterParameters(
             filter: array_map(
-                fn(array $filterItem) => new TraceDataFilterItemParameters(
-                    field: ArrayValueGetter::string($filterItem, 'field'),
-                    null: ArrayValueGetter::boolNull($filterItem, 'null'),
-                    exists: ArrayValueGetter::boolNull($filterItem, 'exists'),
+                static fn(array $filterItem) => new TraceDataFilterItemParameters(
+                    field: ArrayValueGetter::string(
+                        data: $filterItem,
+                        key: 'field',
+                    ),
+                    null: ArrayValueGetter::boolNull(
+                        data: $filterItem,
+                        key: 'null',
+                    ),
+                    exists: ArrayValueGetter::boolNull(
+                        data: $filterItem,
+                        key: 'exists',
+                    ),
                     numeric: array_key_exists('numeric', $filterItem)
                         ? new TraceDataFilterNumericParameters(
-                            value: ArrayValueGetter::intFloat($filterItem['numeric'], 'value'),
+                            value: ArrayValueGetter::intFloat(
+                                data: $filterItem['numeric'],
+                                key: 'value',
+                            ),
                             comp: TraceDataFilterCompNumericTypeEnum::from(
-                                ArrayValueGetter::string($filterItem['numeric'], 'comp')
+                                ArrayValueGetter::string(
+                                    data: $filterItem['numeric'],
+                                    key: 'comp',
+                                )
                             ),
                         )
                         : null,
@@ -44,19 +59,28 @@ class DataFilterParameterTransport
                         ? new TraceDataFilterStringParameters(
                             value: $filterItem['string']['value'],
                             comp: TraceDataFilterCompStringTypeEnum::from(
-                                ArrayValueGetter::string($filterItem['string'], 'comp')
+                                ArrayValueGetter::string(
+                                    data: $filterItem['string'],
+                                    key: 'comp',
+                                )
                             ),
                         )
                         : null,
                     boolean: array_key_exists('boolean', $filterItem)
                         ? new TraceDataFilterBooleanParameters(
-                            ArrayValueGetter::bool($filterItem['boolean'], 'value')
+                            value: ArrayValueGetter::bool(
+                                data: $filterItem['boolean'],
+                                key: 'value',
+                            ),
                         )
-                        : null
+                        : null,
                 ),
                 is_array($data['filter'] ?? null) ? $data['filter'] : []
             ),
-            fields: ArrayValueGetter::arrayStringNull($data, 'fields') ?? [],
+            fields: ArrayValueGetter::arrayStringNull(
+                data: $data,
+                key: 'fields',
+            ) ?? [],
         );
     }
 }

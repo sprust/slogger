@@ -112,7 +112,7 @@ readonly class WatcherIncidentRepository
             lastEventAt: $occurredAt,
             eventsCount: 0,
             closedAt: null,
-            closedByUserId: null
+            closedByUserId: null,
         );
     }
 
@@ -186,13 +186,22 @@ readonly class WatcherIncidentRepository
             id: (string) $document['_id'],
             watcherId: (int) $document['watcherId'],
             status: WatcherIncidentStatusEnum::from((string) $document['status']),
-            firstEventAt: $this->readDate($document, 'firstEventAt') ?? Carbon::now(),
-            lastEventAt: $this->readDate($document, 'lastEventAt') ?? Carbon::now(),
+            firstEventAt: $this->readDate(
+                document: $document,
+                key: 'firstEventAt',
+            ) ?? Carbon::now(),
+            lastEventAt: $this->readDate(
+                document: $document,
+                key: 'lastEventAt',
+            ) ?? Carbon::now(),
             eventsCount: (int) ($document['eventsCount'] ?? 0),
-            closedAt: $this->readDate($document, 'closedAt'),
+            closedAt: $this->readDate(
+                document: $document,
+                key: 'closedAt',
+            ),
             closedByUserId: isset($document['closedByUserId'])
                 ? (int) $document['closedByUserId']
-                : null
+                : null,
         );
     }
 

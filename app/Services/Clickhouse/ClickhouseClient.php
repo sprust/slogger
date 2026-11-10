@@ -65,12 +65,12 @@ class ClickhouseClient
                 // the client gives up after the timeout, so the server stops the query then too
                 'max_execution_time'                      => $this->config->timeoutSeconds,
                 ...$settings,
-            ]
+            ],
         );
 
         return $this->readRows(
             body: $response->getBody(),
-            queryId: $queryId
+            queryId: $queryId,
         );
     }
 
@@ -90,7 +90,7 @@ class ClickhouseClient
             sql: $sql,
             params: $params,
             queryId: $this->makeQueryId($queryIdPrefix),
-            settings: []
+            settings: [],
         );
 
         $response->getBody()->close();
@@ -124,19 +124,15 @@ class ClickhouseClient
             $this->config->port,
             http_build_query(
                 $query,
-                encoding_type: PHP_QUERY_RFC3986
+                encoding_type: PHP_QUERY_RFC3986,
             )
         );
 
-        $request =
-            $this->requestFactory
-                ->createRequest('POST', $url)
-                ->withHeader('X-ClickHouse-User', $this->config->username)
-                ->withHeader('X-ClickHouse-Key', $this->config->password)
-                ->withHeader('Content-Type', 'text/plain; charset=utf-8')
-                ->withBody(
-                    $this->streamFactory->createStream($sql)
-                );
+        $request = $this->requestFactory->createRequest('POST', $url)
+            ->withHeader('X-ClickHouse-User', $this->config->username)
+            ->withHeader('X-ClickHouse-Key', $this->config->password)
+            ->withHeader('Content-Type', 'text/plain; charset=utf-8')
+            ->withBody($this->streamFactory->createStream($sql));
 
         try {
             $response = $this->httpClient->sendRequest($request);
@@ -144,7 +140,7 @@ class ClickhouseClient
             throw new ClickhouseQueryException(
                 message: sprintf('ClickHouse is unreachable: %s', $exception->getMessage()),
                 queryId: $queryId,
-                previous: $exception
+                previous: $exception,
             );
         }
 
@@ -152,7 +148,7 @@ class ClickhouseClient
             throw new ClickhouseQueryException(
                 message: trim($response->getBody()->getContents()),
                 code: (int) $response->getHeaderLine('X-ClickHouse-Exception-Code'),
-                queryId: $queryId
+                queryId: $queryId,
             );
         }
 
@@ -175,7 +171,10 @@ class ClickhouseClient
         $rows    = [];
         $pending = '';
 
-        while (($chunk = $this->readChunk($body, $queryId)) !== null) {
+        while (($chunk = $this->readChunk(
+            body: $body,
+            queryId: $queryId,
+        )) !== null) {
             if ($chunk === '') {
                 continue;
             }
@@ -187,13 +186,19 @@ class ClickhouseClient
 
             foreach ($lines as $line) {
                 if ($line !== '') {
-                    $rows[] = $this->decodeRow($line, $queryId);
+                    $rows[] = $this->decodeRow(
+                        line: $line,
+                        queryId: $queryId,
+                    );
                 }
             }
         }
 
         if ($pending !== '') {
-            $rows[] = $this->decodeRow($pending, $queryId);
+            $rows[] = $this->decodeRow(
+                line: $pending,
+                queryId: $queryId,
+            );
         }
 
         return $rows;
@@ -215,7 +220,7 @@ class ClickhouseClient
             throw new ClickhouseQueryException(
                 message: sprintf('ClickHouse broke off the answer: %s', $exception->getMessage()),
                 queryId: $queryId,
-                previous: $exception
+                previous: $exception,
             );
         }
     }
@@ -231,19 +236,19 @@ class ClickhouseClient
             $row = json_decode(
                 $line,
                 true,
-                flags: JSON_THROW_ON_ERROR
+                flags: JSON_THROW_ON_ERROR,
             );
         } catch (JsonException) {
             throw new ClickhouseQueryException(
                 message: trim($line),
-                queryId: $queryId
+                queryId: $queryId,
             );
         }
 
         if (!is_array($row)) {
             throw new ClickhouseQueryException(
                 message: sprintf('Unexpected row: %s', $line),
-                queryId: $queryId
+                queryId: $queryId,
             );
         }
 
@@ -252,7 +257,7 @@ class ClickhouseClient
         ) {
             throw new ClickhouseQueryException(
                 message: (string) $row['exception'],
-                queryId: $queryId
+                queryId: $queryId,
             );
         }
 

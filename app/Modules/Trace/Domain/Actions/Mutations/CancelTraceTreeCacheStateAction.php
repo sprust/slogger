@@ -36,9 +36,7 @@ readonly class CancelTraceTreeCacheStateAction
         // The tab that pressed cancel already has the answer in the response; this is for
         // every other tab watching the same tree.
         if ($state !== null) {
-            $this->dispatcher->event(
-                new TraceTreeCacheStateChangedEvent($state)
-            );
+            $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
         }
 
         return $state;

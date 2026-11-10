@@ -110,18 +110,22 @@ class LogFileStream
         $records = array_values(
             array_filter(
                 $records,
-                fn(
-                    LogIndexRecordObject $record
-                ): bool => (
-                    $this->fromTime === null || $record->loggedAt >= $this->fromTime
-                )
+                fn(LogIndexRecordObject $record): bool => (
+                    ($this->fromTime === null || $record->loggedAt >= $this->fromTime)
                     && ($this->toTime === null || $record->loggedAt <= $this->toTime)
+                )
             )
         );
 
         $texts = [];
 
-        foreach ($this->logTextReader->read($this->file->path, $records, $this->maxEntryBytes) as $entryText) {
+        $entryTexts = $this->logTextReader->read(
+            path: $this->file->path,
+            records: $records,
+            maxEntryBytes: $this->maxEntryBytes,
+        );
+
+        foreach ($entryTexts as $entryText) {
             $texts[$entryText->entryNo] = $entryText->text;
         }
 
@@ -134,7 +138,10 @@ class LogFileStream
 
             if (
                 $this->searchQuery !== null
-                && !$this->matches($text, $this->searchQuery)
+                && !$this->matches(
+                    text: $text,
+                    query: $this->searchQuery,
+                )
             ) {
                 continue;
             }
@@ -145,7 +152,7 @@ class LogFileStream
                 loggedAt: $record->loggedAt,
                 level: $record->level,
                 text: $text,
-                truncated: $record->length > $this->maxEntryBytes
+                truncated: $record->length > $this->maxEntryBytes,
             );
         }
 
@@ -216,7 +223,12 @@ class LogFileStream
             $count = $lane->next - $from + 1;
 
             $lane->buffer = array_reverse(
-                $this->logIndexRepository->readRecords($this->file->id, $lane->level, $from, $count)
+                $this->logIndexRepository->readRecords(
+                    fileId: $this->file->id,
+                    level: $lane->level,
+                    from: $from,
+                    count: $count,
+                )
             );
 
             $lane->next = $from - 1;
@@ -227,10 +239,10 @@ class LogFileStream
         $count = min(self::BLOCK_RECORDS, $lane->high - $lane->next + 1);
 
         $lane->buffer = $this->logIndexRepository->readRecords(
-            $this->file->id,
-            $lane->level,
-            $lane->next,
-            $count
+            fileId: $this->file->id,
+            level: $lane->level,
+            from: $lane->next,
+            count: $count,
         );
 
         $lane->next += $count;

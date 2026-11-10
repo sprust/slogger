@@ -19,8 +19,6 @@ readonly class RegenerateMcpTokenByAdminUseCase
      */
     public function handle(int $id): void
     {
-        $this->regenerateMcpTokenAction->handle(
-            id: $id,
-        );
+        $this->regenerateMcpTokenAction->handle($id);
     }
 }

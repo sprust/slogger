@@ -30,7 +30,7 @@ readonly class FindTraceTreeFilteredAction
         $matched = $this->traceTreeCacheRepository->findFiltered(
             rootTraceId: $rootTraceId,
             parameters: $parameters,
-            limit: $limit + 1
+            limit: $limit + 1,
         );
 
         $truncated = count($matched) > $limit;
@@ -62,7 +62,7 @@ readonly class FindTraceTreeFilteredAction
             // A parent the cache does not have is above the top of the tree.
             $level = $this->traceTreeCacheRepository->findByTraceIds(
                 rootTraceId: $rootTraceId,
-                traceIds: array_keys($parentTraceIds)
+                traceIds: array_keys($parentTraceIds),
             );
 
             foreach ($level as $node) {

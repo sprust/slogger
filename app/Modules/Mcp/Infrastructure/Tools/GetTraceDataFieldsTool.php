@@ -45,16 +45,18 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            ...$this->scopeReader->properties(),
-            new McpToolProperty(
-                name: 'type',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Trace type.',
-                required: true,
-                max: 255
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                ...$this->scopeReader->properties(),
+                new McpToolProperty(
+                    name: 'type',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Trace type.',
+                    required: true,
+                    max: 255,
+                ),
+            ],
+        );
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
@@ -71,7 +73,7 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
             new FindMcpTraceDataFieldsParameters(
                 serviceIds: $scope->serviceIds,
                 period: $scope->period,
-                type: $type
+                type: $type,
             )
         );
 
@@ -87,7 +89,7 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
                     ],
                     $result->fields
                 ),
-            ]
+            ],
         );
     }
 }

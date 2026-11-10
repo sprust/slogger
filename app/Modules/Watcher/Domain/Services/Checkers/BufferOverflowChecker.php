@@ -39,11 +39,11 @@ readonly class BufferOverflowChecker implements WatcherCheckerInterface
 
         return new BufferOverflowEventPayloadObject(
             settings: new BufferOverflowEventSettingsObject(
-                threshold: $settings->threshold
+                threshold: $settings->threshold,
             ),
             measured: new BufferOverflowEventMeasuredObject(
-                bufferCount: $context->bufferCount
-            )
+                bufferCount: $context->bufferCount,
+            ),
         );
     }
 }

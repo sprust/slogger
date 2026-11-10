@@ -19,7 +19,7 @@ readonly class DeleteTraceTreeCacheStateAction
     public function handle(string $rootTraceId): void
     {
         $this->traceTreeCacheStateRepository->deleteByRootTraceId(
-            rootTraceId: $rootTraceId,
+            $rootTraceId,
         );
 
         $this->dispatcher->event(

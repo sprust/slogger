@@ -32,11 +32,11 @@ readonly class WatcherIncidentController
     }
 
     #[OaListItemTypeAttribute(WatcherIncidentResource::class)]
-    public function index(
-        IndexIncidentsRequest $request
-    ): AnonymousResourceCollection {
+    public function index(IndexIncidentsRequest $request): AnonymousResourceCollection
+    {
         $validated = $request->validated();
-        $status    = ArrayValueGetter::stringNull(
+
+        $status = ArrayValueGetter::stringNull(
             data: $validated,
             key: 'status',
         );

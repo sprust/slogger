@@ -165,7 +165,7 @@ class ModuleExceptionManagerTest extends BaseModuleTestCase
                 actual: $response->message
             );
             self::assertSame(
-                expected: 'message',
+                expected: false,
                 actual: $response->isError
             );
             self::assertEquals(

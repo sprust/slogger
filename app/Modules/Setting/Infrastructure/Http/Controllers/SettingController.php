@@ -49,8 +49,6 @@ readonly class SettingController
 
     public function reset(string $key): void
     {
-        $this->resetSettingByAdminUseCase->handle(
-            SettingKeyEnum::from($key)
-        );
+        $this->resetSettingByAdminUseCase->handle(SettingKeyEnum::from($key));
     }
 }

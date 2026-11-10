@@ -39,7 +39,7 @@ readonly class WebhookSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Channel is not a webhook one'
+                error: 'Channel is not a webhook one',
             );
         }
 
@@ -47,7 +47,7 @@ readonly class WebhookSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Url is not set'
+                error: 'Url is not set',
             );
         }
 
@@ -64,7 +64,7 @@ readonly class WebhookSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Message could not be encoded: ' . $exception->getMessage()
+                error: 'Message could not be encoded: ' . $exception->getMessage(),
             );
         }
 
@@ -80,17 +80,23 @@ readonly class WebhookSender implements NotificationSenderInterface
                     method: 'POST',
                     uri: $settings->url,
                     headers: $headers,
-                    body: $body
+                    body: $body,
                 )
             );
         } catch (Throwable $exception) {
             return new SendResultObject(
                 delivered: false,
-                error: $this->withoutToken($exception->getMessage(), $settings->token)
+                error: $this->withoutToken(
+                    message: $exception->getMessage(),
+                    token: $settings->token,
+                ),
             );
         }
 
-        return $this->resultReader->read($response, 'Webhook');
+        return $this->resultReader->read(
+            response: $response,
+            endpointName: 'Webhook',
+        );
     }
 
     public function escape(string $value): string

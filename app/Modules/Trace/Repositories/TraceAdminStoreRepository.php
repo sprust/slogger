@@ -83,8 +83,8 @@ class TraceAdminStoreRepository
             paginationInfo: new PaginationInfoObject(
                 total: $total,
                 perPage: $perPage,
-                currentPage: $page
-            )
+                currentPage: $page,
+            ),
         );
     }
 

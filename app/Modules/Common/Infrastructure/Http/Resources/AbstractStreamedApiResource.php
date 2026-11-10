@@ -33,7 +33,7 @@ abstract class AbstractStreamedApiResource extends StreamedResponse
             headers: [
                 'Content-Type'      => 'application/json',
                 'X-Accel-Buffering' => 'no',
-            ]
+            ],
         );
     }
 }

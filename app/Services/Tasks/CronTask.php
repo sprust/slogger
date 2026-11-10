@@ -66,7 +66,7 @@ class CronTask implements TaskInterface
 
         Artisan::call(
             'schedule:run',
-            outputBuffer: $output
+            outputBuffer: $output,
         );
 
         $this->report(

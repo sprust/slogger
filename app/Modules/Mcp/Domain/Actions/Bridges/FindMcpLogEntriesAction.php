@@ -42,9 +42,7 @@ readonly class FindMcpLogEntriesAction
         $files = array_values(
             array_filter(
                 $allFiles,
-                static fn(
-                    LogFileObject $file
-                ) => mb_strtolower($file->source) === mb_strtolower($parameters->source)
+                static fn(LogFileObject $file) => mb_strtolower($file->source) === mb_strtolower($parameters->source)
             )
         );
 
@@ -59,13 +57,16 @@ readonly class FindMcpLogEntriesAction
         $page = $this->findLogEntriesAction->handle(
             new FindLogEntriesParameters(
                 fileIds: array_map(static fn(LogFileObject $file) => $file->id, $files),
-                levelKeys: count($parameters->levels) > 0 ? $this->levelKeys($files, $parameters->levels) : null,
+                levelKeys: count($parameters->levels) > 0 ? $this->levelKeys(
+                    files: $files,
+                    levels: $parameters->levels,
+                ) : null,
                 fromTime: $parameters->from?->getTimestamp(),
                 toTime: $parameters->to?->getTimestamp(),
                 searchQuery: $parameters->query,
                 cursor: null,
                 direction: LogCursorDirectionEnum::Older,
-                perPage: max(1, min($parameters->limit, self::MAX_LIMIT))
+                perPage: max(1, min($parameters->limit, self::MAX_LIMIT)),
             )
         );
 
@@ -76,11 +77,14 @@ readonly class FindMcpLogEntriesAction
                 fn(LogEntryViewObject $entry) => new McpLogEntryObject(
                     time: Carbon::createFromTimestampUTC($entry->loggedAt),
                     level: $this->levelName($entry->levelKey),
-                    file: $this->fileName($files, $entry->fileId),
-                    text: $entry->text
+                    file: $this->fileName(
+                        files: $files,
+                        fileId: $entry->fileId,
+                    ),
+                    text: $entry->text,
                 ),
                 $page->items
-            )
+            ),
         );
     }
 
@@ -118,7 +122,10 @@ readonly class FindMcpLogEntriesAction
             }
 
             if (!$found) {
-                throw new McpLogLevelNotFoundException($level, array_values(array_unique($known)));
+                throw new McpLogLevelNotFoundException(
+                    level: $level,
+                    levels: array_values(array_unique($known)),
+                );
             }
         }
 

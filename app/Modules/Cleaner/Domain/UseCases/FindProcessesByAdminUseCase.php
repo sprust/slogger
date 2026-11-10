@@ -18,8 +18,6 @@ readonly class FindProcessesByAdminUseCase
      */
     public function handle(int $page): array
     {
-        return $this->findProcessesAction->handle(
-            page: $page,
-        );
+        return $this->findProcessesAction->handle($page);
     }
 }

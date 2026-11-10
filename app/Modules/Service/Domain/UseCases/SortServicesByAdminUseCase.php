@@ -19,8 +19,6 @@ readonly class SortServicesByAdminUseCase
      */
     public function handle(ServicesSortParameters $parameters): void
     {
-        $this->sortServicesAction->handle(
-            parameters: $parameters,
-        );
+        $this->sortServicesAction->handle($parameters);
     }
 }

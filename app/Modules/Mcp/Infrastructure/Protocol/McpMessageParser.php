@@ -20,7 +20,7 @@ readonly class McpMessageParser
             throw new McpProtocolException(
                 errorCode: McpErrorCodeEnum::ParseError,
                 message: 'Parse error: the body is not valid JSON',
-                httpStatus: Response::HTTP_BAD_REQUEST
+                httpStatus: Response::HTTP_BAD_REQUEST,
             );
         }
 
@@ -63,7 +63,7 @@ readonly class McpMessageParser
         return new McpRequestMessage(
             id: $id,
             method: $method,
-            params: is_array($message['params'] ?? null) ? $message['params'] : []
+            params: is_array($message['params'] ?? null) ? $message['params'] : [],
         );
     }
 
@@ -72,7 +72,7 @@ readonly class McpMessageParser
         return new McpProtocolException(
             errorCode: McpErrorCodeEnum::InvalidRequest,
             message: $message,
-            httpStatus: Response::HTTP_BAD_REQUEST
+            httpStatus: Response::HTTP_BAD_REQUEST,
         );
     }
 }

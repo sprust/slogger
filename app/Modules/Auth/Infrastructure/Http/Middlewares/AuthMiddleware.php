@@ -72,14 +72,20 @@ readonly class AuthMiddleware
         // even for one this middleware refused — the framework calls it after handle(),
         // whether handle() returned or aborted — and a token that was rejected has no
         // business moving the row it was rejected against.
-        if (!$token || !$request->attributes->getBoolean(key: self::AUTHENTICATED)) {
+        if (
+            !$token || !$request->attributes->getBoolean(
+                key: self::AUTHENTICATED,
+            )
+        ) {
             return;
         }
 
         // Answers false for a session that ended during the request — a logout, most of
         // all, which must not be undone by the renewal of the very request that did it.
         $this->touchUserTokenAction->handle(
-            new TokenParameters($token)
+            new TokenParameters(
+                token: $token,
+            )
         );
     }
 }

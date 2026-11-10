@@ -47,7 +47,7 @@ class MongoConnectionFactory
 
         return new Client(
             $uri,
-            timeoutMs: $config['options']['socketTimeoutMS'] ?? null
+            timeoutMs: $config['options']['socketTimeoutMS'] ?? null,
         );
     }
 
@@ -59,7 +59,10 @@ class MongoConnectionFactory
         array $uriOptions = self::DEFAULT_URI_OPTIONS
     ): Database {
         return $this
-            ->client($connectionName, $uriOptions)
+            ->client(
+                connectionName: $connectionName,
+                uriOptions: $uriOptions,
+            )
             ->selectDatabase(
                 $this->databaseName($connectionName)
             );

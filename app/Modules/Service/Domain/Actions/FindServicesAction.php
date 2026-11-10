@@ -9,9 +9,8 @@ use App\Modules\Service\Repositories\ServiceRepository;
 
 readonly class FindServicesAction
 {
-    public function __construct(
-        private ServiceRepository $serviceRepository
-    ) {
+    public function __construct(private ServiceRepository $serviceRepository)
+    {
     }
 
     /**
@@ -22,7 +21,7 @@ readonly class FindServicesAction
     public function handle(?array $ids = null): array
     {
         return $this->serviceRepository->find(
-            ids: $ids
+            ids: $ids,
         );
     }
 }

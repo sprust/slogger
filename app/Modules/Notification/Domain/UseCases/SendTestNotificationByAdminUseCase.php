@@ -20,8 +20,6 @@ readonly class SendTestNotificationByAdminUseCase
      */
     public function handle(int $channelId): SendResultObject
     {
-        return $this->sendTestNotificationAction->handle(
-            channelId: $channelId,
-        );
+        return $this->sendTestNotificationAction->handle($channelId);
     }
 }

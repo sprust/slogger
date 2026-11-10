@@ -24,7 +24,7 @@ class ClickhouseQueryException extends RuntimeException
         parent::__construct(
             message: $message,
             code: $code,
-            previous: $previous
+            previous: $previous,
         );
     }
 }

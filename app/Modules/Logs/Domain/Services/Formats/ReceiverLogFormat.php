@@ -19,9 +19,8 @@ readonly class ReceiverLogFormat implements LogFormatInterface
 
     private const string ENTRY_HEADER_PATTERN = '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [A-Z]+ /';
 
-    public function __construct(
-        private LogTimeParser $timeParser
-    ) {
+    public function __construct(private LogTimeParser $timeParser)
+    {
     }
 
     public function findEntryStarts(string $chunk): array
@@ -44,7 +43,7 @@ readonly class ReceiverLogFormat implements LogFormatInterface
             $starts[] = new LogEntryStartObject(
                 offset: $match[1],
                 loggedAt: $lastTime,
-                level: $this->parseLevel($matches[2][$index][0])
+                level: $this->parseLevel($matches[2][$index][0]),
             );
         }
 
@@ -62,7 +61,7 @@ readonly class ReceiverLogFormat implements LogFormatInterface
         return new LogEntryDetailsObject(
             message: rtrim($lineEnd === false ? $body : substr($body, 0, $lineEnd)),
             context: null,
-            fields: []
+            fields: [],
         );
     }
 
@@ -73,7 +72,7 @@ readonly class ReceiverLogFormat implements LogFormatInterface
         foreach (ReceiverLogLevelEnum::cases() as $case) {
             $names[] = new LogLevelNameObject(
                 level: $case->value,
-                name: strtoupper($case->name)
+                name: strtoupper($case->name),
             );
         }
 
@@ -89,7 +88,7 @@ readonly class ReceiverLogFormat implements LogFormatInterface
             hour: (int) substr($text, 11, 2),
             minute: (int) substr($text, 14, 2),
             second: (int) substr($text, 17, 2),
-            zone: null
+            zone: null,
         );
     }
 

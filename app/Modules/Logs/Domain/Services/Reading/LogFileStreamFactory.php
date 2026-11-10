@@ -28,22 +28,43 @@ readonly class LogFileStreamFactory
         LogCursorDirectionEnum $direction,
         ?int $position = null
     ): LogFileStream {
-        $range = $this->findEntryRange($file, $meta, $filter);
+        $range = $this->findEntryRange(
+            file: $file,
+            meta: $meta,
+            filter: $filter,
+        );
 
-        $levelCounter = new LogLevelCounter($meta->levelCounts);
+        $levelCounter = new LogLevelCounter(
+            levelCounts: $meta->levelCounts,
+        );
 
         $lanes = [];
         $total = 0;
 
-        foreach ($this->findLevels($meta, $filter) as $level) {
+        $levels = $this->findLevels(
+            meta: $meta,
+            filter: $filter,
+        );
+
+        foreach ($levels as $level) {
             $count = $level === null ? $meta->entriesCount : $levelCounter->get($level);
 
             if ($count === 0 || $range->lowEntryNo > $range->highEntryNo) {
                 continue;
             }
 
-            $low  = $this->findIndex($file, $level, $count, $range->lowEntryNo);
-            $high = $this->findIndex($file, $level, $count, $range->highEntryNo + 1) - 1;
+            $low  = $this->findIndex(
+                file: $file,
+                level: $level,
+                count: $count,
+                entryNo: $range->lowEntryNo,
+            );
+            $high = $this->findIndex(
+                file: $file,
+                level: $level,
+                count: $count,
+                entryNo: $range->highEntryNo + 1,
+            ) - 1;
 
             if ($low > $high) {
                 continue;
@@ -53,9 +74,25 @@ readonly class LogFileStreamFactory
 
             if ($position !== null) {
                 if ($direction === LogCursorDirectionEnum::Older) {
-                    $high = min($high, $this->findIndex($file, $level, $count, $position + 1) - 1);
+                    $high = min(
+                        $high,
+                        $this->findIndex(
+                            file: $file,
+                            level: $level,
+                            count: $count,
+                            entryNo: $position + 1,
+                        ) - 1
+                    );
                 } else {
-                    $low = max($low, $this->findIndex($file, $level, $count, $position));
+                    $low = max(
+                        $low,
+                        $this->findIndex(
+                            file: $file,
+                            level: $level,
+                            count: $count,
+                            entryNo: $position,
+                        )
+                    );
                 }
             }
 
@@ -63,7 +100,7 @@ readonly class LogFileStreamFactory
                 level: $level,
                 low: $low,
                 high: $high,
-                next: $direction === LogCursorDirectionEnum::Older ? $high : $low
+                next: $direction === LogCursorDirectionEnum::Older ? $high : $low,
             );
         }
 
@@ -80,7 +117,7 @@ readonly class LogFileStreamFactory
             maxEntryBytes: max(1, (int) config('module-logs.reading.max_entry_bytes')),
             total: $total,
             entriesCount: $meta->entriesCount,
-            lanes: $lanes
+            lanes: $lanes,
         );
     }
 
@@ -94,25 +131,25 @@ readonly class LogFileStreamFactory
 
         if ($filter->fromTime !== null) {
             $low = $this->logIndexSearch->lowerBoundByTime(
-                $file->id,
-                null,
-                $meta->entriesCount,
-                $filter->fromTime
+                fileId: $file->id,
+                level: null,
+                count: $meta->entriesCount,
+                time: $filter->fromTime,
             );
         }
 
         if ($filter->toTime !== null) {
             $high = $this->logIndexSearch->lowerBoundByTime(
-                $file->id,
-                null,
-                $meta->entriesCount,
-                $filter->toTime + 1
+                fileId: $file->id,
+                level: null,
+                count: $meta->entriesCount,
+                time: $filter->toTime + 1,
             ) - 1;
         }
 
         return new LogEntryRangeObject(
             lowEntryNo: $low,
-            highEntryNo: $high
+            highEntryNo: $high,
         );
     }
 
@@ -125,7 +162,9 @@ readonly class LogFileStreamFactory
             return [null];
         }
 
-        $levelCounter = new LogLevelCounter($meta->levelCounts);
+        $levelCounter = new LogLevelCounter(
+            levelCounts: $meta->levelCounts,
+        );
 
         $levels = array_values(
             array_unique(
@@ -144,6 +183,11 @@ readonly class LogFileStreamFactory
             return max(0, min($count, $entryNo));
         }
 
-        return $this->logIndexSearch->lowerBoundByEntryNo($file->id, $level, $count, $entryNo);
+        return $this->logIndexSearch->lowerBoundByEntryNo(
+            fileId: $file->id,
+            level: $level,
+            count: $count,
+            entryNo: $entryNo,
+        );
     }
 }

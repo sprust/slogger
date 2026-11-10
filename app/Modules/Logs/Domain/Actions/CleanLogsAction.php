@@ -33,7 +33,10 @@ readonly class CleanLogsAction
 
         foreach ($this->logFileFinder->findAll() as $file) {
             if (
-                $this->isExpired($file, $now)
+                $this->isExpired(
+                    file: $file,
+                    now: $now,
+                )
                 && $this->logFileRepository->delete($file->path)
             ) {
                 $deletedFiles[] = $file->path;
@@ -54,7 +57,7 @@ readonly class CleanLogsAction
 
             $mutex = new LogIndexMutex(
                 fileId: $fileId,
-                waitForBlockSec: self::WAIT_FOR_LOCK_SEC
+                waitForBlockSec: self::WAIT_FOR_LOCK_SEC,
             );
 
             try {
@@ -77,7 +80,7 @@ readonly class CleanLogsAction
         return new LogCleanResultObject(
             deletedFiles: $deletedFiles,
             deletedIndexes: $deletedIndexes,
-            skippedIndexes: $skippedIndexes
+            skippedIndexes: $skippedIndexes,
         );
     }
 

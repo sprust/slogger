@@ -35,9 +35,15 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
             return null;
         }
 
-        $since = $this->countWindow->start($watcher, $context->now);
+        $since = $this->countWindow->start(
+            watcher: $watcher,
+            now: $context->now,
+        );
 
-        $count = $this->countInvalidSinceAction->handle($since, $context->now);
+        $count = $this->countInvalidSinceAction->handle(
+            since: $since,
+            until: $context->now,
+        );
 
         if ($count < $settings->threshold) {
             return null;
@@ -45,12 +51,12 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
 
         return new InvalidBufferGrownEventPayloadObject(
             settings: new InvalidBufferGrownEventSettingsObject(
-                threshold: $settings->threshold
+                threshold: $settings->threshold,
             ),
             measured: new InvalidBufferGrownEventMeasuredObject(
                 invalidCount: $count,
-                since: $since->toDateTimeString()
-            )
+                since: $since->toDateTimeString(),
+            ),
         );
     }
 }

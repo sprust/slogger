@@ -33,9 +33,7 @@ readonly class McpToolServiceFinder
         }
 
         $knownIds = array_map(
-            static fn(
-                McpServiceObject $service
-            ) => $service->id,
+            static fn(McpServiceObject $service) => $service->id,
             $this->findMcpServicesAction->handle(null)
         );
 

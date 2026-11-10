@@ -11,9 +11,8 @@ readonly class FindProcessesAction
 {
     private int $perPage;
 
-    public function __construct(
-        private ProcessRepository $processRepository
-    ) {
+    public function __construct(private ProcessRepository $processRepository)
+    {
         $this->perPage = 30;
     }
 

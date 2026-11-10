@@ -19,9 +19,9 @@ readonly class InvalidBufferGrownIncidentEventController extends AbstractInciden
     ): AnonymousResourceCollection {
         return InvalidBufferGrownIncidentEventResource::collection(
             $this->incidentEvents(
-                WatcherTypeEnum::InvalidBufferGrown,
-                $id,
-                $request->validated()
+                type: WatcherTypeEnum::InvalidBufferGrown,
+                incidentId: $id,
+                validated: $request->validated(),
             )
         );
     }

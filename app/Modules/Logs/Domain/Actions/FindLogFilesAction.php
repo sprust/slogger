@@ -9,9 +9,8 @@ use App\Modules\Logs\Entities\File\LogFileObject;
 
 readonly class FindLogFilesAction
 {
-    public function __construct(
-        private LogFileFinder $logFileFinder
-    ) {
+    public function __construct(private LogFileFinder $logFileFinder)
+    {
     }
 
     /**

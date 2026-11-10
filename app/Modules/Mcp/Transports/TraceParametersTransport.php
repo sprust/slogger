@@ -62,7 +62,9 @@ readonly class TraceParametersTransport
                 ),
             boolean: $traceDataFilterItemParameters->boolean === null
                 ? null
-                : new TraceDataFilterBooleanParameters($traceDataFilterItemParameters->boolean->value),
+                : new TraceDataFilterBooleanParameters(
+                    value: $traceDataFilterItemParameters->boolean->value,
+                ),
         );
     }
 }

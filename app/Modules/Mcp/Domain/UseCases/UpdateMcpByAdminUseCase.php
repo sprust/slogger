@@ -19,8 +19,6 @@ readonly class UpdateMcpByAdminUseCase
      */
     public function handle(UpdateMcpParameters $parameters): void
     {
-        $this->updateMcpAction->handle(
-            parameters: $parameters,
-        );
+        $this->updateMcpAction->handle($parameters);
     }
 }

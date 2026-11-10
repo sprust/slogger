@@ -22,7 +22,7 @@ readonly class StreamLogFileByAdminUseCase
     public function handle(string $fileId): LogFileDownloadObject
     {
         return $this->streamLogFileAction->handle(
-            fileId: $fileId,
+            $fileId,
         ) ?? throw new RequestedLogFileNotFoundException($fileId);
     }
 }

@@ -20,8 +20,6 @@ readonly class FindTracesByAdminUseCase
      */
     public function handle(TraceFindParameters $parameters): TraceItemObjects
     {
-        return $this->findTracesAction->handle(
-            parameters: $parameters,
-        );
+        return $this->findTracesAction->handle($parameters);
     }
 }

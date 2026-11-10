@@ -28,7 +28,7 @@ readonly class FindTraceAdminStoreAction
             perPage: $this->perPage,
             version: $version,
             searchQuery: $searchQuery,
-            auto: $auto
+            auto: $auto,
         );
     }
 }

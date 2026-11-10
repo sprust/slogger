@@ -7,8 +7,7 @@ namespace App\Modules\Watcher\Entities\Events;
 /** What the checker saw. */
 readonly class ManyTracesEventMeasuredObject
 {
-    public function __construct(
-        public int $windowCount
-    ) {
+    public function __construct(public int $windowCount)
+    {
     }
 }

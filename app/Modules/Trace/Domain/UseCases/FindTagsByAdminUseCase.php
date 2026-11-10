@@ -22,8 +22,6 @@ readonly class FindTagsByAdminUseCase
      */
     public function handle(TraceFindTagsParameters $parameters): array
     {
-        return $this->findTagsAction->handle(
-            parameters: $parameters,
-        );
+        return $this->findTagsAction->handle($parameters);
     }
 }

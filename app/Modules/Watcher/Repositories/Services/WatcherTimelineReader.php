@@ -37,7 +37,10 @@ readonly class WatcherTimelineReader
             }
 
             /** @var array<string, mixed> $bucket */
-            $at = $this->readDate($bucket, 't');
+            $at = $this->readDate(
+                document: $bucket,
+                key: 't',
+            );
 
             if (is_null($at)) {
                 continue;
@@ -46,8 +49,17 @@ readonly class WatcherTimelineReader
             $key = $at->getTimestamp();
 
             $byMoment[$key] = isset($byMoment[$key])
-                ? $this->mergeBuckets($byMoment[$key], $this->readBucket($at, $bucket))
-                : $this->readBucket($at, $bucket);
+                ? $this->mergeBuckets(
+                    first: $byMoment[$key],
+                    second: $this->readBucket(
+                        at: $at,
+                        bucket: $bucket,
+                    ),
+                )
+                : $this->readBucket(
+                    at: $at,
+                    bucket: $bucket,
+                );
         }
 
         ksort($byMoment);
@@ -59,7 +71,7 @@ readonly class WatcherTimelineReader
             // receiver's $slice has been dropping the oldest elements, and how far back
             // the line still reaches is then whatever survived — not what the settings
             // asked for.
-            truncated: count($buckets) >= WatcherTimelineObject::RECEIVER_ELEMENT_CAP
+            truncated: count($buckets) >= WatcherTimelineObject::RECEIVER_ELEMENT_CAP,
         );
     }
 
@@ -85,18 +97,33 @@ readonly class WatcherTimelineReader
                 $key = $this->groupKey($group);
 
                 $groups[$key] = isset($groups[$key])
-                    ? $this->mergeGroups($groups[$key], $group)
+                    ? $this->mergeGroups(
+                        first: $groups[$key],
+                        second: $group,
+                    )
                     : $group;
             }
         }
 
         return new WatcherTimelineBucketObject(
             at: $at,
-            count: ArrayValueGetter::intNull($bucket, 'c') ?? 0,
-            durationCount: ArrayValueGetter::intNull($bucket, 'dc') ?? 0,
-            durationSum: ArrayValueGetter::floatNull($bucket, 'dSum') ?? 0,
-            durationMax: ArrayValueGetter::floatNull($bucket, 'dMax') ?? 0,
-            groups: array_values($groups)
+            count: ArrayValueGetter::intNull(
+                data: $bucket,
+                key: 'c',
+            ) ?? 0,
+            durationCount: ArrayValueGetter::intNull(
+                data: $bucket,
+                key: 'dc',
+            ) ?? 0,
+            durationSum: ArrayValueGetter::floatNull(
+                data: $bucket,
+                key: 'dSum',
+            ) ?? 0,
+            durationMax: ArrayValueGetter::floatNull(
+                data: $bucket,
+                key: 'dMax',
+            ) ?? 0,
+            groups: array_values($groups),
         );
     }
 
@@ -105,22 +132,49 @@ readonly class WatcherTimelineReader
      */
     private function readGroup(array $group): WatcherTimelineGroupObject
     {
-        $traceId = ArrayValueGetter::stringNull($group, 'tid');
+        $traceId = ArrayValueGetter::stringNull(
+            data: $group,
+            key: 'tid',
+        );
 
         return new WatcherTimelineGroupObject(
-            serviceId: ArrayValueGetter::intNull($group, 'sid') ?? 0,
-            type: ArrayValueGetter::stringNull($group, 'tp') ?? '',
+            serviceId: ArrayValueGetter::intNull(
+                data: $group,
+                key: 'sid',
+            ) ?? 0,
+            type: ArrayValueGetter::stringNull(
+                data: $group,
+                key: 'tp',
+            ) ?? '',
             tags: array_values(
-                ArrayValueGetter::arrayStringNull($group, 'tgs') ?? []
+                ArrayValueGetter::arrayStringNull(
+                    data: $group,
+                    key: 'tgs',
+                ) ?? []
             ),
-            count: ArrayValueGetter::intNull($group, 'c') ?? 0,
-            durationCount: ArrayValueGetter::intNull($group, 'dc') ?? 0,
-            durationSum: ArrayValueGetter::floatNull($group, 'dSum') ?? 0,
-            durationMax: ArrayValueGetter::floatNull($group, 'dMax') ?? 0,
+            count: ArrayValueGetter::intNull(
+                data: $group,
+                key: 'c',
+            ) ?? 0,
+            durationCount: ArrayValueGetter::intNull(
+                data: $group,
+                key: 'dc',
+            ) ?? 0,
+            durationSum: ArrayValueGetter::floatNull(
+                data: $group,
+                key: 'dSum',
+            ) ?? 0,
+            durationMax: ArrayValueGetter::floatNull(
+                data: $group,
+                key: 'dMax',
+            ) ?? 0,
             // An empty string is the receiver's "nothing to point at": a group whose
             // traces have not finished has no slowest one yet.
             slowestTraceId: $traceId === '' ? null : $traceId,
-            slowestTraceLoggedAt: $this->readDate($group, 'tlat')
+            slowestTraceLoggedAt: $this->readDate(
+                document: $group,
+                key: 'tlat',
+            ),
         );
     }
 
@@ -135,7 +189,10 @@ readonly class WatcherTimelineReader
             $key = $this->groupKey($group);
 
             $groups[$key] = isset($groups[$key])
-                ? $this->mergeGroups($groups[$key], $group)
+                ? $this->mergeGroups(
+                    first: $groups[$key],
+                    second: $group,
+                )
                 : $group;
         }
 
@@ -145,7 +202,7 @@ readonly class WatcherTimelineReader
             durationCount: $first->durationCount + $second->durationCount,
             durationSum: $first->durationSum + $second->durationSum,
             durationMax: max($first->durationMax, $second->durationMax),
-            groups: array_values($groups)
+            groups: array_values($groups),
         );
     }
 
@@ -170,7 +227,7 @@ readonly class WatcherTimelineReader
             // id. Falling back to the other group's used to report a trace that ran for
             // less than the number printed next to it.
             slowestTraceId: $slower->slowestTraceId,
-            slowestTraceLoggedAt: $slower->slowestTraceLoggedAt
+            slowestTraceLoggedAt: $slower->slowestTraceLoggedAt,
         );
     }
 

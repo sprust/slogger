@@ -25,7 +25,7 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
             return new LogEntryDetailsObject(
                 message: $line,
                 context: null,
-                fields: []
+                fields: [],
             );
         }
 
@@ -47,29 +47,29 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         $fields = [
             new LogEntryFieldObject(
                 key: 'pid',
-                value: $match[1]
+                value: $match[1],
             ),
             new LogEntryFieldObject(
                 key: 'tid',
-                value: $match[2]
+                value: $match[2],
             ),
             new LogEntryFieldObject(
                 key: 'connection',
-                value: $match[3] === '' ? null : $match[3]
+                value: $match[3] === '' ? null : $match[3],
             ),
         ];
 
         foreach (self::DETAIL_KEYS as $key) {
             $fields[] = new LogEntryFieldObject(
                 key: $key,
-                value: $values[$key] ?? null
+                value: $values[$key] ?? null,
             );
         }
 
         return new LogEntryDetailsObject(
             message: $message,
             context: null,
-            fields: $fields
+            fields: $fields,
         );
     }
 
@@ -80,7 +80,7 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         foreach (NginxErrorLogLevelEnum::cases() as $case) {
             $names[] = new LogLevelNameObject(
                 level: $case->value,
-                name: strtolower($case->name)
+                name: strtolower($case->name),
             );
         }
 
@@ -101,7 +101,7 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
             hour: (int) substr($text, 11, 2),
             minute: (int) substr($text, 14, 2),
             second: (int) substr($text, 17, 2),
-            zone: null
+            zone: null,
         );
     }
 

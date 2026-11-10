@@ -64,7 +64,7 @@ readonly class WatcherFactory
             lastCheckedAt: $dto->lastCheckedAt,
             lastTriggeredAt: $dto->lastTriggeredAt,
             createdAt: $dto->createdAt,
-            updatedAt: $dto->updatedAt
+            updatedAt: $dto->updatedAt,
         );
     }
 
@@ -79,18 +79,33 @@ readonly class WatcherFactory
 
         return new WatcherMatchObject(
             serviceIds: array_values(
-                ArrayValueGetter::arrayIntNull($raw, 'service_ids') ?? []
+                ArrayValueGetter::arrayIntNull(
+                    data: $raw,
+                    key: 'service_ids',
+                ) ?? []
             ),
             types: array_values(
-                ArrayValueGetter::arrayStringNull($raw, 'types') ?? []
+                ArrayValueGetter::arrayStringNull(
+                    data: $raw,
+                    key: 'types',
+                ) ?? []
             ),
             tags: array_values(
-                ArrayValueGetter::arrayStringNull($raw, 'tags') ?? []
+                ArrayValueGetter::arrayStringNull(
+                    data: $raw,
+                    key: 'tags',
+                ) ?? []
             ),
             statuses: array_values(
-                ArrayValueGetter::arrayStringNull($raw, 'statuses') ?? []
+                ArrayValueGetter::arrayStringNull(
+                    data: $raw,
+                    key: 'statuses',
+                ) ?? []
             ),
-            version: ArrayValueGetter::intNull($raw, 'v') ?? WatcherMatchObject::VERSION
+            version: ArrayValueGetter::intNull(
+                data: $raw,
+                key: 'v',
+            ) ?? WatcherMatchObject::VERSION,
         );
     }
 }

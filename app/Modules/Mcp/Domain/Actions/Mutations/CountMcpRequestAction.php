@@ -10,16 +10,15 @@ use Illuminate\Support\Carbon;
 
 readonly class CountMcpRequestAction
 {
-    public function __construct(
-        private McpRepository $mcpRepository
-    ) {
+    public function __construct(private McpRepository $mcpRepository)
+    {
     }
 
     public function handle(McpObject $mcp): void
     {
         $this->mcpRepository->incrementRequestsCount(
             id: $mcp->id,
-            lastUsedAt: Carbon::now()
+            lastUsedAt: Carbon::now(),
         );
     }
 }

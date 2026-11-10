@@ -48,7 +48,11 @@ readonly class LogEntriesMerger
                 fn(
                     LogMergeHeadObject $left,
                     LogMergeHeadObject $right
-                ): int => $this->compare($left, $right, $direction)
+                ): int => $this->compare(
+                    left: $left,
+                    right: $right,
+                    direction: $direction,
+                )
             );
 
             if ($heads[0]->isPending) {
@@ -63,7 +67,12 @@ readonly class LogEntriesMerger
 
             if (
                 $hasAdvanced
-                && $this->isBudgetSpent($streams, $startedAt, $timeBudgetMs, $bytesBudget)
+                && $this->isBudgetSpent(
+                    streams: $streams,
+                    startedAt: $startedAt,
+                    timeBudgetMs: $timeBudgetMs,
+                    bytesBudget: $bytesBudget,
+                )
             ) {
                 break;
             }
@@ -83,7 +92,7 @@ readonly class LogEntriesMerger
 
             $this->advance(
                 slots: $toAdvance,
-                blockRecords: $isSearch ? max(1, $searchBlockRecords) : $perPage - count($page)
+                blockRecords: $isSearch ? max(1, $searchBlockRecords) : $perPage - count($page),
             );
 
             $hasAdvanced = true;
@@ -96,13 +105,13 @@ readonly class LogEntriesMerger
                 fileId: $slot->stream->getFile()->id,
                 position: count($slot->pending) === 0
                     ? $slot->stream->getContinuePosition()
-                    : $slot->pending[0]->entryNo
+                    : $slot->pending[0]->entryNo,
             );
         }
 
         return new LogMergeResultObject(
             entries: $page,
-            positions: $positions
+            positions: $positions,
         );
     }
 
@@ -120,7 +129,7 @@ readonly class LogEntriesMerger
                 $heads[] = new LogMergeHeadObject(
                     slotIndex: $index,
                     time: $slot->pending[0]->loggedAt,
-                    isPending: true
+                    isPending: true,
                 );
 
                 continue;
@@ -132,7 +141,7 @@ readonly class LogEntriesMerger
                 $heads[] = new LogMergeHeadObject(
                     slotIndex: $index,
                     time: $nextTime,
-                    isPending: false
+                    isPending: false,
                 );
             }
         }
@@ -188,7 +197,9 @@ readonly class LogEntriesMerger
     private function advance(array $slots, int $blockRecords): void
     {
         if (count($slots) === 1) {
-            $slots[0]->pending = $slots[0]->stream->next($blockRecords);
+            $slots[0]->pending = $slots[0]->stream->next(
+                maxRecords: $blockRecords,
+            );
 
             return;
         }
@@ -198,7 +209,9 @@ readonly class LogEntriesMerger
         foreach ($slots as $slot) {
             $waitGroup->add(
                 static function () use ($slot, $blockRecords): void {
-                    $slot->pending = $slot->stream->next($blockRecords);
+                    $slot->pending = $slot->stream->next(
+                        maxRecords: $blockRecords,
+                    );
                 }
             );
         }

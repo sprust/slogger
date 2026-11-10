@@ -29,7 +29,9 @@ readonly class FindWatchersAction
             array_filter(
                 array_map(
                     fn(WatcherDto $dto): ?WatcherObject => $this->watcherFactory->make($dto),
-                    $this->watcherRepository->find($enabled)
+                    $this->watcherRepository->find(
+                        enabled: $enabled,
+                    )
                 )
             )
         );
