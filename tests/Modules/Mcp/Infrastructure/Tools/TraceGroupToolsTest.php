@@ -72,7 +72,7 @@ class TraceGroupToolsTest extends TestCase
             [
                 'service' => [
                     'id'   => 2,
-                    'name' => 'pms',
+                    'name' => 'orders',
                 ],
                 'type'             => 'request',
                 'count'            => 12,
@@ -456,7 +456,7 @@ class TraceGroupToolsTest extends TestCase
         $this->assertSame(
             [
                 'id'   => 2,
-                'name' => 'pms',
+                'name' => 'orders',
             ],
             $result->data['rows'][0]['value']
         );
@@ -605,8 +605,8 @@ class TraceGroupToolsTest extends TestCase
             ->willReturn([
                 new ServiceObject(
                     id: 2,
-                    name: 'pms',
-                    uniqueKey: 'pms',
+                    name: 'orders',
+                    uniqueKey: 'orders',
                     apiToken: 'a',
                     position: 2,
                     createdAt: Carbon::now(),

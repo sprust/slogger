@@ -648,8 +648,8 @@ class TraceQueryToolsTest extends TestCase
             ->willReturn([
                 new ServiceObject(
                     id: 2,
-                    name: 'pms',
-                    uniqueKey: 'pms',
+                    name: 'orders',
+                    uniqueKey: 'orders',
                     apiToken: 'a',
                     position: 2,
                     createdAt: Carbon::now(),

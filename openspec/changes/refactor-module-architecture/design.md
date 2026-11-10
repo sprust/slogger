@@ -2,7 +2,7 @@
 
 ## Context
 
-Мотивация и границы изменения — в [proposal.md](proposal.md). Источники для переноса: `zb.pms.back/code-analyse/deptrac/deptrac-modules.php`, `app/Modules/Common/Domain/Services/DispatcherInterface.php`, `Common/Infrastructure/Services/Dispatcher.php`, `Common/Infrastructure/Providers/BaseServiceProvider.php` и пример `ErrorReport/Domain/UseCases/CloseErrorReportByAdminUseCase.php`.
+Мотивация и границы изменения — в [proposal.md](proposal.md).
 
 До начала изменения в SLogger общий `code-analyse/deptrac-layers.yaml` не различал модули, не собирал Enums и файлы в корне Infrastructure. Провайдеры использовали `Common/Infrastructure/BaseServiceProvider.php`, где все `getContracts()` регистрировались singleton. События Trace и Notification подключались в `app/Providers/EventServiceProvider.php`; расписание находилось в `app/Console/Kernel.php`.
 
@@ -34,17 +34,17 @@
 
 ## Decisions
 
-### 1. Исходные проверки PMS (уточнение пользователя 2026-11-10)
+### 1. Проверки проекта (уточнение пользователя 2026-11-10)
 
 Подключаются перенесённые пользователем code-analyse/deptrac/deptrac-layers.yaml,
 code-analyse/deptrac/deptrac-modules.php, code-analyse/phpstan/phpstan.neon,
 code-analyse/cs-fixer/.php-cs-fixer.dist.php и standalone module-structure CLI.
-Алгоритмы/матрицы и флаги проверок PMS не переделываются. Адаптация ограничена
+Алгоритмы/матрицы и флаги проверок не переделываются. Адаптация ограничена
 путями, autoload, списком существующих shared modules и unmatched ignore patterns.
 
 Исходная матрица различает Adapter/Domain/Entities/Parameters/Transports/Repositories/
 Infrastructure/Models. Модульная матрица исключает Common, разрешает Domain доступ
-к чужому Domain/Objects и запрещает чужие Repositories/Infrastructure согласно PMS.
+к чужому Domain/Objects и запрещает чужие Repositories/Infrastructure по матрице зависимостей.
 Providers в корне Infrastructure и Enums не получают придуманных отдельных collectors.
 NoMultilineArrayKeyRule — единственное дополнительное PHPStan-правило. Удалённые
 InputParametersRule/DomainDependencyRule и line-length check не восстанавливаются.
@@ -59,11 +59,11 @@ PHPStan охватывает app/tests/seeders с checkUninitializedProperties �
 
 В каждом принимающем модуле создаём собственные readonly Entities/Parameters. Их вложенные поля, коллекции и enum также локальные либо общие, действительно универсальные типы. Не переносим бизнес-DTO в Common для обхода правила. Не заменяем их `mixed`, неструктурированными массивами, наследованием или псевдонимами.
 
-Преобразования располагаются в `Transports` принимающего модуля: классы `*ObjectTransport` / `*ParametersTransport`, методы `from...` / `to...`, по образцу PMS `Auth/Transports/AuthAdminObjectTransport` и `Booking/Transports/NotificationChannelTransport`. Они получают типизированные исходные Entities/Parameters/Enums и возвращают локальные DTO либо Parameters вызываемого модуля по разрешённому направлению. Вызываются из Actions/UseCases через обычный DI. Чтение данных, вызовы чужих Actions/Services и оркестрация остаются в Domain. Отдельный каталог `Domain/Services/Mappers` не вводим.
+Преобразования располагаются в `Transports` принимающего модуля: классы `*ObjectTransport` / `*ParametersTransport`, методы `from...` / `to...`. Они получают типизированные исходные Entities/Parameters/Enums и возвращают локальные DTO либо Parameters вызываемого модуля по разрешённому направлению. Вызываются из Actions/UseCases через обычный DI. Чтение данных, вызовы чужих Actions/Services и оркестрация остаются в Domain. Отдельный каталог `Domain/Services/Mappers` не вводим.
 
 Исключение из запрета Entity/Object на входе публичного метода относится только к преобразователям в `Transports`. Остальные публичные Domain-методы принимают примитивы, enum или собственные Parameters. Чужой Parameters создаётся внутри Domain либо через свой Transport непосредственно перед вызовом чужого Action; не проходит через контроллер или вход своего UseCase.
 
-`Transports` учитывается проверкой структуры и обоими конфигами Deptrac. Его собственные зависимости — Entities, Parameters, Enums, Repositories и другие Transports, как в слоевом подходе PMS; чужие данные — только по матрице направлений. Чужие Repositories/Infrastructure/Domain недоступны. Domain, UseCases и Repositories могут использовать свои Transports; Entities/Parameters/Enums/Infrastructure — нет. Common проверяется без обратных бизнес-связей. Пробел исходного межмодульного конфига PMS, не собирающего Transports, сюда не переносим.
+`Transports` учитывается проверкой структуры и слоевым конфигом Deptrac. Его собственные зависимости — Entities, Parameters, Enums, Repositories и другие Transports; чужие данные — только по матрице направлений. Чужие Repositories/Infrastructure/Domain недоступны. Domain, UseCases и Repositories могут использовать свои Transports; Entities/Parameters/Enums/Infrastructure — нет. Common проверяется без обратных бизнес-связей. Межмодульный конфиг не собирает Transports: соблюдение направлений проверяется при ревью.
 
 Для MCP покрываем не только четыре существующих bridge DTO, но все ответы мостов: сервисы, инциденты и события, фасеты, детали и данные трейса, дерево, группы, сравнения, логи. `McpTraceDataFilterParser` возвращает местные параметры; преобразование к фильтру Trace выполняется своим Transport, вызываемым из Domain перед запросом. Собственные enum преобразуются явно с сохранением значений внешнего протокола.
 
@@ -92,7 +92,7 @@ Notification получает собственное представление 
 
 ### 4. Dispatcher и SConcur
 
-Добавляем `Common/Domain/Services/DispatcherInterface.php` с четырьмя методами из PMS:
+Добавляем `Common/Domain/Services/DispatcherInterface.php` с четырьмя методами:
 
 ```php
 public function event(object $event): void;
@@ -103,7 +103,7 @@ public function registerJobs(array $jobClasses): void;
 
 `Common/Infrastructure/Services/Dispatcher.php` связывается с интерфейсом в `CommonServiceProvider`. Реализация использует существующие Laravel event/bus/exception contracts через DI. Отправка выполняется до возврата из метода, не откладывается на деструктор временного объекта. Domain публикует события; создание Infrastructure jobs остаётся в listeners.
 
-Реестр классов наполняется модульными провайдерами при boot и дедуплицируется. Во время запросов/задач реестр не изменяется. Singleton dispatcher не хранит текущие параметры вызова. Не копируем static-кэши dispatcher из PMS BaseServiceProvider.
+Реестр классов наполняется модульными провайдерами при boot и дедуплицируется. Во время запросов/задач реестр не изменяется. Singleton dispatcher не хранит текущие параметры вызова. Провайдер не использует static-кэши dispatcher.
 
 Проверка маршрутов оформляется отдельным инфраструктурным сервисом, получающим готовую конфигурацию:
 
@@ -114,7 +114,7 @@ public function registerJobs(array $jobClasses): void;
 - `sync` допускается без асинхронной топологии; job всё равно должна быть зарегистрирована;
 - остальные асинхронные connection не открываются автоматически наличием записи в шаблонном `queue.php`: неподдерживаемый маршрут отклоняется и диагностируется.
 
-Неизвестный класс или маршрут записывает ошибку через LoggerInterface и прекращает отправку, как PMS. Payload и секреты не попадают в сообщение. Ошибка самого транспорта пробрасывается; retry остаётся ответственностью jobs/очереди. `report()` использует PMS ReportableException: Handler передаёт оригинал Laravel, обходя только модульный dontReport. PMS TelegramReporter и ErrorReport не переносятся.
+Неизвестный класс или маршрут записывает ошибку через LoggerInterface и прекращает отправку. Payload и секреты не попадают в сообщение. Ошибка самого транспорта пробрасывается; retry остаётся ответственностью jobs/очереди. `report()` использует ReportableException: Handler передаёт оригинал Laravel, обходя только модульный dontReport. Дополнительные подсистемы отчётов не добавляются.
 
 Все пять текущих application jobs регистрируются: построение/удаление кэша Trace, отправка Notification, очистка Cleaner, обновление статистики Dashboard. Вызовы событий в Trace/Watcher/Notification и репортинг в Dashboard/MCP переводятся на интерфейс. Служебные jobs библиотек, включая отправку трейсов пакетом slogger, не перехватываются глобальной заменой Laravel bus.
 
@@ -128,12 +128,12 @@ public function registerJobs(array $jobClasses): void;
 
 `NotificationServiceProvider` больше не собирает сервис с прямой зависимостью на Watcher registry: эта интеграция принадлежит Domain Notification и внедряется обычным DI. Сборка приложения не становится исключением для произвольных связей бизнес-модулей.
 
-Общие интерфейс/реестр exception managers живут в `Common/Infrastructure/Exceptions`, реализации — в `Infrastructure/Exceptions` модулей. `app/Exceptions/Handler.php` делегирует им обработку. Domain содержит только ошибки и контекст, без HTTP-кодов/response builders. Сохраняем существующие 401/404/409/422/503, тела и сообщения; не копируем из PMS принудительный 400. Учитываем контекст операции там, где один тип ошибки раньше отображался по-разному. MCP protocol/tool errors обрабатываются существующим протокольным механизмом.
+Общие интерфейс/реестр exception managers живут в `Common/Infrastructure/Exceptions`, реализации — в `Infrastructure/Exceptions` модулей. `app/Exceptions/Handler.php` делегирует им обработку. Domain содержит только ошибки и контекст, без HTTP-кодов/response builders. Сохраняем существующие 401/404/409/422/503, тела и сообщения; не вводим принудительный 400. Учитываем контекст операции там, где один тип ошибки раньше отображался по-разному. MCP protocol/tool errors обрабатываются существующим протокольным механизмом.
 
-Перенос структуры PMS выполняется отдельным завершающим этапом:
+Обновление структуры выполняется отдельным завершающим этапом:
 
 - `ModulesConfig::getProviders()` — единственный список модульных providers, Common первый. Его используют `config/app.php` и цикл `Console/Kernel::schedule`.
-- Базовый класс размещается в `Common/Infrastructure/Providers/BaseServiceProvider`. `register` устанавливает существующие singleton-привязки SLogger через `getContracts`, затем вызывает `onRegister` для фабрик. `boot` вызывает `onBoot` и регистрирует listeners, команды (только в console), jobs и один exception manager, как в PMS.
+- Базовый класс размещается в `Common/Infrastructure/Providers/BaseServiceProvider`. `register` устанавливает существующие singleton-привязки SLogger через `getContracts`, затем вызывает `onRegister` для фабрик. `boot` вызывает `onBoot` и регистрирует listeners, команды (только в console), jobs и один exception manager.
 - Каждый модуль явно объявляет `setSchedule`, `getCommands`, `getJobs`, `getListeners` и `getExceptionManagerClass`; отсутствие регистраций выражается пустым списком либо null. Модульные providers больше не переопределяют Laravel `register`/`boot`.
 - Расписание jobs принадлежит Cleaner и Dashboard, команд — User и Logs. Частота, имена и `withoutOverlapping` сохраняются. Плановые callbacks по-прежнему отправляют jobs через DispatcherInterface.
 - Сохраняется расширение SLogger `getContracts`, чтобы не менять DI lifetime существующих сервисов. Не переносятся AppContext, static-кеши контейнера, ActionResolver/proxy. `final` не добавляется согласно локальным правилам.
@@ -164,11 +164,11 @@ public function registerJobs(array $jobClasses): void;
 4. При внедрении перезапустить долгоживущие SConcur workers обычной процедурой деплоя, чтобы они загрузили новые bindings/listeners. Это требование будущего деплоя, не действие при подготовке change.
 5. Миграции данных не нужны. Сохранить FQCN и сериализованные поля jobs, чтобы очередь пережила обновление и откат к предыдущему релизу. Не очищать очереди и хранилища ради рефакторинга.
 
-### Правила разработки из PMS
+### Правила разработки
 
-Переносим только применимые к SLogger общие инструкции и тематические гайды, без предметной специфики PMS, с явной адаптацией к существующим путям, командам, тестовой инфраструктуре и хранилищам SLogger. Сохраняем один навык на операцию: текущие официальные OpenSpec skills остаются, PMS review объединяется с SLogger review. Правила применяются к новым и затронутым файлам, включая вертикальные массивы/именованные аргументы, полные имена зависимостей, readonly DTO, локальные enum, типизированные контракты и правила тестирования. Согласованные отличия сохраняются: обычный DI, физическое удаление, Dispatcher с SConcur, прежние HTTP-статусы, отсутствие отелей/CustomerContext и отдельной модели разрешений PMS.
+Переносим только применимые к SLogger общие инструкции и тематические гайды, с явной адаптацией к существующим путям, командам, тестовой инфраструктуре и хранилищам SLogger. Сохраняем один навык на операцию: текущие официальные OpenSpec skills остаются, используется существующий SLogger review. Правила применяются к новым и затронутым файлам, включая вертикальные массивы/именованные аргументы, полные имена зависимостей, readonly DTO, локальные enum, типизированные контракты и правила тестирования. Согласованные отличия сохраняются: обычный DI, физическое удаление, Dispatcher с SConcur, прежние HTTP-статусы.
 
-## Исправление по повторной сверке PMS
+## Исправление по повторной сверке
 
 Самодельный map(Response|HttpException|null) заменяется исходной моделью Manager:
 ExceptionManagerInterface::isReportable/makeJsonHttpResponse, BaseExceptionManager,
@@ -176,7 +176,7 @@ ExceptionManagers и JsonHttpExceptionResponseObject. Распаковка Strea
 происходит перед распознаванием. Handler отдельно фильтрует report и рендерит JSON.
 SLogger сохраняет статусы 401/404/409/422/503 и поле error для Dashboard: DTO ответа
 получает только совместимый флаг isError (по умолчанию false), поскольку
-унификация этого поля сломает существующий HTTP-контракт. Переводы PMS, LocaleRules
+унификация этого поля сломает существующий HTTP-контракт. Дополнительные переводы, LocaleRules
 и ErrorReport-модуль не переносятся. Явный report оборачивается в ReportableException и обходит только модульный dontReport. Обычный report сохраняет фильтрацию.
 
 Обход всего собственного PHP-кода включает app, tests, packages, routes, config,
@@ -188,18 +188,18 @@ artifacts и отрицательные parser fixtures сохраняют св�
 
 Результаты повторной сверки и оставшиеся несоответствия входных Parameters,
 legacy Domain-сигнатур и анализа/стиля бизнес-тестов зафиксированы в
-[.ai/pms-import.md](../../../.ai/pms-import.md). Их устранение требует самостоятельного
+[.ai/architecture-notes.md](../../../.ai/architecture-notes.md). Их устранение требует самостоятельного
 функционального рефакторинга; результат этого прохода не объявляет их исправленными.
 
 ## Базовые исключения модулей (уточнение 2026-11-10)
 
-Источник — PMS Auth/Domain/Exceptions/AbstractAuthException, Common/Domain/Exceptions/
+Базовые типы — Auth/Domain/Exceptions/AbstractAuthException, Common/Domain/Exceptions/
 AbstractCommonException и модульные ExceptionManager. Каждый модуль с Domain Exceptions
 получает собственный abstract class Abstract<Module>Exception extends Exception;
 конкретные ошибки наследуют его. Общего родителя поверх Exception не добавляем.
 Менеджер распознаёт модуль через instanceof базового класса, dontReport остаётся
 списком конкретных ожидаемых ошибок. Новая ошибка модуля автоматически репортится;
-неизвестный тип получает безопасное общее сообщение, как в PMS.
+неизвестный тип получает безопасное общее сообщение.
 
 Существующие статусы/сообщения сохраняются. Внутренние LogFileNotFoundException,
 McpServerNameInvalidException и MutexLockTimeoutException остаются reportable и
@@ -215,17 +215,17 @@ Auth должны быть пригодны для пользователя. О�
 
 ## Уточнение оформления по пользовательскому diff
 
-Образцы — коммит f818eb56 и исходный код PMS. Короткие helper-вызовы, условия и
+Образцы — коммит f818eb56 и правила оформления проекта. Короткие helper-вызовы, условия и
 сигнатуры fn остаются компактными; сложные ветки/аргументы раскрываются по смыслу.
 Вложенность сама по себе не требует переноса; Resource с результатом UseCase
 сохраняет отдельную строку handle(). Непустые списки регистраций, dontReport,
 проекции БД и возвращаемые кортежи оформляются вертикально. Разные логические
-шаги отделены пустыми строками. Исходные fixers PMS не изменяются.
+шаги отделены пустыми строками. Исходные fixers не изменяются.
 
 Пользовательская замена messageField на isError сохраняет HTTP-поля error/message;
 тесты проверяют boolean DTO и прежние JSON-ответы отдельно.
 
-## Дословные правила оформления PMS
+## Правила оформления
 
 Оформление определяется скопированными без пересказа разделами `.ai/code-style.md`
 и прямыми уточнениями пользователя из `.ai/rules.md`. Именованные аргументы
@@ -236,4 +236,4 @@ Auth должны быть пригодны для пользователя. О�
 Заголовки foreach остаются однострочными: получение iterable вынесено перед циклом.
 
 Конструкторы Object/Parameters используют именованные аргументы и при единственном
-обязательном поле, как предписывает отдельное правило DTO в PMS.
+обязательном поле, как предписывает отдельное правило DTO.

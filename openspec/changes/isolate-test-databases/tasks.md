@@ -19,5 +19,5 @@
 - Guard/bootstrap: 12 тестов, 23 assertions; рабочие переменные и опасные overrides не используются.
 - Регрессия раннего Event fake и сохранения job registry вместе с закрытием инцидента: 3 теста, 12 assertions.
 - OpenSpec strict validation, `git diff --check`, code-reviewer: PASSED.
-- Проверены и обновлены README.md, README.ru.md, .ai/README.md, .ai/skills/tests.md и .ai/pms-import.md.
+- Проверены и обновлены README.md, README.ru.md, .ai/README.md, .ai/skills/tests.md и .ai/architecture-notes.md.
 - Все запущенные для работы сервисы остановлены; рабочие БД были выключены во время финальных проверок.

@@ -52,10 +52,10 @@ class McpPromptsTest extends TestCase
 
     public function testErrorsPromptNamesTheTools(): void
     {
-        $text = new InvestigateErrorsPrompt()->text(['service' => 'pms', 'period' => 'last 3 hours']);
+        $text = new InvestigateErrorsPrompt()->text(['service' => 'orders', 'period' => 'last 3 hours']);
 
         $this->assertStringContainsString(
-            '"pms"',
+            '"orders"',
             $text
         );
         $this->assertStringContainsString(
@@ -82,7 +82,7 @@ class McpPromptsTest extends TestCase
 
     public function testLatencyPromptWithType(): void
     {
-        $text = new InvestigateLatencyPrompt()->text(['service' => 'pms', 'period' => 'today', 'type' => 'request']);
+        $text = new InvestigateLatencyPrompt()->text(['service' => 'orders', 'period' => 'today', 'type' => 'request']);
 
         $this->assertStringContainsString(
             'of type "request"',
@@ -104,7 +104,7 @@ class McpPromptsTest extends TestCase
 
     public function testLatencyPromptWithoutTypeDoesNotMentionIt(): void
     {
-        $text = new InvestigateLatencyPrompt()->text(['service' => 'pms', 'period' => 'today']);
+        $text = new InvestigateLatencyPrompt()->text(['service' => 'orders', 'period' => 'today']);
 
         $this->assertStringNotContainsString(
             'of type',

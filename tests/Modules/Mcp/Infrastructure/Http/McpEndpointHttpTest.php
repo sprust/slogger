@@ -537,7 +537,7 @@ class McpEndpointHttpTest extends TestCase
                 params: [
                     'name'      => 'investigate_errors',
                     'arguments' => [
-                        'service' => 'pms',
+                        'service' => 'orders',
                         'period'  => 'last 3 hours',
                     ],
                 ],
@@ -550,7 +550,7 @@ class McpEndpointHttpTest extends TestCase
             ->json('result.messages.0.content.text');
 
         $this->assertStringContainsString(
-            '"pms"',
+            '"orders"',
             $text
         );
 

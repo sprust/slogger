@@ -35,8 +35,8 @@ The scheme of a response is built from the private typed properties of the resou
 `oa:generate public` select configured disk aliases; `make oa-generate` runs both and
 regenerates the frontend client. The Go receiver is not a Laravel schema source.
 
-This copy removes PMS-specific collection imports and static configuration/extension
+The generator has no application-specific collection imports or static configuration/extension
 caches. It preserves SLogger's `OaListItemTypeAttribute` on streamed list endpoints,
 as well as Laravel's resource wrapping. `present` and nested `required` rules now
 produce required fields matching Laravel validation. Response status attributes,
-resource unions, empty objects and root list bodies are supported by the PMS parser.
+resource unions, empty objects and root list bodies are supported by the parser.

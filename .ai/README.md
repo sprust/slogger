@@ -8,12 +8,12 @@ Centralized source of instructions for AI assistants (Claude Code and others) wo
 
 ## Required Rules And Guides
 
-Read [rules.md](rules.md) and the verbatim PMS [code style](code-style.md) before editing code. It contains the coding rules
-transferred from PMS, including vertical arrays and named arguments. Read relevant
+Read [rules.md](rules.md) and [code-style.md](code-style.md) before editing code,
+including the rules for vertical arrays and named arguments. Read relevant
 [tests](skills/tests.md), [repositories](skills/repositories.md),
 [admin](skills/admin.md) and
 [documentation](skills/documentation.md) guides before work in those areas.
-[PMS import](pms-import.md) records the selected reusable rules and SLogger adaptations.
+[Architecture notes](architecture-notes.md) record implementation decisions and audit limitations.
 Existing authorization in the conversation applies to the ongoing task.
 
 ---
@@ -212,7 +212,7 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 
 ## Module Layering Rules
 
-The copied PMS checks live in `code-analyse/deptrac`, `code-analyse/phpstan`,
+The project checks live in `code-analyse/deptrac`, `code-analyse/phpstan`,
 `code-analyse/cs-fixer` and `code-analyse/module-structure`. The existing make targets
 use these files directly. PHPStan checks app, tests and seeders, including the copied
 NoMultilineArrayKeyRule. Module structure is checked by its standalone CLI.
@@ -269,7 +269,7 @@ Only Domain Actions/Services may use foreign Domain/data, along these directions
 | Mcp | Service, Watcher, Trace, Logs, Setting |
 
 These are business-code conventions. The copied module matrix discovers modules
-automatically and permits cross-module Domain/Objects dependencies as PMS does. Providers, Infrastructure
+automatically and permits cross-module Domain/Objects dependencies. Providers, Infrastructure
 and UseCases may use the Events/Exceptions of their declared integrations, but
 not foreign Entities, Parameters or services. There are no MCP bridge exceptions.
 
@@ -307,7 +307,7 @@ the dispatcher does not retry. The same job object reaches Laravel, preserving
 delay, after-commit, retries and backoff. No PendingDispatch destructor is involved.
 
 `report` passes the original exception to the existing Handler, including its
-expected-error filters. No PMS reporter wrapper or Horizon dependency is added.
+expected-error filters. No separate reporter wrapper or Horizon dependency is added.
 Immediate trace broadcasts stay immediate and retain their existing rescue policy.
 The two scheduled application jobs use named callbacks through the dispatcher;
 frequencies and the separate scheduled commands/SConcur tasks remain unchanged.
@@ -697,14 +697,14 @@ When the spec is ready — output it and ask whether implementation can begin.
 ## Module Exception Managers
 
 Each module with domain exceptions declares `Domain/Exceptions/Abstract<Module>Exception`
-extending PHP `Exception`, as PMS does. Concrete domain errors extend their module base;
+extending PHP `Exception`. Concrete domain errors extend their module base;
 `isHandlingException` checks that base. `getDontReport` lists concrete expected errors,
 so new subclasses are reportable automatically. Unknown subclasses receive a safe generic
 message; known errors retain their response mapping. Auth exposes the exception message,
 so its exception constructors must supply user-facing text. Common also registers its manager.
 
 Each module registers its manager through `getExceptionManagerClass()` on its provider.
-`Common/Infrastructure/Exceptions/Manager` follows PMS: BaseExceptionManager,
+`Common/Infrastructure/Exceptions/Manager` contains BaseExceptionManager,
 ExceptionManagerInterface, ExceptionManagers and JsonHttpExceptionResponseObject.
 Reportability (`isReportable`) and response mapping (`makeJsonHttpResponse`) are
 independent; an unhandled exception returns null, and the registry uses the first
@@ -712,7 +712,7 @@ manager that handles it. The base unwraps StreamedResponseException.
 
 Handler filters ordinary reports through ExceptionManagers. Explicit Dispatcher::report
 wraps ReportableException and reports the original exception through Laravel, bypassing
-only the module's dontReport list, as PMS does. Laravel's own exclusions still apply.
+only the module's dontReport list. Laravel's own exclusions still apply.
 Internal missing log files, invalid MCP server configuration and mutex timeouts remain
 reportable HTTP 500 errors with `Server Error`; paths, settings and lock keys stay in
 the original exception for reporting. Infrastructure MCP protocol errors keep their own handling.
@@ -749,7 +749,7 @@ commands. Frequencies, names and overlap locks are preserved.
 
 ## OpenAPI Generation
 
-The local `packages/ifksco/openapi-generator` follows the PMS source-based generator.
+The local `packages/ifksco/openapi-generator` uses a source-based generator.
 `config/oa-generator.php` registers only `AdminApiRoutesParser`; Go receiver routes
 are outside Laravel generation. `make oa-generate` generates both disk aliases
 (`oa:generate private`, `oa:generate public`), then regenerates the frontend client.

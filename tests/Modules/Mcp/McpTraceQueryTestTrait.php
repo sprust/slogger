@@ -37,7 +37,7 @@ trait McpTraceQueryTestTrait
                     trace: new TraceItemTraceObject(
                         service: new TraceServiceObject(
                             id: 2,
-                            name: 'pms'
+                            name: 'orders'
                         ),
                         traceId: $traceId,
                         parentTraceId: 'parent-1',
@@ -75,7 +75,7 @@ trait McpTraceQueryTestTrait
             id: "id-$traceId",
             service: new TraceServiceObject(
                 id: 2,
-                name: 'pms'
+                name: 'orders'
             ),
             traceId: $traceId,
             parentTraceId: null,
