@@ -29,7 +29,7 @@ class DashboardExceptionManager extends BaseExceptionManager
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
             httpStatus: $httpStatus,
-            messageField: $exception instanceof DatabaseStatCacheNotFoundException ? 'error' : 'message',
+            isError: $exception instanceof DatabaseStatCacheNotFoundException,
         );
     }
 
@@ -40,7 +40,9 @@ class DashboardExceptionManager extends BaseExceptionManager
 
     protected function getDontReport(): array
     {
-        return [DatabaseStatCacheNotFoundException::class];
+        return [
+            DatabaseStatCacheNotFoundException::class,
+        ];
     }
 
     protected function onMakeMessage(Throwable $exception): string

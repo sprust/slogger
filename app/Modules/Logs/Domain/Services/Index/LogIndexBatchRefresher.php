@@ -39,7 +39,7 @@ readonly class LogIndexBatchRefresher
         $missingFileIds = [];
 
         $waitGroup = WaitGroup::create(
-            max(1, $concurrency)
+            maxConcurrency: max(1, $concurrency)
         );
 
         $keys = [];

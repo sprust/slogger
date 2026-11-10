@@ -26,9 +26,8 @@ readonly class MutexManager implements MutexManagerInterface
         private Application $app,
         CacheFactory $cacheFactory
     ) {
-        $store = $cacheFactory->store(
-            config('cache.mutex_store')
-        )->getStore();
+        $store = $cacheFactory->store(config('cache.mutex_store'))
+            ->getStore();
 
         if (!$store instanceof LockProvider) {
             throw new LogicException(
@@ -61,9 +60,7 @@ readonly class MutexManager implements MutexManagerInterface
         $lock = $this->store->lock("mutex:$key", $mutex->getMaxLockSec());
 
         try {
-            $lock->block(
-                $mutex->getWaitForBlockSec()
-            );
+            $lock->block($mutex->getWaitForBlockSec());
         } catch (LockTimeoutException) {
             throw new MutexLockTimeoutException($key);
         }

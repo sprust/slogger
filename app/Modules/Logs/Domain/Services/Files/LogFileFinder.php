@@ -69,20 +69,20 @@ readonly class LogFileFinder
         }
 
         return array_map(
-            static fn(
-                LogFileObject $file
-            ): LogFileObject => $file !== $newest ? $file : new LogFileObject(
-                id: $file->id,
-                path: $file->path,
-                name: $file->name,
-                source: $file->source,
-                folder: $file->folder,
-                type: $file->type,
-                sizeBytes: $file->sizeBytes,
-                modifiedAtMs: $file->modifiedAtMs,
-                keepDays: $file->keepDays,
-                deletable: false
-            ),
+            static fn(LogFileObject $file): LogFileObject => $file !== $newest
+                ? $file
+                : new LogFileObject(
+                    id: $file->id,
+                    path: $file->path,
+                    name: $file->name,
+                    source: $file->source,
+                    folder: $file->folder,
+                    type: $file->type,
+                    sizeBytes: $file->sizeBytes,
+                    modifiedAtMs: $file->modifiedAtMs,
+                    keepDays: $file->keepDays,
+                    deletable: false
+                ),
             $files
         );
     }

@@ -88,6 +88,9 @@ class ProcessRepository
         ?Carbon $clearedAt,
         ?Throwable $exception
     ): void {
+        $error      = $exception ? ($exception->getMessage() ?: $exception::class) : null;
+        $errorTrace = $exception ? ($exception->getTraceAsString()) : null;
+
         TraceClearingProcess::sconcur()
             ->updateOne(
                 filter: ['_id' => new ObjectId($processId)],
@@ -95,15 +98,8 @@ class ProcessRepository
                     '$set' => [
                         'clearedCollectionsCount' => $clearedCollectionsCount,
                         'clearedTracesCount'      => $clearedTracesCount,
-                        'error'                   => $exception
-                            ? (
-                                $exception->getMessage()
-                            ?: $exception::class
-                            ) : null,
-                        'errorTrace'              => $exception
-                            ? (
-                                $exception->getTraceAsString()
-                            ) : null,
+                        'error'                   => $error,
+                        'errorTrace'              => $errorTrace,
                         'clearedAt'               => $clearedAt ? new UTCDateTime($clearedAt) : null,
                         'updatedAt'               => new UTCDateTime(now()),
                     ],
@@ -114,7 +110,9 @@ class ProcessRepository
     public function deleteByProcessId(string $processId): void
     {
         TraceClearingProcess::sconcur()
-            ->deleteOne(['_id' => new ObjectId($processId)]);
+            ->deleteOne([
+                '_id' => new ObjectId($processId),
+            ]);
     }
 
     /**

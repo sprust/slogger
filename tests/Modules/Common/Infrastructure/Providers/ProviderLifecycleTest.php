@@ -16,6 +16,7 @@ use App\Modules\Trace\Infrastructure\Jobs\BuildTraceTreeCacheJob;
 use App\Modules\Trace\Infrastructure\Jobs\DeleteTraceTreeCacheJob;
 use App\Modules\Trace\Infrastructure\TraceServiceProvider;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,9 @@ class ProviderLifecycleTest extends TestCase
         yield 'http does not register console commands' => [false];
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     #[DataProvider('environments')]
     public function testRegistrationIsLocalToEachApplication(
         bool $console

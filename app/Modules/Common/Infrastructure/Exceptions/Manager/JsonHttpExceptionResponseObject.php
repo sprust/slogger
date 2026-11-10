@@ -10,7 +10,7 @@ readonly class JsonHttpExceptionResponseObject
         public string $message,
         public int $httpStatus,
         public ?string $errorCode = null,
-        public string $messageField = 'message',
+        public bool $isError = false,
     ) {
     }
 }

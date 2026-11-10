@@ -68,6 +68,9 @@ class Dispatcher implements DispatcherInterface
         $this->busDispatcher->dispatch($job);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function report(Throwable $exception): void
     {
         $this->exceptionHandler->report(

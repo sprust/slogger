@@ -38,17 +38,13 @@ readonly class AuthMiddleware
         $token = $request->bearerToken();
 
         if (!$token) {
-            abort(
-                code: 401,
-            );
+            abort(code: 401);
         }
 
         $user = $this->findUserByTokenAction->handle($token);
 
         if (!$user) {
-            abort(
-                code: 401,
-            );
+            abort(code: 401);
         }
 
         $request->setUserResolver(static fn() => $user);
@@ -76,12 +72,7 @@ readonly class AuthMiddleware
         // even for one this middleware refused — the framework calls it after handle(),
         // whether handle() returned or aborted — and a token that was rejected has no
         // business moving the row it was rejected against.
-        if (
-            !$token
-            || !$request->attributes->getBoolean(
-                key: self::AUTHENTICATED,
-            )
-        ) {
+        if (!$token || !$request->attributes->getBoolean(key: self::AUTHENTICATED)) {
             return;
         }
 

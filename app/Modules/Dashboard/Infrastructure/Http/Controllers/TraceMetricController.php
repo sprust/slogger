@@ -18,9 +18,8 @@ readonly class TraceMetricController
     }
 
     #[OaListItemTypeAttribute(TraceMetricResource::class)]
-    public function index(
-        int $serviceId
-    ): AnonymousResourceCollection {
+    public function index(int $serviceId): AnonymousResourceCollection
+    {
         return TraceMetricResource::collection(
             $this->findTraceMetricsByAdminUseCase->handle(
                 serviceId: $serviceId,

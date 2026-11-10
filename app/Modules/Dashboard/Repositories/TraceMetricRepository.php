@@ -28,9 +28,18 @@ readonly class TraceMetricRepository
             ->find(
                 filter: [
                     'sid' => $serviceId,
-                    't'   => ['$gte' => new UTCDateTime($from)],
+                    't'   => [
+                        '$gte' => new UTCDateTime($from),
+                    ],
                 ],
-                projection: ['_id' => 0, 'tp' => 1, 't' => 1, 'lc' => 1, 'bc' => 1, 'sc' => 1],
+                projection: [
+                    '_id' => 0,
+                    'tp'  => 1,
+                    't'   => 1,
+                    'lc'  => 1,
+                    'bc'  => 1,
+                    'sc'  => 1,
+                ],
             );
 
         foreach ($cursor as $document) {

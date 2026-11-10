@@ -20,9 +20,7 @@ class CleanerServiceProvider extends BaseServiceProvider
         $schedule
             ->call(
                 callback: static function (DispatcherInterface $dispatcher): void {
-                    $dispatcher->dispatch(
-                        new ClearTracesJob()
-                    );
+                    $dispatcher->dispatch(new ClearTracesJob());
                 },
             )
             ->name(ClearTracesJob::class)
@@ -31,12 +29,16 @@ class CleanerServiceProvider extends BaseServiceProvider
 
     protected function getCommands(): array
     {
-        return [ClearTracesCommand::class];
+        return [
+            ClearTracesCommand::class,
+        ];
     }
 
     protected function getJobs(): array
     {
-        return [ClearTracesJob::class];
+        return [
+            ClearTracesJob::class,
+        ];
     }
 
     protected function getContracts(): array

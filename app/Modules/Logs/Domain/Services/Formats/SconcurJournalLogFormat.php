@@ -110,7 +110,10 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
     private function splitContext(string $body): array
     {
         if (str_ends_with($body, ' []')) {
-            return [substr($body, 0, -3), null];
+            return [
+                substr($body, 0, -3),
+                null,
+            ];
         }
 
         $position = strpos($body, ' {');
@@ -119,12 +122,18 @@ readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
             $json = substr($body, $position + 1);
 
             if (json_validate($json)) {
-                return [substr($body, 0, $position), $json];
+                return [
+                    substr($body, 0, $position),
+                    $json,
+                ];
             }
 
             $position = strpos($body, ' {', $position + 1);
         }
 
-        return [$body, null];
+        return [
+            $body,
+            null,
+        ];
     }
 }

@@ -91,19 +91,19 @@ readonly class SconcurStatClient
             memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
             work: $this->mapWork(
-                $totals['requests'] ?? null,
-                $totals['consumers'] ?? null
+                requests: $totals['requests'] ?? null,
+                consumers: $totals['consumers'] ?? null
             ),
             masterCpuPercent: (float) ($master['cpuPercent'] ?? 0),
             masterMemoryRssBytes: (int) ($master['memory']['rssBytes'] ?? 0),
             masterMemoryPssBytes: (int) ($master['memory']['pssBytes'] ?? 0),
             groups: $groups,
             workers: $this->orderWorkers(
-                array_map(
+                workers: array_map(
                     $this->mapWorker(...),
                     array_values((array) ($data['workers'] ?? []))
                 ),
-                $groups,
+                groups: $groups,
             ),
         );
     }
@@ -187,7 +187,12 @@ readonly class SconcurStatClient
      */
     private function orderWorkers(array $workers, array $groups): array
     {
-        $order = array_flip(array_map(static fn(SconcurGroupObject $group): string => $group->name, $groups));
+        $order = array_flip(
+            array_map(
+                static fn(SconcurGroupObject $group): string => $group->name,
+                $groups
+            )
+        );
 
         usort(
             $workers,
@@ -239,8 +244,8 @@ readonly class SconcurStatClient
             memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
             work: $this->mapWork(
-                $totals['requests'] ?? null,
-                $totals['consumers'] ?? null
+                requests: $totals['requests'] ?? null,
+                consumers: $totals['consumers'] ?? null
             ),
         );
     }
@@ -260,8 +265,8 @@ readonly class SconcurStatClient
             memoryPssBytes: (int) ($worker['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($worker['runtimeTasks'] ?? 0),
             work: $this->mapWork(
-                $worker['requests'] ?? null,
-                $worker['consumers'] ?? null
+                requests: $worker['requests'] ?? null,
+                consumers: $worker['consumers'] ?? null
             ),
         );
     }

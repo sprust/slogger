@@ -31,7 +31,9 @@ class Handler extends ExceptionHandler
                     return null;
                 }
 
-                if (!$request->expectsJson() && $responseObject->messageField === 'message') {
+                $isError = $responseObject->isError;
+
+                if (!$request->expectsJson() && !$isError) {
                     return $this->render(
                         request: $request,
                         e: new HttpException(
@@ -42,8 +44,10 @@ class Handler extends ExceptionHandler
                     );
                 }
 
+                $key = $isError ? 'error' : 'message';
+
                 $content = [
-                    $responseObject->messageField => $responseObject->message,
+                    $key => $responseObject->message,
                 ];
 
                 if ($responseObject->errorCode !== null) {

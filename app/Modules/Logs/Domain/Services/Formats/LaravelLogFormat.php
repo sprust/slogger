@@ -72,10 +72,12 @@ readonly class LaravelLogFormat implements LogFormatInterface
         $contextPosition = $this->findContextPosition($body);
 
         return new LogEntryDetailsObject(
-            message: $contextPosition === null ? $body : rtrim(substr($body, 0, $contextPosition)),
-            context: $contextPosition === null ? null : $this->normalizeJson(
-                substr($body, $contextPosition)
-            ),
+            message: $contextPosition === null
+                ? $body
+                : rtrim(substr($body, 0, $contextPosition)),
+            context: $contextPosition === null
+                ? null
+                : $this->normalizeJson(substr($body, $contextPosition)),
             fields: [
                 new LogEntryFieldObject(
                     key: 'env',
@@ -113,11 +115,7 @@ readonly class LaravelLogFormat implements LogFormatInterface
         foreach (array_slice($candidates[0], 0, self::MAX_CONTEXT_CANDIDATES) as $candidate) {
             $position = $candidate[1] + 1;
 
-            if (
-                $this->normalizeJson(
-                    substr($body, $position)
-                ) !== null
-            ) {
+            if ($this->normalizeJson(substr($body, $position)) !== null) {
                 return $position;
             }
         }
@@ -128,11 +126,7 @@ readonly class LaravelLogFormat implements LogFormatInterface
     private function normalizeJson(string $json): ?string
     {
         $decoded = json_decode(
-            str_replace(
-                ["\r", "\n"],
-                ['\r', '\n'],
-                $json
-            ),
+            str_replace(["\r", "\n"], ['\r', '\n'], $json),
             true
         );
 

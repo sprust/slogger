@@ -21,10 +21,6 @@ readonly class ClearTracesAction
     ) {
     }
 
-    /**
-     * @throws InvalidArgumentException
-     * @throws RuntimeException
-     */
     public function handle(int $lifetimeHours): void
     {
         if ($lifetimeHours <= 0) {
@@ -68,8 +64,6 @@ readonly class ClearTracesAction
     /**
      * A run that crashed before it closed itself would block every later one: once it is
      * old enough it is closed with an error, while a fresh one still blocks.
-     *
-     * @throws RuntimeException
      */
     private function closeStaleProcess(): void
     {
@@ -81,11 +75,7 @@ readonly class ClearTracesAction
             return;
         }
 
-        if (
-            $process->createdAt->gt(
-                Carbon::now()->subMinutes(self::STALE_PROCESS_MINUTES)
-            )
-        ) {
+        if ($process->createdAt->gt(Carbon::now()->subMinutes(self::STALE_PROCESS_MINUTES))) {
             throw new RuntimeException(
                 'Clearing process already active',
             );
@@ -97,7 +87,10 @@ readonly class ClearTracesAction
             clearedTracesCount: $process->clearedTracesCount,
             clearedAt: Carbon::now(),
             exception: new RuntimeException(
-                sprintf('The run did not finish within %d minutes', self::STALE_PROCESS_MINUTES)
+                sprintf(
+                    'The run did not finish within %d minutes',
+                    self::STALE_PROCESS_MINUTES,
+                )
             )
         );
     }

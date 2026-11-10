@@ -25,7 +25,8 @@ class WsKeysGenerateCommand extends Command
     private const int KEY_LENGTH = 32;
 
     private const int SECRET_LENGTH = 48;
-    protected $signature            = 'ws-keys-generate {--force : Replace credentials that are already set}';
+
+    protected $signature = 'ws-keys-generate {--force : Replace credentials that are already set}';
 
     protected $description = 'Generate SCONCUR_WS_APP_KEY/SCONCUR_WS_APP_SECRET and mirror the key into frontend/.env';
 
@@ -76,9 +77,9 @@ class WsKeysGenerateCommand extends Command
         }
 
         $frontendEnv = $this->set(
-            (string) file_get_contents($frontendEnvPath),
-            'SCONCUR_WS_KEY',
-            $key
+            env: (string) file_get_contents($frontendEnvPath),
+            name: 'SCONCUR_WS_KEY',
+            value: $key
         );
 
         // Vite only exposes what is prefixed VITE_, and on a frontend/.env that predates
@@ -88,9 +89,9 @@ class WsKeysGenerateCommand extends Command
         // form survives the next key without a rebuild of this file.
         if (!$this->isFilled($frontendEnv, 'VITE_SCONCUR_WS_KEY')) {
             $frontendEnv = $this->set(
-                $frontendEnv,
-                'VITE_SCONCUR_WS_KEY',
-                '${SCONCUR_WS_KEY}'
+                env: $frontendEnv,
+                name: 'VITE_SCONCUR_WS_KEY',
+                value: '${SCONCUR_WS_KEY}'
             );
         }
 
@@ -115,13 +116,10 @@ class WsKeysGenerateCommand extends Command
      */
     private function set(string $env, string $name, string $value): string
     {
-        $pattern = '/^'
-            . preg_quote($name, '/')
-            . '=.*$/m';
+        $pattern = '/^' . preg_quote($name, '/') . '=.*$/m';
 
         if (preg_match($pattern, $env) !== 1) {
-            return rtrim($env, "\n")
-                . "\n$name=$value\n";
+            return rtrim($env, "\n") . "\n$name=$value\n";
         }
 
         return (string) preg_replace($pattern, "$name=$value", $env, 1);

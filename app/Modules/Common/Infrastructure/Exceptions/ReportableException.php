@@ -9,7 +9,7 @@ use Throwable;
 
 class ReportableException extends Exception
 {
-    private function __construct(private Throwable $exception)
+    private function __construct(private readonly Throwable $exception)
     {
         parent::__construct('Reportable exception', 0, $exception);
     }

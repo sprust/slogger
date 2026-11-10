@@ -108,11 +108,13 @@ readonly class DatabaseStatRepository
                 . 'FROM system.parts WHERE database = currentDatabase() AND active GROUP BY table ORDER BY table',
             queryIdPrefix: 'dashboard-database',
         );
+
         $indexes = $this->clickhouse->select(
             sql: 'SELECT table, name, data_compressed_bytes AS size FROM system.data_skipping_indices '
                 . 'WHERE database = currentDatabase() ORDER BY table, name',
             queryIdPrefix: 'dashboard-database',
         );
+
         $memory = $this->clickhouse->select(
             sql: "SELECT value FROM system.metrics WHERE metric = 'MemoryTracking'",
             queryIdPrefix: 'dashboard-database',
@@ -120,7 +122,8 @@ readonly class DatabaseStatRepository
         $collections = [];
 
         foreach ($tables as $table) {
-            $rows          = (int) $table['rows'];
+            $rows = (int) $table['rows'];
+
             $collections[] = new DatabaseCollectionStatObject(
                 name: (string) $table['table'],
                 size: $this->bitesToMb((int) $table['data']),

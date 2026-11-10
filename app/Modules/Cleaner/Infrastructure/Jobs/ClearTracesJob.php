@@ -15,7 +15,7 @@ class ClearTracesJob implements ShouldQueue
 
     use Queueable;
 
-    public int $tries   = 3;
+    public int $tries = 3;
 
     public int $backoff = 2;
 
@@ -24,17 +24,8 @@ class ClearTracesJob implements ShouldQueue
      */
     public function __construct()
     {
-        $this
-            ->onConnection(
-                config(
-                    key: 'cleaner.queue.connection',
-                )
-            )
-            ->onQueue(
-                config(
-                    key: 'cleaner.queue.name',
-                )
-            );
+        $this->onConnection(config('cleaner.queue.connection'))
+            ->onQueue(config('cleaner.queue.name'));
     }
 
     /**

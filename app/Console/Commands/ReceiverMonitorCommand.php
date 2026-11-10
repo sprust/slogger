@@ -46,9 +46,7 @@ class ReceiverMonitorCommand extends Command
             system('clear');
 
             $this->info('Receiver monitor:');
-            $this->info(
-                now()->toDateTimeString()
-            );
+            $this->info(now()->toDateTimeString());
 
             if (!file_exists($fileStatsPath)) {
                 $this->warn('Receiver stats file not found');

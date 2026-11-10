@@ -141,7 +141,7 @@ class ExceptionManagerTest extends BaseModuleTestCase
         );
         self::assertSame(
             expected: $field,
-            actual: $responseObject->messageField
+            actual: $responseObject->isError
         );
         self::assertSame(
             expected: $message,

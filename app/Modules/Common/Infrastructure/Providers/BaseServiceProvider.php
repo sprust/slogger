@@ -9,6 +9,7 @@ use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\ServiceProvider;
@@ -41,6 +42,9 @@ abstract class BaseServiceProvider extends ServiceProvider
         $this->onRegister();
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function boot(): void
     {
         $this->onBoot();
@@ -73,8 +77,8 @@ abstract class BaseServiceProvider extends ServiceProvider
         $exceptionManagerClass = $this->getExceptionManagerClass();
 
         if ($exceptionManagerClass !== null) {
-            $exceptionManagers        = $this->app->make(ExceptionManagers::class);
-            $exceptionManager         = $this->app->make($exceptionManagerClass);
+            $exceptionManagers = $this->app->make(ExceptionManagers::class);
+            $exceptionManager  = $this->app->make($exceptionManagerClass);
 
             $exceptionManagers->register($exceptionManager);
         }

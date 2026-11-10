@@ -23,7 +23,7 @@ class TraceTreeCacheState extends AbstractTraceModel
 
     public const string UPDATED_AT = 'updatedAt';
 
-    protected $casts               = [
+    protected $casts = [
         'status'     => 'string',
         'count'      => 'int',
         'startedAt'  => 'datetime',
