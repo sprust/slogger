@@ -32,6 +32,8 @@ readonly class LogCursorCodec
 
     /**
      * @param list<string> $allowedFileIds
+     *
+     * @throws LogCursorInvalidException
      */
     public function decode(string $cursor, array $allowedFileIds): LogCursorObject
     {

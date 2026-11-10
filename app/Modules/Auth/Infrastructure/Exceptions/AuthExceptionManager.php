@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Infrastructure\Exceptions;
 
+use App\Modules\Auth\Domain\Exceptions\AbstractAuthException;
 use App\Modules\Auth\Domain\Exceptions\AuthenticationFailedException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
@@ -20,15 +21,20 @@ class AuthExceptionManager extends BaseExceptionManager
             return null;
         }
 
+        $httpStatus = match (true) {
+            $exception instanceof AuthenticationFailedException => SymfonyResponse::HTTP_UNAUTHORIZED,
+            default                                             => SymfonyResponse::HTTP_BAD_REQUEST,
+        };
+
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
-            httpStatus: SymfonyResponse::HTTP_UNAUTHORIZED,
+            httpStatus: $httpStatus,
         );
     }
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof AuthenticationFailedException;
+        return $exception instanceof AbstractAuthException;
     }
 
     protected function getDontReport(): array
@@ -40,10 +46,6 @@ class AuthExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        if ($exception instanceof AuthenticationFailedException) {
-            return 'Authentication failed';
-        }
-
-        return 'Forbidden';
+        return $exception->getMessage();
     }
 }

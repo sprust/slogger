@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Domain\Exceptions;
 
-use Exception;
-
-class UserNotFoundException extends Exception
+class UserNotFoundException extends AbstractUserException
 {
     public function __construct(int $userId)
     {

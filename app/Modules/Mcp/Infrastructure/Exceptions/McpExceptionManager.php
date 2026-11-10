@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Exceptions;
 
+use App\Modules\Mcp\Domain\Exceptions\AbstractMcpException;
 use App\Modules\Mcp\Domain\Exceptions\McpNotFoundException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class McpExceptionManager extends BaseExceptionManager
@@ -19,7 +22,11 @@ class McpExceptionManager extends BaseExceptionManager
             return null;
         }
 
-        $httpStatus = 404;
+        $httpStatus = match (true) {
+            $exception instanceof McpNotFoundException          => SymfonyResponse::HTTP_NOT_FOUND,
+            $exception instanceof McpServerNameInvalidException => SymfonyResponse::HTTP_INTERNAL_SERVER_ERROR,
+            default                                             => SymfonyResponse::HTTP_BAD_REQUEST,
+        };
 
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
@@ -29,7 +36,7 @@ class McpExceptionManager extends BaseExceptionManager
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof McpNotFoundException;
+        return $exception instanceof AbstractMcpException;
     }
 
     protected function getDontReport(): array
@@ -39,6 +46,14 @@ class McpExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof McpNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        if ($exception instanceof McpServerNameInvalidException) {
+            return 'Server Error';
+        }
+
+        return 'Unknown error';
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
+use App\Modules\Logs\Domain\Exceptions\LogCursorInvalidException;
 use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
 use App\Modules\Logs\Domain\Actions\FindLogFilesAction;
 use App\Modules\Logs\Domain\Services\Formats\LogFormatRegistry;
@@ -32,6 +33,7 @@ readonly class FindMcpLogEntriesAction
     /**
      * @throws McpLogSourceNotFoundException
      * @throws McpLogLevelNotFoundException
+     * @throws LogCursorInvalidException
      */
     public function handle(FindMcpLogEntriesParameters $parameters): McpLogEntriesObject
     {

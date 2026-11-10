@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Exceptions;
 
-use Exception;
-
-class McpNotFoundException extends Exception
+class McpNotFoundException extends AbstractMcpException
 {
     public function __construct(int $mcpId)
     {

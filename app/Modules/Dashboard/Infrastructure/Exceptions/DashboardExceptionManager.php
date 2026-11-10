@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Infrastructure\Exceptions;
 
+use App\Modules\Dashboard\Domain\Exceptions\AbstractDashboardException;
 use App\Modules\Dashboard\Domain\Exceptions\DatabaseStatCacheNotFoundException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class DashboardExceptionManager extends BaseExceptionManager
@@ -19,18 +21,21 @@ class DashboardExceptionManager extends BaseExceptionManager
             return null;
         }
 
-        $httpStatus = 503;
+        $httpStatus = match (true) {
+            $exception instanceof DatabaseStatCacheNotFoundException => SymfonyResponse::HTTP_SERVICE_UNAVAILABLE,
+            default                                                  => SymfonyResponse::HTTP_BAD_REQUEST,
+        };
 
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
             httpStatus: $httpStatus,
-            messageField: 'error',
+            messageField: $exception instanceof DatabaseStatCacheNotFoundException ? 'error' : 'message',
         );
     }
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof DatabaseStatCacheNotFoundException;
+        return $exception instanceof AbstractDashboardException;
     }
 
     protected function getDontReport(): array
@@ -40,6 +45,10 @@ class DashboardExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return 'No data yet. Please wait for the first cache refresh.';
+        if ($exception instanceof DatabaseStatCacheNotFoundException) {
+            return 'No data yet. Please wait for the first cache refresh.';
+        }
+
+        return 'Unknown error';
     }
 }

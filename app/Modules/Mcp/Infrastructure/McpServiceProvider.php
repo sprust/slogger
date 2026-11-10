@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure;
 
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
 use App\Modules\Mcp\Infrastructure\Exceptions\McpExceptionManager;
 use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpDataRangeAction;
@@ -127,6 +128,9 @@ class McpServiceProvider extends BaseServiceProvider
         );
     }
 
+    /**
+     * @throws McpServerNameInvalidException
+     */
     protected function onBoot(): void
     {
         $this->app->make(FindMcpSettingsAction::class)->handle();

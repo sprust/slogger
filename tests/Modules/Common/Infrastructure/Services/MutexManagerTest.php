@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use App\Modules\Common\Domain\Exceptions\AbstractCommonException;
 use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Common\Domain\Exceptions\MutexLockTimeoutException;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
@@ -203,7 +204,7 @@ class MutexManagerTest extends TestCase
                 $exception->getMessage()
             );
             $this->assertInstanceOf(
-                RuntimeException::class,
+                AbstractCommonException::class,
                 $exception
             );
         }
@@ -259,10 +260,12 @@ class MutexManagerTest extends TestCase
 
     public function testAFailingAfterLockHandlerReleasesTheLock(): void
     {
+        $handlerException = new RuntimeException('after-lock');
+
         $mutex = $this->makeMutex(
             key: 'a',
-            afterLock: static function (): never {
-                throw new RuntimeException('after-lock');
+            afterLock: static function () use ($handlerException): never {
+                throw $handlerException;
             }
         );
 
@@ -274,6 +277,10 @@ class MutexManagerTest extends TestCase
             $this->assertSame(
                 'after-lock',
                 $exception->getMessage()
+            );
+            $this->assertSame(
+                $handlerException,
+                $exception->getPrevious()
             );
         }
 

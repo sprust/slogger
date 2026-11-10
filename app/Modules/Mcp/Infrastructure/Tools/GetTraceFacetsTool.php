@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceFacetsAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use App\Modules\Mcp\Entities\Bridges\McpTraceFacetListObject;
@@ -65,6 +66,9 @@ readonly class GetTraceFacetsTool implements McpToolInterface
         );
     }
 
+    /**
+     * @throws McpServerNameInvalidException
+     */
     public function call(McpToolArguments $arguments): McpToolResult
     {
         $scope = $this->scopeReader->read($arguments);

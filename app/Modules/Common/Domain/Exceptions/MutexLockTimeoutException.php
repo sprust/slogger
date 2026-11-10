@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Common\Domain\Exceptions;
 
-use RuntimeException;
-
-class MutexLockTimeoutException extends RuntimeException
+class MutexLockTimeoutException extends AbstractCommonException
 {
     public function __construct(string $key)
     {

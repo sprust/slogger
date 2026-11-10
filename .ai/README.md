@@ -696,6 +696,13 @@ When the spec is ready — output it and ask whether implementation can begin.
 
 ## Module Exception Managers
 
+Each module with domain exceptions declares `Domain/Exceptions/Abstract<Module>Exception`
+extending PHP `Exception`, as PMS does. Concrete domain errors extend their module base;
+`isHandlingException` checks that base. `getDontReport` lists concrete expected errors,
+so new subclasses are reportable automatically. Unknown subclasses receive a safe generic
+message; known errors retain their response mapping. Auth exposes the exception message,
+so its exception constructors must supply user-facing text. Common also registers its manager.
+
 Each module registers its manager through `getExceptionManagerClass()` on its provider.
 `Common/Infrastructure/Exceptions/Manager` follows PMS: BaseExceptionManager,
 ExceptionManagerInterface, ExceptionManagers and JsonHttpExceptionResponseObject.
@@ -706,6 +713,9 @@ manager that handles it. The base unwraps StreamedResponseException.
 Handler filters ordinary reports through ExceptionManagers. Explicit Dispatcher::report
 wraps ReportableException and reports the original exception through Laravel, bypassing
 only the module's dontReport list, as PMS does. Laravel's own exclusions still apply.
+Internal missing log files, invalid MCP server configuration and mutex timeouts remain
+reportable HTTP 500 errors with `Server Error`; paths, settings and lock keys stay in
+the original exception for reporting. Infrastructure MCP protocol errors keep their own handling.
 Mapped JSON errors keep SLogger statuses; non-JSON requests retain content negotiation.
 The DTO adds messageField solely to preserve Dashboard's existing `error` response and
 JSON 503 even without an Accept header. MCP protocol/tool errors stay in their handlers.

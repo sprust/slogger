@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Infrastructure\Exceptions;
 
+use App\Modules\Watcher\Domain\Exceptions\AbstractWatcherException;
 use App\Modules\Watcher\Domain\Exceptions\WatcherNotFoundException;
 use App\Modules\Watcher\Domain\Exceptions\WatcherIncidentNotFoundException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class WatcherExceptionManager extends BaseExceptionManager
@@ -20,7 +22,11 @@ class WatcherExceptionManager extends BaseExceptionManager
             return null;
         }
 
-        $httpStatus = 404;
+        $httpStatus = match (true) {
+            $exception instanceof WatcherNotFoundException         => SymfonyResponse::HTTP_NOT_FOUND,
+            $exception instanceof WatcherIncidentNotFoundException => SymfonyResponse::HTTP_NOT_FOUND,
+            default                                                => SymfonyResponse::HTTP_BAD_REQUEST,
+        };
 
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
@@ -30,8 +36,7 @@ class WatcherExceptionManager extends BaseExceptionManager
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof WatcherNotFoundException
-            || $exception instanceof WatcherIncidentNotFoundException;
+        return $exception instanceof AbstractWatcherException;
     }
 
     protected function getDontReport(): array
@@ -44,6 +49,14 @@ class WatcherExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof WatcherNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        if ($exception instanceof WatcherIncidentNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        return 'Unknown error';
     }
 }

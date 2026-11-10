@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Exceptions;
 
-use RuntimeException;
-
-class LogFileNotDeletableException extends RuntimeException
+class LogFileNotDeletableException extends AbstractLogsException
 {
     public function __construct(string $name)
     {

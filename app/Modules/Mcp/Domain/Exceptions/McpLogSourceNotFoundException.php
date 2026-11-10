@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Exceptions;
 
-use Exception;
-
-class McpLogSourceNotFoundException extends Exception
+class McpLogSourceNotFoundException extends AbstractMcpException
 {
     /**
      * @param string[] $sources

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Services\Index;
 
+use App\Modules\Common\Domain\Exceptions\MutexLockTimeoutException;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
 use App\Modules\Logs\Domain\Exceptions\LogFileNotFoundException;
 use App\Modules\Logs\Domain\Services\Formats\LogFormatInterface;
@@ -32,6 +33,10 @@ readonly class LogIndexer
     ) {
     }
 
+    /**
+     * @throws LogFileNotFoundException
+     * @throws MutexLockTimeoutException
+     */
     public function ensureFresh(
         LogFileObject $file,
         int $timeBudgetMs = 0,
@@ -76,6 +81,9 @@ readonly class LogIndexer
         }
     }
 
+    /**
+     * @throws LogFileNotFoundException
+     */
     private function findStat(LogFileObject $file): LogFileStatObject
     {
         $stat = $this->logFileRepository->stat($file->path);

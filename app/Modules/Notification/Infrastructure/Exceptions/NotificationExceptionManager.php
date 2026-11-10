@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Infrastructure\Exceptions;
 
+use App\Modules\Notification\Domain\Exceptions\AbstractNotificationException;
 use App\Modules\Notification\Domain\Exceptions\NotificationChannelNotFoundException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class NotificationExceptionManager extends BaseExceptionManager
@@ -19,7 +21,10 @@ class NotificationExceptionManager extends BaseExceptionManager
             return null;
         }
 
-        $httpStatus = 404;
+        $httpStatus = match (true) {
+            $exception instanceof NotificationChannelNotFoundException => SymfonyResponse::HTTP_NOT_FOUND,
+            default                                                    => SymfonyResponse::HTTP_BAD_REQUEST,
+        };
 
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
@@ -29,7 +34,7 @@ class NotificationExceptionManager extends BaseExceptionManager
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof NotificationChannelNotFoundException;
+        return $exception instanceof AbstractNotificationException;
     }
 
     protected function getDontReport(): array
@@ -39,6 +44,10 @@ class NotificationExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof NotificationChannelNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        return 'Unknown error';
     }
 }

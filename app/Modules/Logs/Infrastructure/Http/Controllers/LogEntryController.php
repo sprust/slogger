@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Infrastructure\Http\Controllers;
 
+use App\Modules\Logs\Domain\Exceptions\LogCursorInvalidException;
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Logs\Domain\UseCases\FindLogEntriesByAdminUseCase;
 use App\Modules\Logs\Enums\LogCursorDirectionEnum;
@@ -19,6 +20,9 @@ readonly class LogEntryController
     ) {
     }
 
+    /**
+     * @throws LogCursorInvalidException
+     */
     public function index(FindLogEntriesRequest $request): LogEntriesPageResource
     {
         $validated = $request->validated();

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Exceptions;
 
-use Exception;
-
-class McpLogLevelNotFoundException extends Exception
+class McpLogLevelNotFoundException extends AbstractMcpException
 {
     /**
      * @param string[] $levels

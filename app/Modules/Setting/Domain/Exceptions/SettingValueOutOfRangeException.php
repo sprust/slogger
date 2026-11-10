@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Setting\Domain\Exceptions;
 
 use App\Modules\Setting\Entities\SettingDefinitionObject;
-use Exception;
 
-class SettingValueOutOfRangeException extends Exception
+class SettingValueOutOfRangeException extends AbstractSettingException
 {
     public function __construct(SettingDefinitionObject $definition, int $value)
     {

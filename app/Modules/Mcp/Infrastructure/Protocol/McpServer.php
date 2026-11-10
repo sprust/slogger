@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Protocol;
 
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
 use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use App\Modules\Mcp\Entities\McpSettingsObject;
@@ -42,6 +43,7 @@ readonly class McpServer
      * @return array<string, mixed>
      *
      * @throws McpProtocolException
+     * @throws McpServerNameInvalidException
      */
     public function handle(McpRequestMessage $message): array
     {

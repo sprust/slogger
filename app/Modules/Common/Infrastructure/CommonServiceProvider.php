@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Common\Infrastructure;
 
+use App\Modules\Common\Infrastructure\Exceptions\CommonExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
 use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Common\Infrastructure\Services\Dispatcher;
@@ -44,6 +45,6 @@ class CommonServiceProvider extends BaseServiceProvider
 
     protected function getExceptionManagerClass(): ?string
     {
-        return null;
+        return CommonExceptionManager::class;
     }
 }

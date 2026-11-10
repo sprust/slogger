@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Exceptions;
 
-use LogicException;
-
-class McpServerNameInvalidException extends LogicException
+class McpServerNameInvalidException extends AbstractMcpException
 {
     public function __construct(string $serverName)
     {

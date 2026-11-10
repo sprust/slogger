@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Setting\Infrastructure\Exceptions;
 
+use App\Modules\Setting\Domain\Exceptions\AbstractSettingException;
 use App\Modules\Setting\Domain\Exceptions\SettingValueOutOfRangeException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class SettingExceptionManager extends BaseExceptionManager
@@ -19,7 +21,10 @@ class SettingExceptionManager extends BaseExceptionManager
             return null;
         }
 
-        $httpStatus = 422;
+        $httpStatus = match (true) {
+            $exception instanceof SettingValueOutOfRangeException => SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY,
+            default                                               => SymfonyResponse::HTTP_BAD_REQUEST,
+        };
 
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
@@ -29,7 +34,7 @@ class SettingExceptionManager extends BaseExceptionManager
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof SettingValueOutOfRangeException;
+        return $exception instanceof AbstractSettingException;
     }
 
     protected function getDontReport(): array
@@ -39,6 +44,10 @@ class SettingExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof SettingValueOutOfRangeException) {
+            return $exception->getMessage();
+        }
+
+        return 'Unknown error';
     }
 }

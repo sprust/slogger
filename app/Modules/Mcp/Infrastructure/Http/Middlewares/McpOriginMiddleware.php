@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Http\Middlewares;
 
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,6 +17,9 @@ readonly class McpOriginMiddleware
     ) {
     }
 
+    /**
+     * @throws McpServerNameInvalidException
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $origin = $request->headers->get('Origin');

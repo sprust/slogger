@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Modules\Common\Infrastructure\Exceptions;
 
 use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
+use App\Modules\Common\Domain\Exceptions\MutexLockTimeoutException;
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
 use App\Modules\Logs\Domain\Exceptions\LogFileNotFoundException;
 use App\Modules\Logs\Domain\Exceptions\RequestedLogFileNotFoundException;
 use App\Modules\Logs\Domain\Exceptions\LogFileIndexingException;
@@ -21,7 +23,7 @@ use Tests\Modules\BaseModuleTestCase;
 
 class ExceptionManagerTest extends BaseModuleTestCase
 {
-    /** @return iterable<string, array{Throwable, ?int, string, string, bool}> */
+    /** @return iterable<string, array{Throwable, ?int, string, string, bool, bool}> */
     public static function cases(): iterable
     {
         $cases = [
@@ -40,18 +42,37 @@ class ExceptionManagerTest extends BaseModuleTestCase
                 'error',
                 'No data yet. Please wait for the first cache refresh.',
             ],
-            'internal disappearing file' => [new LogFileNotFoundException('/storage/logs/gone.log'), null, '', ''],
+            'internal disappearing file' => [
+                new LogFileNotFoundException('/storage/logs/gone.log'),
+                500,
+                'message',
+                'Server Error',
+            ],
+            'invalid MCP server name' => [
+                new McpServerNameInvalidException('private.invalid'),
+                500,
+                'message',
+                'Server Error',
+            ],
+            'mutex timeout' => [
+                new MutexLockTimeoutException('private-key'),
+                500,
+                'message',
+                'Server Error',
+            ],
             'unknown failure'            => [new RuntimeException('failure'), null, '', ''],
         ];
 
         foreach ($cases as $name => $case) {
             yield $name => [
                 ...$case,
+                $case[1] === null || $case[1] === 500,
                 false,
             ];
 
             yield "$name inside streamed response" => [
                 ...$case,
+                $case[1] === null || $case[1] === 500,
                 true,
             ];
         }
@@ -91,6 +112,7 @@ class ExceptionManagerTest extends BaseModuleTestCase
         ?int $status,
         string $field,
         string $message,
+        bool $reportable,
         bool $streamed,
     ): void {
         $exceptionManagers = $this->appMake(ExceptionManagers::class);
@@ -98,7 +120,7 @@ class ExceptionManagerTest extends BaseModuleTestCase
         $responseObject    = $exceptionManagers->makeJsonHttpResponse($sourceException);
 
         self::assertSame(
-            expected: $status === null,
+            expected: $reportable,
             actual: $exceptionManagers->isReportable($sourceException)
         );
 

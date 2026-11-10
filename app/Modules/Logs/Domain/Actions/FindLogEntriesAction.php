@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Actions;
 
+use App\Modules\Logs\Domain\Exceptions\LogCursorInvalidException;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
 use App\Modules\Logs\Domain\Services\Formats\LogFormatRegistry;
 use App\Modules\Logs\Domain\Services\Formats\LogLevelKeys;
@@ -40,6 +41,9 @@ readonly class FindLogEntriesAction
     ) {
     }
 
+    /**
+     * @throws LogCursorInvalidException
+     */
     public function handle(FindLogEntriesParameters $parameters): LogEntriesPageObject
     {
         $cursor = $parameters->cursor === null

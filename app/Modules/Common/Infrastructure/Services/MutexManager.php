@@ -14,6 +14,7 @@ use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Contracts\Foundation\Application;
 use LogicException;
+use RuntimeException;
 use SConcur\Context\Context;
 use Throwable;
 
@@ -39,7 +40,7 @@ readonly class MutexManager implements MutexManagerInterface
     }
 
     /**
-     * @throws Throwable
+     * @throws MutexLockTimeoutException
      */
     public function lock(AbstractMutex $mutex): void
     {
@@ -75,7 +76,10 @@ readonly class MutexManager implements MutexManagerInterface
             } catch (Throwable $exception) {
                 $lock->release();
 
-                throw $exception;
+                throw new RuntimeException(
+                    $exception->getMessage(),
+                    previous: $exception
+                );
             }
         }
 

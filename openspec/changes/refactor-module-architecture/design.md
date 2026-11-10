@@ -190,3 +190,25 @@ artifacts и отрицательные parser fixtures сохраняют св�
 legacy Domain-сигнатур и анализа/стиля бизнес-тестов зафиксированы в
 [.ai/pms-import.md](../../../.ai/pms-import.md). Их устранение требует самостоятельного
 функционального рефакторинга; результат этого прохода не объявляет их исправленными.
+
+## Базовые исключения модулей (уточнение 2026-11-10)
+
+Источник — PMS Auth/Domain/Exceptions/AbstractAuthException, Common/Domain/Exceptions/
+AbstractCommonException и модульные ExceptionManager. Каждый модуль с Domain Exceptions
+получает собственный abstract class Abstract<Module>Exception extends Exception;
+конкретные ошибки наследуют его. Общего родителя поверх Exception не добавляем.
+Менеджер распознаёт модуль через instanceof базового класса, dontReport остаётся
+списком конкретных ожидаемых ошибок. Новая ошибка модуля автоматически репортится;
+неизвестный тип получает безопасное общее сообщение, как в PMS.
+
+Существующие статусы/сообщения сохраняются. Внутренние LogFileNotFoundException,
+McpServerNameInvalidException и MutexLockTimeoutException остаются reportable и
+получают HTTP 500 с Server Error без раскрытия путей/настроек/ключей блокировки.
+Common регистрирует свой менеджер через getExceptionManagerClass. Протокольные
+исключения MCP остаются в Infrastructure с существующей обработкой JSON-RPC/tools.
+Модули без доменных исключений не получают неиспользуемые пустые классы.
+
+Уточнение Auth: текст ответа задаёт само исключение, менеджер возвращает getMessage;
+AuthenticationFailedException содержит Authentication failed. Сообщения наследников
+Auth должны быть пригодны для пользователя. Ошибка callback after-lock в MutexManager
+оборачивается в RuntimeException с исходным previous после освобождения блокировки.

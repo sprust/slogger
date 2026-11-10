@@ -115,3 +115,24 @@ PHPStan — в phpstan/.cache, две конфигурации Deptrac — в о
 Для YAML-конфига Deptrac используется штатный раздел deptrac: cache_file внутри
 старого parameters не управляет кешем в установленной версии. Состав layers/ruleset
 сохранён; оба прогона подтверждают прежние количества проверенных зависимостей.
+
+### Базовые исключения модулей
+
+Перенесена иерархия PMS `Abstract<Module>Exception extends Exception` в 11 модулей
+с доменными ошибками, включая Common. Все конкретные Domain Exceptions наследуют
+свой базовый тип; менеджеры распознают модуль через него, а dontReport сохраняет
+конкретные классы. CommonExceptionManager зарегистрирован собственным provider.
+Новые наследники получают общий безопасный ответ и остаются reportable.
+
+Сохранены конкретные HTTP-статусы и сообщения SLogger, Dashboard error/503 и MCP
+protocol/tool handling. В отличие от PMS, MutexLockTimeoutException сохраняет
+SLogger HTTP 500 (в PMS это 400); внутренние ошибки Logs/MCP также остаются 500.
+Общий ответ Server Error не раскрывает путь/настройки/ключ блокировки, оригинал
+исключения остаётся доступен report. Модули без Domain Exceptions не получают
+неиспользуемые базовые классы. Locale/translation-specific PMS dependencies не нужны
+для текущих английских сообщений SLogger.
+
+Уточнение Auth: текст ответа задаёт само исключение, менеджер возвращает getMessage;
+AuthenticationFailedException содержит Authentication failed. Сообщения наследников
+Auth должны быть пригодны для пользователя. Ошибка callback after-lock в MutexManager
+оборачивается в RuntimeException с исходным previous после освобождения блокировки.

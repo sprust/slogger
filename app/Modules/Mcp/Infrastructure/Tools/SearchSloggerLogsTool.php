@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
+use App\Modules\Logs\Domain\Exceptions\LogCursorInvalidException;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpLogEntriesAction;
 use App\Modules\Mcp\Domain\Exceptions\McpLogLevelNotFoundException;
 use App\Modules\Mcp\Domain\Exceptions\McpLogSourceNotFoundException;
@@ -89,6 +90,9 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
         ]);
     }
 
+    /**
+     * @throws LogCursorInvalidException
+     */
     public function call(McpToolArguments $arguments): McpToolResult
     {
         $from = null;

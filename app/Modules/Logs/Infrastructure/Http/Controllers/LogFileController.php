@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Infrastructure\Http\Controllers;
 
+use App\Modules\Logs\Domain\Exceptions\LogFileIndexingException;
+use App\Modules\Logs\Domain\Exceptions\LogFileNotDeletableException;
+use App\Modules\Logs\Domain\Exceptions\RequestedLogFileNotFoundException;
+use App\Modules\Logs\Domain\Exceptions\LogFileTooLargeException;
 use App\Modules\Logs\Domain\UseCases\DeleteLogFileByAdminUseCase;
 use App\Modules\Logs\Domain\UseCases\FindLogFilesByAdminUseCase;
 use App\Modules\Logs\Domain\UseCases\StreamLogFileByAdminUseCase;
@@ -29,6 +33,10 @@ readonly class LogFileController
         );
     }
 
+    /**
+     * @throws LogFileTooLargeException
+     * @throws RequestedLogFileNotFoundException
+     */
     public function download(string $id): LogFileDownloadResponse
     {
         $download = $this->streamLogFileByAdminUseCase->handle($id);
@@ -36,6 +44,11 @@ readonly class LogFileController
         return new LogFileDownloadResponse($download);
     }
 
+    /**
+     * @throws LogFileNotDeletableException
+     * @throws LogFileIndexingException
+     * @throws RequestedLogFileNotFoundException
+     */
     public function delete(string $id): void
     {
         $deleted = $this->deleteLogFileByAdminUseCase->handle($id);

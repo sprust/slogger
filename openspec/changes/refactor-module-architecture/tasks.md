@@ -146,3 +146,18 @@
 `make check`: 921 тест, 3306 assertions. Архитектурные fixtures проверяют только
 реально перенесённые правила, без прежних дополнительных правил. PHPStan, обе
 матрицы Deptrac, CS Fixer и структура модулей прошли. Ревью: PASSED.
+
+## 11. Базовые исключения модулей из PMS
+
+- [x] 11.1 Перенести Abstract<Module>Exception extends Exception для всех модулей с доменными ошибками; перевести наследников и менеджеры на модульный базовый тип, зарегистрировать CommonExceptionManager.
+- [x] 11.2 Сохранить HTTP/MCP-контракты и конкретные dontReport, проверить новый наследник без регистрации, чужой модуль, внутренние ошибки и streamed responses; актуализировать @throws и документацию.
+- [x] 11.3 Выполнить make check, проверить OpenSpec и независимое ревью.
+
+Проверки этапа 11: `make check` — 936 тестов, 3543 assertions; PHPStan,
+оба Deptrac-конфига, структура модулей и CS Fixer прошли. Временный строгий аудит
+цепочек @throws для шести типов, ранее наследовавших RuntimeException/LogicException,
+не выявил ошибок; рабочий конфиг PHPStan не менялся. `make oa-generate` прошёл,
+JSON-схемы и TypeScript не изменились. OpenSpec strict validation и diff-check прошли.
+Ревью: PASSED. Проверены и обновлены .ai/README.md, .ai/rules.md, .ai/pms-import.md;
+README.md/README.ru.md и landing не требуют изменений. Тестовые сервисы остановлены,
+работавшие до задачи сервисы оставлены запущенными.

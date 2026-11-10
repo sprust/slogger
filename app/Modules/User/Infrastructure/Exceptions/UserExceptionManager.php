@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Infrastructure\Exceptions;
 
+use App\Modules\User\Domain\Exceptions\AbstractUserException;
 use App\Modules\User\Domain\Exceptions\UserAlreadyExistsException;
 use App\Modules\User\Domain\Exceptions\UserNotFoundException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class UserExceptionManager extends BaseExceptionManager
@@ -21,9 +23,9 @@ class UserExceptionManager extends BaseExceptionManager
         }
 
         $httpStatus = match (true) {
-            $exception instanceof UserAlreadyExistsException => 422,
-            $exception instanceof UserNotFoundException      => 404,
-            default                                          => 400,
+            $exception instanceof UserAlreadyExistsException => SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY,
+            $exception instanceof UserNotFoundException      => SymfonyResponse::HTTP_NOT_FOUND,
+            default                                          => SymfonyResponse::HTTP_BAD_REQUEST,
         };
 
         return new JsonHttpExceptionResponseObject(
@@ -34,8 +36,7 @@ class UserExceptionManager extends BaseExceptionManager
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof UserAlreadyExistsException
-            || $exception instanceof UserNotFoundException;
+        return $exception instanceof AbstractUserException;
     }
 
     protected function getDontReport(): array
@@ -48,6 +49,14 @@ class UserExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof UserAlreadyExistsException) {
+            return $exception->getMessage();
+        }
+
+        if ($exception instanceof UserNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        return 'Unknown error';
     }
 }

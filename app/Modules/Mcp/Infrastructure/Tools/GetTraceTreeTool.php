@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceTreeAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use App\Modules\Mcp\Entities\Bridges\McpTraceTreeNodeObject;
@@ -66,6 +67,9 @@ readonly class GetTraceTreeTool implements McpToolInterface
         ]);
     }
 
+    /**
+     * @throws McpServerNameInvalidException
+     */
     public function call(McpToolArguments $arguments): McpToolResult
     {
         $traceId       = $arguments->string('trace_id');

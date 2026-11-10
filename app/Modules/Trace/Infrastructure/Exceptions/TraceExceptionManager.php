@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Exceptions;
 
+use App\Modules\Trace\Domain\Exceptions\AbstractTraceException;
 use App\Modules\Trace\Domain\Exceptions\TraceNotFoundException;
 use App\Modules\Trace\Domain\Exceptions\TraceTreeStateNotFoundException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class TraceExceptionManager extends BaseExceptionManager
@@ -20,7 +22,11 @@ class TraceExceptionManager extends BaseExceptionManager
             return null;
         }
 
-        $httpStatus = 404;
+        $httpStatus = match (true) {
+            $exception instanceof TraceNotFoundException          => SymfonyResponse::HTTP_NOT_FOUND,
+            $exception instanceof TraceTreeStateNotFoundException => SymfonyResponse::HTTP_NOT_FOUND,
+            default                                               => SymfonyResponse::HTTP_BAD_REQUEST,
+        };
 
         return new JsonHttpExceptionResponseObject(
             message: $this->onMakeMessage($exception),
@@ -30,8 +36,7 @@ class TraceExceptionManager extends BaseExceptionManager
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof TraceNotFoundException
-            || $exception instanceof TraceTreeStateNotFoundException;
+        return $exception instanceof AbstractTraceException;
     }
 
     protected function getDontReport(): array
@@ -44,6 +49,14 @@ class TraceExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof TraceNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        if ($exception instanceof TraceTreeStateNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        return 'Unknown error';
     }
 }

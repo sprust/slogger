@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Service\Infrastructure\Exceptions;
 
+use App\Modules\Service\Domain\Exceptions\AbstractServiceException;
 use App\Modules\Service\Domain\Exceptions\ServiceAlreadyExistsException;
 use App\Modules\Service\Domain\Exceptions\ServiceNotFoundException;
 use App\Modules\Service\Domain\Exceptions\ServicesSortMismatchException;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\BaseExceptionManager;
 use App\Modules\Common\Infrastructure\Exceptions\Manager\JsonHttpExceptionResponseObject;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Throwable;
 
 class ServiceExceptionManager extends BaseExceptionManager
@@ -22,10 +24,10 @@ class ServiceExceptionManager extends BaseExceptionManager
         }
 
         $httpStatus = match (true) {
-            $exception instanceof ServiceAlreadyExistsException => 422,
-            $exception instanceof ServiceNotFoundException      => 404,
-            $exception instanceof ServicesSortMismatchException => 422,
-            default                                             => 400,
+            $exception instanceof ServiceAlreadyExistsException => SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY,
+            $exception instanceof ServiceNotFoundException      => SymfonyResponse::HTTP_NOT_FOUND,
+            $exception instanceof ServicesSortMismatchException => SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY,
+            default                                             => SymfonyResponse::HTTP_BAD_REQUEST,
         };
 
         return new JsonHttpExceptionResponseObject(
@@ -36,9 +38,7 @@ class ServiceExceptionManager extends BaseExceptionManager
 
     protected function isHandlingException(Throwable $exception): bool
     {
-        return $exception instanceof ServiceAlreadyExistsException
-            || $exception instanceof ServiceNotFoundException
-            || $exception instanceof ServicesSortMismatchException;
+        return $exception instanceof AbstractServiceException;
     }
 
     protected function getDontReport(): array
@@ -52,6 +52,18 @@ class ServiceExceptionManager extends BaseExceptionManager
 
     protected function onMakeMessage(Throwable $exception): string
     {
-        return $exception->getMessage();
+        if ($exception instanceof ServiceAlreadyExistsException) {
+            return $exception->getMessage();
+        }
+
+        if ($exception instanceof ServiceNotFoundException) {
+            return $exception->getMessage();
+        }
+
+        if ($exception instanceof ServicesSortMismatchException) {
+            return $exception->getMessage();
+        }
+
+        return 'Unknown error';
     }
 }
