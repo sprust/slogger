@@ -78,7 +78,7 @@ readonly class TraceTimestampsRepository
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $this->timestampMetricsFactory->makeNextTimestamp(
                 date: $loggedAtTo,
-                timestamp: $timestamp
+                timestamp: $timestamp,
             ),
             types: $types,
             tags: $tags,
@@ -115,7 +115,13 @@ readonly class TraceTimestampsRepository
 
             $fieldAggregations[$fieldName] = $field->aggregations;
 
-            $this->addAggregations($aliases, $expressions, $fieldName, $fieldName, $field->aggregations);
+            $this->addAggregations(
+                aliases: $aliases,
+                expressions: $expressions,
+                fieldName: $fieldName,
+                value: $fieldName,
+                aggregations: $field->aggregations,
+            );
         }
 
         foreach ($dataFields ?? [] as $dataField) {
@@ -132,7 +138,13 @@ readonly class TraceTimestampsRepository
                 $path->objectExpression
             );
 
-            $this->addAggregations($aliases, $expressions, $fieldName, $value, $dataField->aggregations);
+            $this->addAggregations(
+                aliases: $aliases,
+                expressions: $expressions,
+                fieldName: $fieldName,
+                value: $value,
+                aggregations: $dataField->aggregations,
+            );
         }
 
         $bucket = $this->makeBucketExpression($timestamp);
@@ -140,9 +152,10 @@ readonly class TraceTimestampsRepository
         $rows = $this->client->select(
             sql: sprintf(
                 'SELECT %s AS bucket%s FROM traces FINAL WHERE %s AND %s >= {bucketFrom:DateTime64(6, \'UTC\')} '
-                . 'GROUP BY bucket ORDER BY bucket',
+                    . 'GROUP BY bucket ORDER BY bucket',
                 $bucket,
-                $expressions === [] ? '' : ', ' . implode(', ', $expressions),
+                $expressions === [] ? '' : ', '
+                    . implode(', ', $expressions),
                 $condition->sql,
                 $bucket
             ),
@@ -150,7 +163,7 @@ readonly class TraceTimestampsRepository
                 ...$condition->params,
                 'bucketFrom' => $loggedAtFrom,
             ],
-            queryIdPrefix: 'trace-timestamps'
+            queryIdPrefix: 'trace-timestamps',
         );
 
         $metrics = [];
@@ -174,13 +187,13 @@ readonly class TraceTimestampsRepository
 
                 $indicators[] = new TraceTimestampFieldDto(
                     field: $fieldName,
-                    indicators: $fieldIndicators
+                    indicators: $fieldIndicators,
                 );
             }
 
             $metrics[] = new TraceTimestampsDto(
                 timestamp: $this->rowReader->time($row['bucket']),
-                indicators: $indicators
+                indicators: $indicators,
             );
         }
 
@@ -195,13 +208,13 @@ readonly class TraceTimestampsRepository
                         value: 0,
                     ),
                     $aggregations
-                )
+                ),
             );
         }
 
         return new TraceTimestampsListDto(
             timestamps: $metrics,
-            emptyIndicators: $emptyIndicators
+            emptyIndicators: $emptyIndicators,
         );
     }
 

@@ -19,40 +19,42 @@ use SConcur\Bson\UTCDateTime;
  */
 readonly class WatcherTimelineRepository
 {
-    public function __construct(
-        private WatcherTimelineReader $reader
-    ) {
+    public function __construct(private WatcherTimelineReader $reader)
+    {
     }
 
     public function find(int $watcherId): WatcherTimelineObject
     {
-        $document = WatcherTimeline::sconcur()->findOne(['_id' => $watcherId]);
+        $document = WatcherTimeline::sconcur()
+            ->findOne(['_id' => $watcherId]);
 
         $buckets = $document['tl'] ?? [];
 
         return $this->reader->read(
             watcherId: $watcherId,
-            buckets: is_array($buckets) ? array_values($buckets) : []
+            buckets: is_array($buckets) ? array_values($buckets) : [],
         );
     }
 
     /** Drops the buckets that start before the given moment. */
     public function trim(int $watcherId, Carbon $before): void
     {
-        WatcherTimeline::sconcur()->updateOne(
-            filter: ['_id' => $watcherId],
-            update: [
-                '$pull' => [
-                    'tl' => [
-                        't' => ['$lt' => new UTCDateTime($before)],
+        WatcherTimeline::sconcur()
+            ->updateOne(
+                filter: ['_id' => $watcherId],
+                update: [
+                    '$pull' => [
+                        'tl' => [
+                            't' => ['$lt' => new UTCDateTime($before)],
+                        ],
                     ],
                 ],
-            ],
-        );
+            );
     }
 
     public function delete(int $watcherId): void
     {
-        WatcherTimeline::sconcur()->deleteOne(['_id' => $watcherId]);
+        WatcherTimeline::sconcur()
+            ->deleteOne(['_id' => $watcherId]);
     }
 }

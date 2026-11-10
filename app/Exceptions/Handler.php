@@ -1,47 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Exceptions;
 
-use App\Modules\Dashboard\Domain\Exceptions\DatabaseStatCacheNotFoundException;
+use App\Modules\Common\Infrastructure\Exceptions\Manager\ExceptionManagers;
+use App\Modules\Common\Infrastructure\Exceptions\ReportableException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\Request;
 use Throwable;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
-    /**
-     * The list of the inputs that are never flashed to the session on validation exceptions.
-     *
-     * @var array<int, string>
-     */
+    /** @var array<int, string> */
     protected $dontFlash = [
         'current_password',
         'password',
         'password_confirmation',
     ];
 
-    /**
-     * Register the exception handling callbacks for the application.
-     */
     public function register(): void
     {
-        $this->reportable(function (Throwable $exception) {
-            if ($exception instanceof DatabaseStatCacheNotFoundException) {
-                return false;
-            }
+        $this->renderable(
+            function (Throwable $exception, Request $request) {
+                $exceptionManagers = $this->container->make(ExceptionManagers::class);
+                $responseObject    = $exceptionManagers->makeJsonHttpResponse($exception);
 
-            return true;
-        });
+                if ($responseObject === null) {
+                    return null;
+                }
 
-        $this->renderable(function (Throwable $exception) {
-            if ($exception instanceof DatabaseStatCacheNotFoundException) {
+                $isError = $responseObject->isError;
+
+                if (!$request->expectsJson() && !$isError) {
+                    return $this->render(
+                        request: $request,
+                        e: new HttpException(
+                            statusCode: $responseObject->httpStatus,
+                            message: $responseObject->message,
+                            previous: $exception,
+                        ),
+                    );
+                }
+
+                $key = $isError ? 'error' : 'message';
+
+                $content = [
+                    $key => $responseObject->message,
+                ];
+
+                if ($responseObject->errorCode !== null) {
+                    $content['error_code'] = $responseObject->errorCode;
+                }
+
                 return response()->json(
-                    data: ['error' => 'No data yet. Please wait for the first cache refresh.'],
-                    status: Response::HTTP_SERVICE_UNAVAILABLE
+                    data: $content,
+                    status: $responseObject->httpStatus,
                 );
             }
+        );
+    }
 
-            return null;
-        });
+    public function report(Throwable $e): void
+    {
+        if ($e instanceof ReportableException) {
+            parent::report(
+                $e->getException()
+            );
+
+            return;
+        }
+
+        if (!$this->container->make(ExceptionManagers::class)->isReportable($e)) {
+            return;
+        }
+
+        parent::report($e);
     }
 }

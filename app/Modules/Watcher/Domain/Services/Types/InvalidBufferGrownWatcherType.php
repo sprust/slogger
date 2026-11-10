@@ -26,7 +26,10 @@ readonly class InvalidBufferGrownWatcherType implements WatcherTypeDefinitionInt
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
         return new InvalidBufferGrownSettingsObject(
-            threshold: ArrayValueGetter::intNull($settings, 'threshold') ?? 1
+            threshold: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'threshold',
+            ) ?? 1,
         );
     }
 
@@ -43,9 +46,9 @@ readonly class InvalidBufferGrownWatcherType implements WatcherTypeDefinitionInt
                     key: 'threshold',
                     title: 'New invalid traces',
                     valueType: 'int',
-                    default: new InvalidBufferGrownSettingsObject()->threshold
+                    default: new InvalidBufferGrownSettingsObject()->threshold,
                 ),
-            ]
+            ],
         );
     }
 

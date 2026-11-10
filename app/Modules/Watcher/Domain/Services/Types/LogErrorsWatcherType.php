@@ -26,7 +26,10 @@ readonly class LogErrorsWatcherType implements WatcherTypeDefinitionInterface
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
         return new LogErrorsSettingsObject(
-            threshold: ArrayValueGetter::intNull($settings, 'threshold') ?? 1
+            threshold: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'threshold',
+            ) ?? 1,
         );
     }
 
@@ -43,9 +46,9 @@ readonly class LogErrorsWatcherType implements WatcherTypeDefinitionInterface
                     key: 'threshold',
                     title: 'New errors',
                     valueType: 'int',
-                    default: new LogErrorsSettingsObject()->threshold
+                    default: new LogErrorsSettingsObject()->threshold,
                 ),
-            ]
+            ],
         );
     }
 

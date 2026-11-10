@@ -14,6 +14,7 @@ trait SecretMaskTrait
             return '';
         }
 
-        return str_repeat('*', 8) . mb_substr($secret, -self::VISIBLE_SECRET_TAIL);
+        return str_repeat('*', 8)
+            . mb_substr($secret, -self::VISIBLE_SECRET_TAIL);
     }
 }

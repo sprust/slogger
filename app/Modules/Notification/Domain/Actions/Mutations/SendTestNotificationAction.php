@@ -32,12 +32,18 @@ readonly class SendTestNotificationAction
 
         return $sender->send(
             channel: $channel,
-            text: implode("\n", [
-                '👋 ' . $sender->bold('SLogger'),
-                'Test message from channel ' . $sender->bold($sender->escape($channel->name)) . '.',
-                '',
-                '✅ If you can read this, the channel works.',
-            ])
+            text: implode(
+                "\n",
+                [
+                    '👋 ' . $sender->bold('SLogger'),
+                    'Test message from channel ' . $sender->bold(
+                        $sender->escape($channel->name)
+                    )
+                        . '.',
+                    '',
+                    '✅ If you can read this, the channel works.',
+                ]
+            ),
         );
     }
 }

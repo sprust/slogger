@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure;
 
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
+use App\Modules\Mcp\Infrastructure\Exceptions\McpExceptionManager;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpDataRangeAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIncidentEventsAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIncidentsAction;
@@ -55,6 +57,7 @@ use App\Modules\Mcp\Infrastructure\Tools\GetServicesTool;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Mcp\Repositories\McpRepository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Console\Scheduling\Schedule;
 
 class McpServiceProvider extends BaseServiceProvider
 {
@@ -78,33 +81,58 @@ class McpServiceProvider extends BaseServiceProvider
         SearchSloggerLogsTool::class,
     ];
 
-    public function boot(): void
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
+    }
+
+    protected function getJobs(): array
+    {
+        return [];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
+    }
+
+    protected function onRegister(): void
     {
         $this->app->singleton(
-            McpToolRegistry::class,
-            static function (Application $app): McpToolRegistry {
+            abstract: McpToolRegistry::class,
+            concrete: static function (Application $app): McpToolRegistry {
                 $tools = [];
 
                 foreach (self::TOOLS as $tool) {
-                    $tools[] = $app->make($tool);
+                    $tools[] = $app->make(
+                        abstract: $tool,
+                    );
                 }
 
                 return new McpToolRegistry($tools);
-            }
+            },
         );
 
         $this->app->singleton(
-            McpPromptRegistry::class,
-            static fn(): McpPromptRegistry => new McpPromptRegistry([
+            abstract: McpPromptRegistry::class,
+            concrete: static fn(): McpPromptRegistry => new McpPromptRegistry([
                 new InvestigateErrorsPrompt(),
                 new InvestigateLatencyPrompt(),
                 new ExplainIncidentPrompt(),
                 new ExplainTracePrompt(),
-            ])
+            ]),
         );
+    }
 
-        parent::boot();
-
+    /**
+     * @throws McpServerNameInvalidException
+     */
+    protected function onBoot(): void
+    {
         $this->app->make(FindMcpSettingsAction::class)->handle();
     }
 
@@ -148,5 +176,10 @@ class McpServiceProvider extends BaseServiceProvider
             GetTraceTreeTool::class,
             SearchTraceTreeTool::class,
         ];
+    }
+
+    protected function getExceptionManagerClass(): ?string
+    {
+        return McpExceptionManager::class;
     }
 }

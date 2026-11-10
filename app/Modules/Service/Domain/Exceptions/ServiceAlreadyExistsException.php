@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Service\Domain\Exceptions;
 
-use Exception;
-
-class ServiceAlreadyExistsException extends Exception
+class ServiceAlreadyExistsException extends AbstractServiceException
 {
     public function __construct(string $name)
     {

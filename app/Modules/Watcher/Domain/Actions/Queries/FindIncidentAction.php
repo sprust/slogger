@@ -9,9 +9,8 @@ use App\Modules\Watcher\Repositories\WatcherIncidentRepository;
 
 readonly class FindIncidentAction
 {
-    public function __construct(
-        private WatcherIncidentRepository $incidentRepository
-    ) {
+    public function __construct(private WatcherIncidentRepository $incidentRepository)
+    {
     }
 
     public function handle(string $id): ?WatcherIncidentObject

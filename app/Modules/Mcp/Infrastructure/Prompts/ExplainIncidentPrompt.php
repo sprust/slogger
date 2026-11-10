@@ -30,24 +30,28 @@ readonly class ExplainIncidentPrompt implements McpPromptInterface
             new McpPromptArgument(
                 name: 'incident_id',
                 description: 'Incident id from get_incidents.',
-                required: true
+                required: true,
             ),
         ];
     }
 
     public function text(array $arguments): string
     {
-        return implode("\n", [
-            sprintf('Explain incident "%s" raised by a SLogger watcher.', $arguments['incident_id'] ?? ''),
-            '',
-            'Steps:',
-            '1. get_incident_events for the watcher, its services and the numbers behind each event.',
-            '2. aggregate_traces by ["minute10"] around the first and the last event to see what changed.',
-            '3. search_traces in the window of the incident with the filters the watcher implies, then get_trace and '
-            . 'get_trace_tree for a few of them.',
-            '',
-            'Answer with what the incident means, since when it happens, the trace ids behind every claim and what '
-            . 'was not checked.',
-        ]);
+        return implode(
+            "\n",
+            [
+                sprintf('Explain incident "%s" raised by a SLogger watcher.', $arguments['incident_id'] ?? ''),
+                '',
+                'Steps:',
+                '1. get_incident_events for the watcher, its services and the numbers behind each event.',
+                '2. aggregate_traces by ["minute10"] around the first and the last event to see what changed.',
+                ('3. search_traces in the window of the incident with the filters '
+                    . 'the watcher implies, then get_trace and ')
+                    . 'get_trace_tree for a few of them.',
+                '',
+                'Answer with what the incident means, since when it happens, the trace ids behind every claim and what '
+                    . 'was not checked.',
+            ]
+        );
     }
 }

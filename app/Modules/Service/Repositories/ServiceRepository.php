@@ -22,14 +22,15 @@ class ServiceRepository
         return Service::query()
             ->when(
                 !is_null($ids),
-                fn(Builder $query) => $query->whereIn('id', $ids ?? [])
+                static fn(Builder $query) => $query->whereIn(
+                    'id',
+                    $ids ?? []
+                )
             )
             ->orderBy('position')
             ->orderBy('id')
             ->get()
-            ->map(
-                fn(Service $service) => $this->makeObjectByModel($service)
-            )
+            ->map(fn(Service $service) => $this->makeObjectByModel($service))
             ->toArray();
     }
 
@@ -112,10 +113,7 @@ class ServiceRepository
     {
         return Service::query()
             ->where('unique_key', $uniqueKey)
-            ->when(
-                !is_null($exceptId),
-                fn(Builder $query) => $query->where('id', '!=', $exceptId)
-            )
+            ->when(!is_null($exceptId), static fn(Builder $query) => $query->where('id', '!=', $exceptId))
             ->exists();
     }
 
@@ -127,7 +125,7 @@ class ServiceRepository
             uniqueKey: $service->unique_key,
             apiToken: $service->api_token,
             position: $service->position,
-            createdAt: $service->created_at
+            createdAt: $service->created_at,
         );
     }
 }

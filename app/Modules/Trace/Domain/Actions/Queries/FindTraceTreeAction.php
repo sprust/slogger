@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeResultObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
@@ -17,10 +18,11 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 readonly class FindTraceTreeAction
 {
     public function __construct(
+        private DispatcherInterface $dispatcher,
         private TraceRepository $traceRepository,
         private TraceTreeRepository $traceTreeRepository,
         private TraceTreeCacheRepository $traceTreeCacheRepository,
-        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository
     ) {
     }
 
@@ -29,11 +31,9 @@ readonly class FindTraceTreeAction
      */
     public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeResultObject
     {
-        $rootTraceId = $isChild
-            ? $traceId
-            : $this->traceTreeRepository->findParentTraceId(
-                traceId: $traceId
-            );
+        $rootTraceId = $isChild ? $traceId : $this->traceTreeRepository->findParentTraceId(
+            $traceId,
+        );
 
         if (!$rootTraceId) {
             return null;
@@ -44,7 +44,7 @@ readonly class FindTraceTreeAction
         }
 
         $state = $this->traceTreeCacheStateRepository->findOneByRootTraceId(
-            rootTraceId: $rootTraceId
+            $rootTraceId,
         );
 
         if ($fresh || $state === null) {
@@ -54,7 +54,7 @@ readonly class FindTraceTreeAction
                 status: TraceTreeCacheStateStatusEnum::InProcess,
             );
 
-            event(
+            $this->dispatcher->event(
                 new TraceTreeCacheDeleteRequestedEvent(
                     rootTraceId: $state->rootTraceId,
                     buildVersion: $state->version,
@@ -73,7 +73,7 @@ readonly class FindTraceTreeAction
                     rootTraceId: $rootTraceId,
                     version: $state->version,
                     count: $this->traceTreeCacheRepository->findCount(
-                        rootTraceId: $rootTraceId
+                        $rootTraceId,
                     ),
                 );
             }
@@ -92,7 +92,7 @@ readonly class FindTraceTreeAction
             return new TraceTreeResultObject(
                 state: $state,
                 items: $this->traceTreeCacheRepository->findMany(
-                    rootTraceId: $rootTraceId
+                    $rootTraceId,
                 ),
             );
         }

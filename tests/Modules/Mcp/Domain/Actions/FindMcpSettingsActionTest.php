@@ -10,18 +10,30 @@ class FindMcpSettingsActionTest extends TestCase
 {
     public function testServerNameDefaultsToAppEnv(): void
     {
-        $this->assertSame(env('APP_ENV'), config('mcp.server_name'));
+        $this->assertSame(
+            config('app.env'),
+            config('mcp.server_name')
+        );
     }
 
     public function testBuildsEndpointFromAppUrl(): void
     {
         config()->set('mcp.server_name', 'prod');
-        config()->set('app.url', 'https://slogger.example.com/');
+        config()->set(
+            'app.url',
+            'https://slogger.example.com/'
+        );
 
         $settings = new FindMcpSettingsAction()->handle();
 
-        $this->assertSame('prod', $settings->serverName);
-        $this->assertSame('https://slogger.example.com/mcp', $settings->endpointUrl);
+        $this->assertSame(
+            'prod',
+            $settings->serverName
+        );
+        $this->assertSame(
+            'https://slogger.example.com/mcp',
+            $settings->endpointUrl
+        );
     }
 
     public function testInvalidServerNameThrows(): void

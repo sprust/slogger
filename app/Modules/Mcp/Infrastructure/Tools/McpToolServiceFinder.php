@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
-use App\Modules\Service\Entities\ServiceObject;
+use App\Modules\Mcp\Entities\Bridges\McpServiceObject;
 
 readonly class McpToolServiceFinder
 {
@@ -16,7 +16,9 @@ readonly class McpToolServiceFinder
 
     public function names(): McpToolServiceNames
     {
-        return new McpToolServiceNames($this->findMcpServicesAction->handle(null));
+        return new McpToolServiceNames(
+            $this->findMcpServicesAction->handle(null)
+        );
     }
 
     /**
@@ -31,7 +33,7 @@ readonly class McpToolServiceFinder
         }
 
         $knownIds = array_map(
-            static fn(ServiceObject $service) => $service->id,
+            static fn(McpServiceObject $service) => $service->id,
             $this->findMcpServicesAction->handle(null)
         );
 

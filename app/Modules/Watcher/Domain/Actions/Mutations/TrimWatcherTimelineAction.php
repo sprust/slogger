@@ -27,9 +27,8 @@ readonly class TrimWatcherTimelineAction
      */
     private const int SLACK_MINUTES = 5;
 
-    public function __construct(
-        private WatcherTimelineRepository $timelineRepository
-    ) {
+    public function __construct(private WatcherTimelineRepository $timelineRepository)
+    {
     }
 
     public function handle(WatcherObject $watcher, Carbon $now): void
@@ -43,7 +42,11 @@ readonly class TrimWatcherTimelineAction
 
         $this->timelineRepository->trim(
             watcherId: $watcher->id,
-            before: $now->clone()->subMinutes($settings->timelineDepthMinutes() + self::SLACK_MINUTES)
+            before: $now
+                ->clone()
+                ->subMinutes(
+                    $settings->timelineDepthMinutes() + self::SLACK_MINUTES
+                ),
         );
     }
 }

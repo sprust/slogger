@@ -6,25 +6,25 @@ namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 
 readonly class DeleteTraceTreeCacheStateAction
 {
     public function __construct(
         private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
-        private Dispatcher $events,
+        private DispatcherInterface $dispatcher
     ) {
     }
 
     public function handle(string $rootTraceId): void
     {
         $this->traceTreeCacheStateRepository->deleteByRootTraceId(
-            rootTraceId: $rootTraceId
+            $rootTraceId,
         );
 
-        $this->events->dispatch(
+        $this->dispatcher->event(
             new TraceTreeCacheDeleteRequestedEvent(
-                rootTraceId: $rootTraceId
+                rootTraceId: $rootTraceId,
             )
         );
     }

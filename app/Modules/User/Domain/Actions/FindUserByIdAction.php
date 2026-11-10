@@ -9,13 +9,12 @@ use App\Modules\User\Repositories\UserRepository;
 
 readonly class FindUserByIdAction
 {
-    public function __construct(
-        private UserRepository $userRepository
-    ) {
+    public function __construct(private UserRepository $userRepository)
+    {
     }
 
     public function handle(int $id): ?UserDetailObject
     {
-        return $this->userRepository->findById(id: $id);
+        return $this->userRepository->findById($id);
     }
 }

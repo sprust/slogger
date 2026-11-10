@@ -20,15 +20,17 @@ readonly class FindTraceTreeFilteredAction
     ) {
     }
 
-    public function handle(string $rootTraceId, TraceTreeFilterParameters $parameters): TraceTreeFilteredObject
-    {
+    public function handle(
+        string $rootTraceId,
+        TraceTreeFilterParameters $parameters
+    ): TraceTreeFilteredObject {
         $limit = (int) config('module-trace.tree.filter_limit');
 
         // One more than the limit: whether it comes back is whether the list is cut.
         $matched = $this->traceTreeCacheRepository->findFiltered(
             rootTraceId: $rootTraceId,
             parameters: $parameters,
-            limit: $limit + 1
+            limit: $limit + 1,
         );
 
         $truncated = count($matched) > $limit;
@@ -60,7 +62,7 @@ readonly class FindTraceTreeFilteredAction
             // A parent the cache does not have is above the top of the tree.
             $level = $this->traceTreeCacheRepository->findByTraceIds(
                 rootTraceId: $rootTraceId,
-                traceIds: array_keys($parentTraceIds)
+                traceIds: array_keys($parentTraceIds),
             );
 
             foreach ($level as $node) {

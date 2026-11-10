@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Domain\Actions\Mutations;
 
+use App\Modules\Notification\Parameters\SendNotificationParameters;
 use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
-use App\Modules\Notification\Entities\ChannelObject;
-use App\Modules\Notification\Entities\NotificationObject;
 use App\Modules\Notification\Entities\SendResultObject;
 use App\Modules\Notification\Repositories\NotificationRepository;
 use Illuminate\Support\Carbon;
@@ -19,8 +18,11 @@ readonly class SendNotificationAction
     ) {
     }
 
-    public function handle(NotificationObject $notification, ?ChannelObject $channel): SendResultObject
+    public function handle(SendNotificationParameters $parameters): SendResultObject
     {
+        $notification = $parameters->notification;
+        $channel      = $parameters->channel;
+
         if (is_null($channel) || !$channel->enabled) {
             $result = new SendResultObject(
                 delivered: false,
@@ -28,23 +30,29 @@ readonly class SendNotificationAction
                 error: sprintf(
                     is_null($channel) ? 'Channel [%d] is gone' : 'Channel [%d] is disabled',
                     $notification->channelId
-                )
+                ),
             );
 
-            $this->notificationRepository->markFailed($notification->id, (string) $result->error);
+            $this->notificationRepository->markFailed(
+                id: $notification->id,
+                error: (string) $result->error,
+            );
 
             return $result;
         }
 
-        $result = $this->types->for($channel->type)->sender()->send(
-            channel: $channel,
-            text: $notification->text
-        );
+        $result = $this->types
+            ->for($channel->type)
+            ->sender()
+            ->send(
+                channel: $channel,
+                text: $notification->text,
+            );
 
         if ($result->delivered) {
             $this->notificationRepository->markSent(
                 id: $notification->id,
-                sentAt: Carbon::now()
+                sentAt: Carbon::now(),
             );
 
             return $result;
@@ -52,7 +60,7 @@ readonly class SendNotificationAction
 
         $this->notificationRepository->markFailed(
             id: $notification->id,
-            error: $result->error ?? 'unknown error'
+            error: $result->error ?? 'unknown error',
         );
 
         return $result;

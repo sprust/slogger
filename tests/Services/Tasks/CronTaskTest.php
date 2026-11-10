@@ -25,10 +25,14 @@ class CronTaskTest extends TestCase
         // over between the constructor and the tick would not merely fail the assertion:
         // the tick would reach Artisan::call() with no application bound, and the test
         // would die rather than report.
-        Carbon::setTestNow(Carbon::create(2026, 8, 29, 11, 0, 20));
+        Carbon::setTestNow(
+            Carbon::create(2026, 8, 29, 11, 0, 20)
+        );
 
         try {
-            $task = new CronTask(new SilentLogger());
+            $task = new CronTask(
+                new SilentLogger()
+            );
 
             $this->assertSame(
                 TickResultEnum::Idle,
@@ -42,6 +46,11 @@ class CronTaskTest extends TestCase
 
     public function testTheTaskIsNamedCron(): void
     {
-        $this->assertSame('cron', new CronTask(new SilentLogger())->name());
+        $this->assertSame(
+            'cron',
+            new CronTask(
+                new SilentLogger()
+            )->name()
+        );
     }
 }

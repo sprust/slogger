@@ -38,15 +38,17 @@ readonly class GetTraceTool implements McpToolInterface
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            new McpToolProperty(
-                name: 'trace_id',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Trace id.',
-                required: true,
-                max: 255
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                new McpToolProperty(
+                    name: 'trace_id',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Trace id.',
+                    required: true,
+                    max: 255,
+                ),
+            ],
+        );
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
@@ -71,7 +73,7 @@ readonly class GetTraceTool implements McpToolInterface
                 'cpu'             => $trace->cpu,
                 'pid'             => $trace->pid,
                 'logged_at'       => $this->formatter->time($trace->loggedAt),
-            ]
+            ],
         );
     }
 }

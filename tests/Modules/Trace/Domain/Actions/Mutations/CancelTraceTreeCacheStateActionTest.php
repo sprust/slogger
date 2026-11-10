@@ -7,7 +7,7 @@ use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface as Dispatcher;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 
@@ -24,17 +24,30 @@ class CancelTraceTreeCacheStateActionTest extends TestCase
         $events = $this->createMock(Dispatcher::class);
 
         $states->method('updateStatus')->willReturn(true);
-        $states->method('findOneByRootTraceId')->willReturn($this->state());
 
-        $events->expects($this->once())
-            ->method('dispatch')
+        $states->method('findOneByRootTraceId')->willReturn(
+            $this->state()
+        );
+
+        $events
+            ->expects(
+                $this->once()
+            )
+            ->method('event')
             ->with(
                 $this->callback(
-                    static fn(TraceTreeCacheStateChangedEvent $event): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Canceled
+                    static fn(
+                        TraceTreeCacheStateChangedEvent $event
+                    ): bool => $event->state->status === TraceTreeCacheStateStatusEnum::Canceled
                 )
             );
 
-        $this->assertNotNull(new CancelTraceTreeCacheStateAction($states, $events)->handle('root'));
+        $this->assertNotNull(
+            (new CancelTraceTreeCacheStateAction(
+                traceTreeCacheStateRepository: $states,
+                dispatcher: $events,
+            ))->handle('root')
+        );
     }
 
     public function testCancellingWhatIsNotThereAnnouncesNothing(): void
@@ -44,9 +57,16 @@ class CancelTraceTreeCacheStateActionTest extends TestCase
 
         $states->method('updateStatus')->willReturn(false);
 
-        $events->expects($this->never())->method('dispatch');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
-        $this->assertNull(new CancelTraceTreeCacheStateAction($states, $events)->handle('root'));
+        $this->assertNull(
+            (new CancelTraceTreeCacheStateAction(
+                traceTreeCacheStateRepository: $states,
+                dispatcher: $events,
+            ))->handle('root')
+        );
     }
 
     private function state(): TraceTreeCacheStateObject

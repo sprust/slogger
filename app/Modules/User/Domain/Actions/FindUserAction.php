@@ -9,9 +9,8 @@ use App\Modules\User\Repositories\UserRepository;
 
 readonly class FindUserAction
 {
-    public function __construct(
-        private UserRepository $userRepository
-    ) {
+    public function __construct(private UserRepository $userRepository)
+    {
     }
 
     public function handle(int $id): ?UserObject

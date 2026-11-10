@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Mcp\Infrastructure\Protocol\McpErrorCodeEnum;
 use App\Modules\Mcp\Infrastructure\Protocol\McpHeaderValidator;
 use App\Modules\Mcp\Infrastructure\Protocol\McpJsonEncoder;
@@ -21,6 +22,7 @@ use Throwable;
 readonly class McpEndpointController
 {
     public function __construct(
+        private DispatcherInterface $dispatcher,
         private McpMessageParser $messageParser,
         private McpHeaderValidator $headerValidator,
         private McpVersionValidator $versionValidator,
@@ -31,7 +33,9 @@ readonly class McpEndpointController
     public function handle(Request $request): Response
     {
         try {
-            $message = $this->messageParser->parse($request->getContent());
+            $message = $this->messageParser->parse(
+                $request->getContent()
+            );
 
             if ($message instanceof McpNotificationMessage) {
                 return response()->noContent(Response::HTTP_ACCEPTED);
@@ -40,13 +44,22 @@ readonly class McpEndpointController
             $version = $this->headerValidator->validate(
                 message: $message,
                 headers: new McpRequestHeaders(
-                    protocolVersion: $request->headers->get('MCP-Protocol-Version'),
-                    method: $request->headers->get('Mcp-Method'),
-                    name: $request->headers->get('Mcp-Name')
-                )
+                    protocolVersion: $request->headers->get(
+                        key: 'MCP-Protocol-Version',
+                    ),
+                    method: $request->headers->get(
+                        key: 'Mcp-Method',
+                    ),
+                    name: $request->headers->get(
+                        key: 'Mcp-Name',
+                    ),
+                ),
             );
 
-            $this->versionValidator->validate($message, $version);
+            $this->versionValidator->validate(
+                message: $message,
+                requestedVersion: $version,
+            );
 
             return $this->json(
                 status: Response::HTTP_OK,
@@ -54,7 +67,7 @@ readonly class McpEndpointController
                     'jsonrpc' => '2.0',
                     'id'      => $message->id,
                     'result'  => $this->server->handle($message),
-                ]
+                ],
             );
         } catch (McpProtocolException $exception) {
             return $this->error(
@@ -62,16 +75,18 @@ readonly class McpEndpointController
                 id: $exception->requestId,
                 code: $exception->errorCode,
                 message: $exception->getMessage(),
-                data: $exception->data
+                data: $exception->data,
             );
         } catch (Throwable $exception) {
-            report($exception);
+            $this->dispatcher->report($exception);
 
             return $this->error(
                 status: Response::HTTP_INTERNAL_SERVER_ERROR,
-                id: isset($message) && !$message instanceof McpNotificationMessage ? $message->id : null,
+                id: isset($message) && !$message instanceof McpNotificationMessage
+                    ? $message->id
+                    : null,
                 code: McpErrorCodeEnum::InternalError,
-                message: 'Internal error'
+                message: 'Internal error',
             );
         }
     }
@@ -101,7 +116,7 @@ readonly class McpEndpointController
                 'jsonrpc' => '2.0',
                 'id'      => $id,
                 'error'   => $error,
-            ]
+            ],
         );
     }
 
@@ -113,7 +128,7 @@ readonly class McpEndpointController
         return new JsonResponse(
             data: $body,
             status: $status,
-            options: McpJsonEncoder::FLAGS
+            options: McpJsonEncoder::FLAGS,
         );
     }
 }

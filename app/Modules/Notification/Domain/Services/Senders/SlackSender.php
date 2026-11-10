@@ -30,7 +30,7 @@ readonly class SlackSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Channel is not a slack one'
+                error: 'Channel is not a slack one',
             );
         }
 
@@ -38,19 +38,22 @@ readonly class SlackSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Webhook url is not set'
+                error: 'Webhook url is not set',
             );
         }
 
         try {
-            $body = json_encode([
-                'text' => $this->cut($text),
-            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $body = json_encode(
+                [
+                    'text' => $this->cut($text),
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
         } catch (JsonException $exception) {
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Message could not be encoded: ' . $exception->getMessage()
+                error: 'Message could not be encoded: ' . $exception->getMessage(),
             );
         }
 
@@ -60,17 +63,23 @@ readonly class SlackSender implements NotificationSenderInterface
                     method: 'POST',
                     uri: $settings->webhookUrl,
                     headers: ['Content-Type' => 'application/json'],
-                    body: $body
+                    body: $body,
                 )
             );
         } catch (Throwable $exception) {
             return new SendResultObject(
                 delivered: false,
-                error: $this->withoutUrl($exception->getMessage(), $settings->webhookUrl)
+                error: $this->withoutUrl(
+                    message: $exception->getMessage(),
+                    webhookUrl: $settings->webhookUrl,
+                ),
             );
         }
 
-        return $this->resultReader->read($response, 'Slack');
+        return $this->resultReader->read(
+            response: $response,
+            endpointName: 'Slack',
+        );
     }
 
     /**
@@ -79,7 +88,11 @@ readonly class SlackSender implements NotificationSenderInterface
      */
     public function escape(string $value): string
     {
-        return str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $value);
+        return str_replace(
+            ['&', '<', '>'],
+            ['&amp;', '&lt;', '&gt;'],
+            $value
+        );
     }
 
     public function bold(string $value): string

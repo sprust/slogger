@@ -35,14 +35,22 @@ readonly class FakeMcpTool implements McpToolInterface
     public function schema(): McpToolSchema
     {
         return new McpToolSchema([
-            new McpToolProperty('thing_id', McpToolPropertyTypeEnum::String, 'Thing id', required: true),
+            new McpToolProperty(
+                'thing_id',
+                McpToolPropertyTypeEnum::String,
+                'Thing id',
+                required: true
+            ),
         ]);
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
     {
         if ($arguments->string('thing_id') === 'too_wide') {
-            throw new ClickhouseQueryException(message: 'Code: 159. Timeout exceeded', code: 159);
+            throw new ClickhouseQueryException(
+                message: 'Code: 159. Timeout exceeded',
+                code: 159
+            );
         }
 
         if ($arguments->string('thing_id') === 'missing') {

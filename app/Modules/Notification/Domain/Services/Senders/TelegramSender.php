@@ -28,9 +28,8 @@ readonly class TelegramSender implements NotificationSenderInterface
      */
     private const int CUT_RESERVE = 64;
 
-    public function __construct(
-        private ClientInterface $httpClient
-    ) {
+    public function __construct(private ClientInterface $httpClient)
+    {
     }
 
     public function send(ChannelObject $channel, string $text): SendResultObject
@@ -41,7 +40,7 @@ readonly class TelegramSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Channel is not a telegram one'
+                error: 'Channel is not a telegram one',
             );
         }
 
@@ -49,22 +48,25 @@ readonly class TelegramSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Bot token or chat id is not set'
+                error: 'Bot token or chat id is not set',
             );
         }
 
         try {
-            $body = json_encode([
-                'chat_id'                  => $settings->chatId,
-                'text'                     => $this->cut($text),
-                'parse_mode'               => 'HTML',
-                'disable_web_page_preview' => true,
-            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $body = json_encode(
+                [
+                    'chat_id'                  => $settings->chatId,
+                    'text'                     => $this->cut($text),
+                    'parse_mode'               => 'HTML',
+                    'disable_web_page_preview' => true,
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
         } catch (JsonException $exception) {
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Message could not be encoded: ' . $exception->getMessage()
+                error: 'Message could not be encoded: ' . $exception->getMessage(),
             );
         }
 
@@ -74,13 +76,16 @@ readonly class TelegramSender implements NotificationSenderInterface
                     method: 'POST',
                     uri: sprintf(self::ENDPOINT, $settings->botToken),
                     headers: ['Content-Type' => 'application/json'],
-                    body: $body
+                    body: $body,
                 )
             );
         } catch (Throwable $exception) {
             return new SendResultObject(
                 delivered: false,
-                error: $this->withoutToken($exception->getMessage(), $settings->botToken)
+                error: $this->withoutToken(
+                    message: $exception->getMessage(),
+                    botToken: $settings->botToken,
+                ),
             );
         }
 
@@ -89,7 +94,11 @@ readonly class TelegramSender implements NotificationSenderInterface
 
     public function escape(string $value): string
     {
-        return str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $value);
+        return str_replace(
+            ['&', '<', '>'],
+            ['&amp;', '&lt;', '&gt;'],
+            $value
+        );
     }
 
     public function bold(string $value): string
@@ -171,7 +180,9 @@ readonly class TelegramSender implements NotificationSenderInterface
         $payload = is_array($payload) ? $payload : [];
 
         if ($status === 200 && ($payload['ok'] ?? false) === true) {
-            return new SendResultObject(delivered: true);
+            return new SendResultObject(
+                delivered: true,
+            );
         }
 
         $error = is_string($payload['description'] ?? null)
@@ -186,14 +197,21 @@ readonly class TelegramSender implements NotificationSenderInterface
                 error: $error,
                 retryAfterSeconds: is_numeric($retryAfter)
                     ? (int) $retryAfter
-                    : self::DEFAULT_RETRY_AFTER_SECONDS
+                    : self::DEFAULT_RETRY_AFTER_SECONDS,
             );
         }
 
         if ($status >= 400 && $status < 500) {
-            return new SendResultObject(delivered: false, permanent: true, error: $error);
+            return new SendResultObject(
+                delivered: false,
+                permanent: true,
+                error: $error,
+            );
         }
 
-        return new SendResultObject(delivered: false, error: $error);
+        return new SendResultObject(
+            delivered: false,
+            error: $error,
+        );
     }
 }

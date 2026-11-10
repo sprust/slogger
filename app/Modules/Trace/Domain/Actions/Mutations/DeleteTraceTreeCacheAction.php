@@ -8,7 +8,7 @@ use App\Modules\Trace\Domain\Actions\Queries\IsShouldContinueBuildTraceTreeCache
 use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 
 readonly class DeleteTraceTreeCacheAction
 {
@@ -17,7 +17,7 @@ readonly class DeleteTraceTreeCacheAction
     public function __construct(
         private TraceTreeCacheRepository $traceTreeCacheRepository,
         private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
-        private Dispatcher $events,
+        private DispatcherInterface $dispatcher
     ) {
     }
 
@@ -25,21 +25,24 @@ readonly class DeleteTraceTreeCacheAction
     {
         if (
             !is_null($buildVersion)
-            && !$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $buildVersion)
+            && !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
+                rootTraceId: $rootTraceId,
+                version: $buildVersion,
+            )
         ) {
             return;
         }
 
         $deleted = $this->traceTreeCacheRepository->deleteChunk(
             rootTraceId: $rootTraceId,
-            limit: self::CHUNK_COUNT
+            limit: self::CHUNK_COUNT,
         );
 
         if ($deleted >= self::CHUNK_COUNT) {
-            $this->events->dispatch(
+            $this->dispatcher->event(
                 new TraceTreeCacheDeleteRequestedEvent(
                     rootTraceId: $rootTraceId,
-                    buildVersion: $buildVersion
+                    buildVersion: $buildVersion,
                 )
             );
 
@@ -50,10 +53,10 @@ readonly class DeleteTraceTreeCacheAction
             return;
         }
 
-        $this->events->dispatch(
+        $this->dispatcher->event(
             new TraceTreeCacheBuildRequestedEvent(
                 rootTraceId: $rootTraceId,
-                version: $buildVersion
+                version: $buildVersion,
             )
         );
     }

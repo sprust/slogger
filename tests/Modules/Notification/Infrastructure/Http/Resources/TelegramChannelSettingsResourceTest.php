@@ -18,15 +18,27 @@ class TelegramChannelSettingsResourceTest extends TestCase
             )
         )->toArray();
 
-        $this->assertSame(7, $data['id']);
-        $this->assertSame('********fake', $data['bot_token_mask']);
-        $this->assertSame('@ops', $data['chat_id']);
+        $this->assertSame(
+            7,
+            $data['id']
+        );
+        $this->assertSame(
+            '********fake',
+            $data['bot_token_mask']
+        );
+        $this->assertSame(
+            '@ops',
+            $data['chat_id']
+        );
     }
 
     public function testAnUnsetTokenHasNoMask(): void
     {
         $data = new TelegramChannelSettingsResource(7, new TelegramSettingsObject())->toArray();
 
-        $this->assertSame('', $data['bot_token_mask']);
+        $this->assertSame(
+            '',
+            $data['bot_token_mask']
+        );
     }
 }

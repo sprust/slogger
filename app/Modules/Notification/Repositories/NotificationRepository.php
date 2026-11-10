@@ -22,7 +22,8 @@ readonly class NotificationRepository
             return null;
         }
 
-        $document = Notification::sconcur()->findOne(['_id' => $objectId]);
+        $document = Notification::sconcur()
+            ->findOne(['_id' => $objectId]);
 
         return is_null($document) ? null : $this->makeObject($document);
     }
@@ -32,11 +33,12 @@ readonly class NotificationRepository
      */
     public function findByChannelId(int $channelId, int $limit): array
     {
-        $cursor = Notification::sconcur()->find(
-            filter: ['channelId' => $channelId],
-            sort: ['_id' => -1],
-            limit: $limit,
-        );
+        $cursor = Notification::sconcur()
+            ->find(
+                filter: ['channelId' => $channelId],
+                sort: ['_id' => -1],
+                limit: $limit,
+            );
 
         $notifications = [];
 
@@ -55,16 +57,17 @@ readonly class NotificationRepository
         string $text,
         Carbon $createdAt
     ): NotificationObject {
-        $result = Notification::sconcur()->insertOne([
-            'channelId'  => $channelId,
-            'watcherId'  => $watcherId,
-            'incidentId' => $incidentId,
-            'kind'       => $kind->value,
-            'text'       => $text,
-            'sentAt'     => null,
-            'error'      => null,
-            'createdAt'  => new UTCDateTime($createdAt),
-        ]);
+        $result = Notification::sconcur()
+            ->insertOne([
+                'channelId'  => $channelId,
+                'watcherId'  => $watcherId,
+                'incidentId' => $incidentId,
+                'kind'       => $kind->value,
+                'text'       => $text,
+                'sentAt'     => null,
+                'error'      => null,
+                'createdAt'  => new UTCDateTime($createdAt),
+            ]);
 
         return new NotificationObject(
             id: (string) $result->insertedId,
@@ -75,7 +78,7 @@ readonly class NotificationRepository
             text: $text,
             sentAt: null,
             error: null,
-            createdAt: $createdAt
+            createdAt: $createdAt,
         );
     }
 
@@ -87,15 +90,16 @@ readonly class NotificationRepository
             return;
         }
 
-        Notification::sconcur()->updateOne(
-            filter: ['_id' => $objectId],
-            update: [
-                '$set' => [
-                    'sentAt' => new UTCDateTime($sentAt),
-                    'error'  => null,
+        Notification::sconcur()
+            ->updateOne(
+                filter: ['_id' => $objectId],
+                update: [
+                    '$set' => [
+                        'sentAt' => new UTCDateTime($sentAt),
+                        'error'  => null,
+                    ],
                 ],
-            ],
-        );
+            );
     }
 
     public function markFailed(string $id, string $error): void
@@ -106,10 +110,13 @@ readonly class NotificationRepository
             return;
         }
 
-        Notification::sconcur()->updateOne(
-            filter: ['_id' => $objectId],
-            update: ['$set' => ['error' => $error]],
-        );
+        Notification::sconcur()
+            ->updateOne(
+                filter: ['_id' => $objectId],
+                update: [
+                    '$set' => ['error' => $error],
+                ],
+            );
     }
 
     private function objectId(string $id): ?ObjectId
@@ -133,9 +140,15 @@ readonly class NotificationRepository
             incidentId: isset($document['incidentId']) ? (string) $document['incidentId'] : null,
             kind: NotificationKindEnum::from((string) $document['kind']),
             text: (string) $document['text'],
-            sentAt: $this->readDate($document, 'sentAt'),
+            sentAt: $this->readDate(
+                document: $document,
+                key: 'sentAt',
+            ),
             error: isset($document['error']) ? (string) $document['error'] : null,
-            createdAt: $this->readDate($document, 'createdAt') ?? Carbon::now()
+            createdAt: $this->readDate(
+                document: $document,
+                key: 'createdAt',
+            ) ?? Carbon::now(),
         );
     }
 

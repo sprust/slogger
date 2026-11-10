@@ -32,6 +32,8 @@ readonly class LogCursorCodec
 
     /**
      * @param list<string> $allowedFileIds
+     *
+     * @throws LogCursorInvalidException
      */
     public function decode(string $cursor, array $allowedFileIds): LogCursorObject
     {
@@ -47,7 +49,11 @@ readonly class LogCursorCodec
             throw new LogCursorInvalidException('unknown version');
         }
 
-        $direction = LogCursorDirectionEnum::tryFrom(is_string($data['d'] ?? null) ? $data['d'] : '');
+        $direction = LogCursorDirectionEnum::tryFrom(
+            is_string($data['d'] ?? null)
+                ? $data['d']
+                : ''
+        );
 
         if ($direction === null) {
             throw new LogCursorInvalidException('unknown direction');
@@ -63,7 +69,9 @@ readonly class LogCursorCodec
             $fileId = (string) $fileId;
 
             if (!in_array($fileId, $allowedFileIds, true)) {
-                throw new LogCursorInvalidException(sprintf('file [%s] is not asked for', $fileId));
+                throw new LogCursorInvalidException(
+                    sprintf('file [%s] is not asked for', $fileId)
+                );
             }
 
             if (
@@ -76,17 +84,22 @@ readonly class LogCursorCodec
                 || !is_string($value[2] ?? null)
                 || preg_match('/^[0-9a-f]{32}$/', $value[2]) !== 1
             ) {
-                throw new LogCursorInvalidException(sprintf('position of file [%s] is malformed', $fileId));
+                throw new LogCursorInvalidException(
+                    sprintf('position of file [%s] is malformed', $fileId)
+                );
             }
 
             $positions[] = new LogCursorPositionObject(
                 fileId: $fileId,
                 position: $value[0],
                 headLength: $value[1],
-                headHash: $value[2]
+                headHash: $value[2],
             );
         }
 
-        return new LogCursorObject(direction: $direction, positions: $positions);
+        return new LogCursorObject(
+            direction: $direction,
+            positions: $positions,
+        );
     }
 }

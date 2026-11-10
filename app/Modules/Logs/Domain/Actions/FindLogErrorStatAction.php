@@ -12,9 +12,8 @@ use Illuminate\Support\Carbon;
 
 readonly class FindLogErrorStatAction
 {
-    public function __construct(
-        private LogErrorStatCounter $logErrorStatCounter
-    ) {
+    public function __construct(private LogErrorStatCounter $logErrorStatCounter)
+    {
     }
 
     public function handle(Carbon $since, Carbon $until): LogLevelStatObject
@@ -28,7 +27,7 @@ readonly class FindLogErrorStatAction
                 LaravelLogLevelEnum::Emergency->value,
             ],
             since: $since,
-            until: $until
+            until: $until,
         );
     }
 }

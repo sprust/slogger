@@ -36,12 +36,12 @@ readonly class FindTraceGroupsAction
             statuses: $parameters->statuses,
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
-            data: $parameters->data
+            data: $parameters->data,
         );
 
         return new TraceGroupsObject(
             items: array_slice($groups, 0, $parameters->limit),
-            truncated: count($groups) > $parameters->limit
+            truncated: count($groups) > $parameters->limit,
         );
     }
 }

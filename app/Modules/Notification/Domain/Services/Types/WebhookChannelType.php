@@ -15,21 +15,28 @@ use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 
 readonly class WebhookChannelType implements NotificationChannelTypeDefinitionInterface
 {
-    public function __construct(
-        private WebhookSender $sender
-    ) {
+    public function __construct(private WebhookSender $sender)
+    {
     }
 
     public function makeSettings(array $settings): ChannelSettingsInterface
     {
         return new WebhookSettingsObject(
-            url: ArrayValueGetter::stringNull($settings, 'url') ?? '',
-            token: ArrayValueGetter::stringNull($settings, 'token') ?? ''
+            url: ArrayValueGetter::stringNull(
+                data: $settings,
+                key: 'url',
+            ) ?? '',
+            token: ArrayValueGetter::stringNull(
+                data: $settings,
+                key: 'token',
+            ) ?? '',
         );
     }
 
-    public function makeUpdatedSettings(array $submitted, ChannelSettingsInterface $stored): ChannelSettingsInterface
-    {
+    public function makeUpdatedSettings(
+        array $submitted,
+        ChannelSettingsInterface $stored
+    ): ChannelSettingsInterface {
         $settings = $this->makeSettings($submitted);
 
         if (!$settings instanceof WebhookSettingsObject || !$stored instanceof WebhookSettingsObject) {
@@ -38,7 +45,7 @@ readonly class WebhookChannelType implements NotificationChannelTypeDefinitionIn
 
         return new WebhookSettingsObject(
             url: $settings->url,
-            token: $settings->token === '' ? $stored->token : $settings->token
+            token: $settings->token === '' ? $stored->token : $settings->token,
         );
     }
 
@@ -54,7 +61,7 @@ readonly class WebhookChannelType implements NotificationChannelTypeDefinitionIn
                     title: 'Url',
                     description: 'Where to POST {channel, text, sent_at}.',
                     secret: false,
-                    maxLength: 500
+                    maxLength: 500,
                 ),
                 new ChannelTypeFieldObject(
                     key: 'token',
@@ -62,10 +69,10 @@ readonly class WebhookChannelType implements NotificationChannelTypeDefinitionIn
                     description: 'Sent as the X-Slogger-Token header, so the receiver can tell it is us. '
                         . 'Optional. Stored encrypted and never shown back.',
                     secret: true,
+                    maxLength: 255,
                     required: false,
-                    maxLength: 255
                 ),
-            ]
+            ],
         );
     }
 

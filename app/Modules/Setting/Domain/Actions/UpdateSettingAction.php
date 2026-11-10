@@ -26,10 +26,21 @@ readonly class UpdateSettingAction
     {
         $definition = $this->settingDefinitionFinder->find($parameters->key);
 
-        if (!$this->settingValueResolver->isValid($definition, $parameters->value)) {
-            throw new SettingValueOutOfRangeException($definition, $parameters->value);
+        if (
+            !$this->settingValueResolver->isValid(
+                definition: $definition,
+                value: $parameters->value,
+            )
+        ) {
+            throw new SettingValueOutOfRangeException(
+                definition: $definition,
+                value: $parameters->value,
+            );
         }
 
-        $this->settingRepository->set($parameters->key, $parameters->value);
+        $this->settingRepository->set(
+            key: $parameters->key,
+            value: $parameters->value,
+        );
     }
 }

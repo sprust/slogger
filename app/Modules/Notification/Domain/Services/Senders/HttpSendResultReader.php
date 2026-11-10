@@ -26,35 +26,52 @@ readonly class HttpSendResultReader
         $status = $response->getStatusCode();
 
         if ($status >= 200 && $status < 300) {
-            return new SendResultObject(delivered: true);
+            return new SendResultObject(
+                delivered: true,
+            );
         }
 
-        $error = $this->describe($response, $endpointName, $status);
+        $error = $this->describe(
+            response: $response,
+            endpointName: $endpointName,
+            status: $status,
+        );
 
         if ($status === 429) {
             return new SendResultObject(
                 delivered: false,
                 error: $error,
-                retryAfterSeconds: $this->retryAfter($response)
+                retryAfterSeconds: $this->retryAfter($response),
             );
         }
 
         if ($status >= 400 && $status < 500) {
-            return new SendResultObject(delivered: false, permanent: true, error: $error);
+            return new SendResultObject(
+                delivered: false,
+                permanent: true,
+                error: $error,
+            );
         }
 
-        return new SendResultObject(delivered: false, error: $error);
+        return new SendResultObject(
+            delivered: false,
+            error: $error,
+        );
     }
 
-    private function describe(ResponseInterface $response, string $endpointName, int $status): string
-    {
+    private function describe(
+        ResponseInterface $response,
+        string $endpointName,
+        int $status
+    ): string {
         $body = trim((string) $response->getBody());
 
         if ($body === '') {
             return "$endpointName answered $status";
         }
 
-        return "$endpointName answered $status: " . mb_substr($body, 0, self::MAX_REPORTED_BODY_LENGTH);
+        return "$endpointName answered $status: "
+            . mb_substr($body, 0, self::MAX_REPORTED_BODY_LENGTH);
     }
 
     private function retryAfter(ResponseInterface $response): int

@@ -46,7 +46,9 @@ readonly class McpRepository
 
     public function findOneByToken(string $token): ?McpObject
     {
-        $mcp = Mcp::query()->where('token', $token)->first();
+        $mcp = Mcp::query()
+            ->where('token', $token)
+            ->first();
 
         return $mcp instanceof Mcp ? $this->makeObject($mcp) : null;
     }
@@ -74,14 +76,19 @@ readonly class McpRepository
     {
         Mcp::query()
             ->where('id', $id)
-            ->increment('requests_count', extra: [
-                'last_used_at' => $lastUsedAt,
-            ]);
+            ->increment(
+                'requests_count',
+                extra: [
+                    'last_used_at' => $lastUsedAt,
+                ],
+            );
     }
 
     public function delete(int $id): bool
     {
-        return Mcp::query()->where('id', $id)->delete() > 0;
+        return Mcp::query()
+            ->where('id', $id)
+            ->delete() > 0;
     }
 
     private function makeObject(Mcp $mcp): McpObject
@@ -94,7 +101,7 @@ readonly class McpRepository
             requestsCount: $mcp->requests_count,
             lastUsedAt: $mcp->last_used_at,
             createdAt: $mcp->created_at,
-            updatedAt: $mcp->updated_at
+            updatedAt: $mcp->updated_at,
         );
     }
 }

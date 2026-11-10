@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cleaner\Infrastructure\Http\Controllers;
 
-use App\Modules\Cleaner\Domain\Actions\FindProcessesAction;
+use App\Modules\Cleaner\Domain\UseCases\FindProcessesByAdminUseCase;
 use App\Modules\Cleaner\Infrastructure\Http\Resources\ProcessResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -12,7 +12,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class ProcessController
 {
     public function __construct(
-        private FindProcessesAction $findProcessesAction
+        private FindProcessesByAdminUseCase $findProcessesByAdminUseCase
     ) {
     }
 
@@ -20,9 +20,7 @@ readonly class ProcessController
     public function index(): AnonymousResourceCollection
     {
         return ProcessResource::collection(
-            $this->findProcessesAction->handle(
-                page: 1,
-            )
+            $this->findProcessesByAdminUseCase->handle(1)
         );
     }
 }

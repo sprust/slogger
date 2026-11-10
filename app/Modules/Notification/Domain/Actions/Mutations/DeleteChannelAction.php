@@ -8,9 +8,8 @@ use App\Modules\Notification\Repositories\ChannelRepository;
 
 readonly class DeleteChannelAction
 {
-    public function __construct(
-        private ChannelRepository $channelRepository
-    ) {
+    public function __construct(private ChannelRepository $channelRepository)
+    {
     }
 
     public function handle(int $channelId): void

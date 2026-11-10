@@ -30,7 +30,7 @@ readonly class DatabaseStatRepository
 
     public function __construct(
         private MongoConnectionFactory $connections,
-        private ClickhouseClient $clickhouse,
+        private ClickhouseClient $clickhouse
     ) {
     }
 
@@ -40,16 +40,16 @@ readonly class DatabaseStatRepository
      *
      * @return DatabaseStatObject[]
      */
-    public function find(): array
+    public function findMongo(): array
     {
-        $databaseSizes = null;
-
-        $databases = [];
-
+        $databaseSizes   = null;
+        $databases       = [];
         $memoryUsageSize = null;
 
         foreach ($this->connections->connectionNames() as $connectionName) {
-            $client = $this->connections->client($connectionName);
+            $client = $this->connections->client(
+                connectionName: $connectionName,
+            );
 
             if (is_null($memoryUsageSize)) {
                 $memoryUsageSize = $this->bitesToMb($this->heapSize($client));
@@ -59,20 +59,18 @@ readonly class DatabaseStatRepository
                 $databaseSizes = $this->databaseSizes($client);
             }
 
-            $databaseName = $this->connections->databaseName($connectionName);
-
-            $databaseSize = $databaseSizes[$databaseName] ?? null;
-
-            $databaseSize = $databaseSize ? $this->bitesToMb($databaseSize) : 0;
-
-            $database = $client->selectDatabase($databaseName);
-
-            $collections = [];
-
+            $databaseName        = $this->connections->databaseName($connectionName);
+            $databaseSize        = $databaseSizes[$databaseName] ?? null;
+            $databaseSize        = $databaseSize ? $this->bitesToMb($databaseSize) : 0;
+            $database            = $client->selectDatabase($databaseName);
+            $collections         = [];
             $totalDocumentsCount = 0;
 
             foreach ($this->collectionNames($database) as $collectionName) {
-                $collection = $this->collectionStat($database, $collectionName);
+                $collection = $this->collectionStat(
+                    database: $database,
+                    collectionName: $collectionName,
+                );
 
                 if (is_null($collection)) {
                     continue;
@@ -88,14 +86,8 @@ readonly class DatabaseStatRepository
                 size: $databaseSize,
                 totalDocumentsCount: $totalDocumentsCount,
                 memoryUsage: $memoryUsageSize,
-                collections: $collections
+                collections: $collections,
             );
-        }
-
-        try {
-            $databases[] = $this->clickhouseStat();
-        } catch (ClickhouseQueryException $exception) {
-            report($exception);
         }
 
         return $databases;
@@ -108,26 +100,25 @@ readonly class DatabaseStatRepository
      *
      * @throws ClickhouseQueryException
      */
-    private function clickhouseStat(): DatabaseStatObject
+    public function findClickhouse(): DatabaseStatObject
     {
         $tables = $this->clickhouse->select(
             sql: 'SELECT table, sum(rows) AS rows, sum(bytes_on_disk) AS total, '
-            . 'sum(data_compressed_bytes) AS data, sum(secondary_indices_compressed_bytes) AS indexes '
-            . 'FROM system.parts WHERE database = currentDatabase() AND active GROUP BY table ORDER BY table',
-            queryIdPrefix: 'dashboard-database'
+                . 'sum(data_compressed_bytes) AS data, sum(secondary_indices_compressed_bytes) AS indexes '
+                . 'FROM system.parts WHERE database = currentDatabase() AND active GROUP BY table ORDER BY table',
+            queryIdPrefix: 'dashboard-database',
         );
 
         $indexes = $this->clickhouse->select(
             sql: 'SELECT table, name, data_compressed_bytes AS size FROM system.data_skipping_indices '
-            . 'WHERE database = currentDatabase() ORDER BY table, name',
-            queryIdPrefix: 'dashboard-database'
+                . 'WHERE database = currentDatabase() ORDER BY table, name',
+            queryIdPrefix: 'dashboard-database',
         );
 
         $memory = $this->clickhouse->select(
             sql: "SELECT value FROM system.metrics WHERE metric = 'MemoryTracking'",
-            queryIdPrefix: 'dashboard-database'
+            queryIdPrefix: 'dashboard-database',
         );
-
         $collections = [];
 
         foreach ($tables as $table) {
@@ -146,11 +137,11 @@ readonly class DatabaseStatRepository
                             name: (string) $index['name'],
                             size: $this->bitesToMb((int) $index['size']),
                             // ClickHouse keeps no per-index access counter
-                            usage: 0
+                            usage: 0,
                         ),
                         array_filter(
                             $indexes,
-                            static fn(array $index): bool => $index['table'] === $table['table']
+                            static fn(array $index): bool => $index['table'] === $table['table'],
                         )
                     )
                 ),
@@ -159,17 +150,25 @@ readonly class DatabaseStatRepository
 
         return new DatabaseStatObject(
             name: 'clickhouse',
-            size: $this->bitesToMb(array_sum(array_map(static fn(array $table) => (int) $table['total'], $tables))),
-            totalDocumentsCount: array_sum(array_map(static fn(array $table) => (int) $table['rows'], $tables)),
+            size: $this->bitesToMb(
+                array_sum(array_map(static fn(array $table) => (int) $table['total'], $tables))
+            ),
+            totalDocumentsCount: array_sum(
+                array_map(static fn(array $table) => (int) $table['rows'], $tables)
+            ),
             memoryUsage: $this->bitesToMb((int) ($memory[0]['value'] ?? 0)),
-            collections: $collections
+            collections: $collections,
         );
     }
 
     /** The server's own memory, which is per process rather than per database. */
     private function heapSize(Client $client): float
     {
-        $status = $client->selectDatabase('admin')->command(['serverStatus' => 1]);
+        $status = $client
+            ->selectDatabase('admin')
+            ->command([
+                'serverStatus' => 1,
+            ]);
 
         return $this->number($status['tcmalloc']['generic']['heap_size']);
     }
@@ -179,11 +178,17 @@ readonly class DatabaseStatRepository
      */
     private function databaseSizes(Client $client): array
     {
-        $result = $client->selectDatabase('admin')->command(['listDatabases' => 1]);
+        $result = $client
+            ->selectDatabase('admin')
+            ->command([
+                'listDatabases' => 1,
+            ]);
 
         return Arr::mapWithKeys(
-            $result['databases'],
-            fn(array $database): array => [$database['name'] => $this->number($database['sizeOnDisk'])]
+            array: $result['databases'],
+            callback: fn(array $database): array => [
+                $database['name'] => $this->number($database['sizeOnDisk']),
+            ],
         );
     }
 
@@ -197,12 +202,14 @@ readonly class DatabaseStatRepository
     {
         $result = $database->command([
             'listCollections' => 1,
-            'cursor'          => ['batchSize' => self::LIST_COLLECTIONS_BATCH_SIZE],
+            'cursor'          => [
+                'batchSize' => self::LIST_COLLECTIONS_BATCH_SIZE,
+            ],
         ]);
 
         if ((string) $result['cursor']['id'] !== '0') {
             throw new RuntimeException(
-                "The collections of $database->name did not fit one listCollections batch."
+                message: "The collections of {$database->name} did not fit one listCollections batch.",
             );
         }
 
@@ -224,27 +231,45 @@ readonly class DatabaseStatRepository
     /**
      * Null when the collection is gone since it was listed: the hourly trace cleaning drops them.
      */
-    private function collectionStat(Database $database, string $collectionName): ?DatabaseCollectionStatObject
-    {
+    private function collectionStat(
+        Database $database,
+        string $collectionName
+    ): ?DatabaseCollectionStatObject {
         $collection = $database->selectCollection($collectionName);
 
         try {
             $storageStats = iterator_to_array(
-                $collection->aggregate([
-                    [
-                        '$collStats' => [
-                            'storageStats' => (object) [],
+                $collection->aggregate(
+                    pipeline: [
+                        [
+                            '$collStats' => [
+                                'storageStats' => (object) [],
+                            ],
                         ],
                     ],
-                ])
+                ),
             )[0]['storageStats'];
-
             $indexUsageByName = Arr::mapWithKeys(
-                iterator_to_array($collection->aggregate([['$indexStats' => (object) []]])),
-                fn(array $indexStat): array => [$indexStat['name'] => (int) $this->number($indexStat['accesses']['ops'])]
+                array: iterator_to_array(
+                    $collection->aggregate(
+                        pipeline: [
+                            [
+                                '$indexStats' => (object) [],
+                            ],
+                        ],
+                    ),
+                ),
+                callback: fn(array $indexStat): array => [
+                    $indexStat['name'] => (int) $this->number($indexStat['accesses']['ops']),
+                ],
             );
         } catch (TaskErrorException|TaskExecutionException $exception) {
-            if ($this->collectionExists($database, $collectionName)) {
+            if (
+                $this->collectionExists(
+                    database: $database,
+                    collectionName: $collectionName,
+                )
+            ) {
                 throw $exception;
             }
 
@@ -260,15 +285,18 @@ readonly class DatabaseStatRepository
             avgObjSize: $this->bitesToMb($storageStats['avgObjSize'] ?? 0),
             indexes: array_values(
                 Arr::map(
-                    (array) $storageStats['indexSizes'],
-                    fn(Int64|int|float $indexSize, string $indexName) => new DatabaseCollectionIndexStatObject(
+                    array: (array) $storageStats['indexSizes'],
+                    callback: fn(
+                        Int64|int|float $indexSize,
+                        string $indexName
+                    ) => new DatabaseCollectionIndexStatObject(
                         name: $indexName,
                         size: $this->bitesToMb($indexSize),
                         // $indexStats does not always cover what indexSizes lists — an
                         // index still being built has a size but no access counter yet —
                         // and the panel asking for the missing one is what used to throw.
-                        usage: $indexUsageByName[$indexName] ?? 0
-                    )
+                        usage: $indexUsageByName[$indexName] ?? 0,
+                    ),
                 )
             ),
         );
@@ -278,8 +306,10 @@ readonly class DatabaseStatRepository
     {
         $result = $database->command([
             'listCollections' => 1,
-            'filter'          => ['name' => $collectionName],
-            'nameOnly'        => true,
+            'filter'          => [
+                'name' => $collectionName,
+            ],
+            'nameOnly' => true,
         ]);
 
         return count($result['cursor']['firstBatch']) > 0;

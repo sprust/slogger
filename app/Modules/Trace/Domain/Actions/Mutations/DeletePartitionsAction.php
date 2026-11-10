@@ -17,9 +17,8 @@ use Throwable;
  */
 readonly class DeletePartitionsAction
 {
-    public function __construct(
-        private TraceRepository $traceRepository,
-    ) {
+    public function __construct(private TraceRepository $traceRepository)
+    {
     }
 
     public function handle(Carbon $loggedAtTo): DeletedTracesObject
@@ -29,7 +28,7 @@ readonly class DeletePartitionsAction
 
         try {
             $partitions = $this->traceRepository->findEndedPartitions(
-                loggedAtTo: $loggedAtTo
+                $loggedAtTo
             );
 
             foreach ($partitions as $partition) {
@@ -42,13 +41,13 @@ readonly class DeletePartitionsAction
             return new DeletedTracesObject(
                 partitionsCount: $partitionsCount,
                 tracesCount: $tracesCount,
-                exception: $exception
+                exception: $exception,
             );
         }
 
         return new DeletedTracesObject(
             partitionsCount: $partitionsCount,
-            tracesCount: $tracesCount
+            tracesCount: $tracesCount,
         );
     }
 }

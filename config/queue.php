@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Queue Connection Name
@@ -14,7 +13,6 @@ return [
     */
 
     'default' => env('QUEUE_CONNECTION', 'sync'),
-
     /*
     |--------------------------------------------------------------------------
     | Queue Connections
@@ -29,11 +27,9 @@ return [
     */
 
     'connections' => [
-
         'sync' => [
             'driver' => 'sync',
         ],
-
         'database' => [
             'driver'       => 'database',
             'table'        => 'jobs',
@@ -41,7 +37,6 @@ return [
             'retry_after'  => 90,
             'after_commit' => false,
         ],
-
         'beanstalkd' => [
             'driver'       => 'beanstalkd',
             'host'         => 'localhost',
@@ -50,18 +45,19 @@ return [
             'block_for'    => 0,
             'after_commit' => false,
         ],
-
         'sqs' => [
             'driver'       => 'sqs',
             'key'          => env('AWS_ACCESS_KEY_ID'),
             'secret'       => env('AWS_SECRET_ACCESS_KEY'),
-            'prefix'       => env('SQS_PREFIX', 'https://sqs.us-east-1.amazonaws.com/your-account-id'),
+            'prefix'       => env(
+                'SQS_PREFIX',
+                'https://sqs.us-east-1.amazonaws.com/your-account-id'
+            ),
             'queue'        => env('SQS_QUEUE', 'default'),
             'suffix'       => env('SQS_SUFFIX'),
             'region'       => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'after_commit' => false,
         ],
-
         'redis' => [
             'driver'       => 'redis',
             'connection'   => 'default',
@@ -70,7 +66,6 @@ return [
             'block_for'    => null,
             'after_commit' => false,
         ],
-
         /*
          * The SConcur AMQP transport: the consumer pool reads it with coroutines under
          * the sconcur master instead of one blocking queue:work per worker. It is the
@@ -99,9 +94,7 @@ return [
             // up to the nearest of these. Declared by sconcur:rabbitmq:declare.
             'after_commit' => false,
         ],
-
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Job Batching
@@ -119,7 +112,6 @@ return [
         'database' => null,
         'table'    => 'job_batches',
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Failed Queue Jobs

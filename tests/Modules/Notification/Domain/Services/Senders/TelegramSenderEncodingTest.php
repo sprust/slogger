@@ -16,26 +16,43 @@ class TelegramSenderEncodingTest extends TestCase
     public function testTextThatCannotBeEncodedIsRefusedRatherThanThrown(): void
     {
         $client = $this->createMock(ClientInterface::class);
-        $client->expects($this->never())->method('sendRequest');
+        $client->expects(
+            $this->never()
+        )->method('sendRequest');
 
         $result = new TelegramSender($client)->send($this->channel(), "\xB1\x31");
 
-        $this->assertFalse($result->delivered);
-        $this->assertTrue($result->permanent);
-        $this->assertStringContainsString('could not be encoded', (string) $result->error);
+        $this->assertFalse(
+            $result->delivered
+        );
+        $this->assertTrue(
+            $result->permanent
+        );
+        $this->assertStringContainsString(
+            'could not be encoded',
+            (string) $result->error
+        );
     }
 
     public function testTheTokenDoesNotRideOutInATransportError(): void
     {
         $client = $this->createMock(ClientInterface::class);
-        $client->method('sendRequest')->willThrowException(
-            new RuntimeException('dial https://api.telegram.org/bot123:abc/sendMessage: refused')
-        );
+        $client
+            ->method('sendRequest')
+            ->willThrowException(
+                new RuntimeException('dial https://api.telegram.org/bot123:abc/sendMessage: refused')
+            );
 
         $result = new TelegramSender($client)->send($this->channel(), 'hello');
 
-        $this->assertStringNotContainsString('123:abc', (string) $result->error);
-        $this->assertStringContainsString('***', (string) $result->error);
+        $this->assertStringNotContainsString(
+            '123:abc',
+            (string) $result->error
+        );
+        $this->assertStringContainsString(
+            '***',
+            (string) $result->error
+        );
     }
 
     private function channel(): ChannelObject
@@ -47,7 +64,10 @@ class TelegramSenderEncodingTest extends TestCase
             name: 'ops chat',
             type: NotificationChannelTypeEnum::Telegram,
             enabled: true,
-            settings: new TelegramSettingsObject(botToken: '123:abc', chatId: '-100500'),
+            settings: new TelegramSettingsObject(
+                botToken: '123:abc',
+                chatId: '-100500'
+            ),
             createdAt: $now,
             updatedAt: $now
         );

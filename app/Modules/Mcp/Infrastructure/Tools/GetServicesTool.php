@@ -11,7 +11,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolProperty;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
-use App\Modules\Service\Entities\ServiceObject;
+use App\Modules\Mcp\Entities\Bridges\McpServiceObject;
 
 readonly class GetServicesTool implements McpToolInterface
 {
@@ -38,14 +38,16 @@ readonly class GetServicesTool implements McpToolInterface
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            new McpToolProperty(
-                name: 'query',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Case-insensitive part of the service name.',
-                max: 255
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                new McpToolProperty(
+                    name: 'query',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Case-insensitive part of the service name.',
+                    max: 255,
+                ),
+            ],
+        );
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
@@ -53,13 +55,13 @@ readonly class GetServicesTool implements McpToolInterface
         return new McpToolResult(
             data: [
                 'services' => array_map(
-                    static fn(ServiceObject $service) => [
+                    static fn(McpServiceObject $service) => [
                         'id'   => $service->id,
                         'name' => $service->name,
                     ],
                     $this->findMcpServicesAction->handle($arguments->stringNull('query'))
                 ),
-            ]
+            ],
         );
     }
 }

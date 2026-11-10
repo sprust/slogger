@@ -7,8 +7,7 @@ namespace App\Modules\Watcher\Entities\Events;
 /** What the checker saw. */
 readonly class BufferOverflowEventMeasuredObject
 {
-    public function __construct(
-        public int $bufferCount
-    ) {
+    public function __construct(public int $bufferCount)
+    {
     }
 }

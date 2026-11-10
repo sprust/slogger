@@ -6,8 +6,7 @@ namespace App\Modules\Watcher\Entities\Events;
 
 readonly class LogErrorsEventSettingsObject
 {
-    public function __construct(
-        public int $threshold
-    ) {
+    public function __construct(public int $threshold)
+    {
     }
 }

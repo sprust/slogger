@@ -67,25 +67,43 @@ code-analise-declare-strict-fix:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php artisan declare-strict-fix
 
 code-analise-stan:
-	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/phpstan analyse -c ./code-analyse/phpstan.neon  --memory-limit=1G
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/phpstan analyse -c ./code-analyse/phpstan/phpstan.neon  --memory-limit=1G
+
+code-analise-modules-structure:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php code-analyse/module-structure/modules-structure.php
 
 code-analise-deptrac:
-	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac/deptrac-layers.yaml
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac/deptrac-modules.php
 
 code-analise-cs-fixer-check:
-	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --dry-run --diff --verbose
+	./code-analyse/cs-fixer/colorize.sh docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php -d memory_limit=1G ./vendor/bin/php-cs-fixer fix --config ./code-analyse/cs-fixer/.php-cs-fixer.dist.php --dry-run --diff --verbose --no-ansi
 
 code-analise-cs-fixer-fix:
-	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --verbose
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/cs-fixer/.php-cs-fixer.dist.php --verbose
 
 code-analise:
 	make code-analise-declare-strict-fix
 	make code-analise-cs-fixer-check
 	make code-analise-stan
 	make code-analise-deptrac
+	make code-analise-modules-structure
 
 test:
-	"$(PHP_FPM_CLI)"php artisan test ${c}
+	"$(PHP_FPM_CLI)"php tests/console.php test ${c}
+
+test-up:
+	docker-compose --profile testing up -d --wait test-mysql test-mongo test-clickhouse test-redis
+	docker-compose up -d --no-deps $(PHP_FPM_SERVICE)
+
+test-prepare: test-up
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php tests/console.php migrate:fresh --force
+
+test-art:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php tests/console.php ${c}
+
+test-down:
+	docker-compose --profile testing stop test-mysql test-mongo test-clickhouse test-redis
 
 check:
 	make code-analise
@@ -177,7 +195,8 @@ workers-restart:
 	make sconcur-restart
 
 oa-generate:
-	make art c='oa:generate'
+	make art c='oa:generate private'
+	make art c='oa:generate public'
 	make frontend-npm-generate
 
 # Order matters: sconcur.so is baked into the image from composer.lock, so vendor

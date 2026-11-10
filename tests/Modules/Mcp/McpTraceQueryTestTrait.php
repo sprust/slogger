@@ -35,7 +35,10 @@ trait McpTraceQueryTestTrait
             items: array_map(
                 static fn(string $traceId) => new TraceItemObject(
                     trace: new TraceItemTraceObject(
-                        service: new TraceServiceObject(id: 2, name: 'pms'),
+                        service: new TraceServiceObject(
+                            id: 2,
+                            name: 'orders'
+                        ),
                         traceId: $traceId,
                         parentTraceId: 'parent-1',
                         type: 'request',
@@ -53,7 +56,11 @@ trait McpTraceQueryTestTrait
                 ),
                 $traceIds
             ),
-            paginationInfo: new PaginationInfoObject(total: 0, perPage: 20, currentPage: 1)
+            paginationInfo: new PaginationInfoObject(
+                total: 0,
+                perPage: 20,
+                currentPage: 1
+            )
         );
     }
 
@@ -66,13 +73,22 @@ trait McpTraceQueryTestTrait
 
         return new TraceDetailObject(
             id: "id-$traceId",
-            service: new TraceServiceObject(id: 2, name: 'pms'),
+            service: new TraceServiceObject(
+                id: 2,
+                name: 'orders'
+            ),
             traceId: $traceId,
             parentTraceId: null,
             type: 'request',
             status: 'success',
             tags: [],
-            data: new TraceDataObject(key: '', value: null, children: $children, filterKey: '', canBeFiltered: false),
+            data: new TraceDataObject(
+                key: '',
+                value: null,
+                children: $children,
+                filterKey: '',
+                canBeFiltered: false
+            ),
             duration: 0.5,
             memory: 1.0,
             cpu: 0.1,
@@ -86,8 +102,17 @@ trait McpTraceQueryTestTrait
     /**
      * @param TraceDataObject[]|null $children
      */
-    private function dataNode(string $key, string|int|float|bool|null $value = null, ?array $children = null): TraceDataObject
-    {
-        return new TraceDataObject(key: $key, value: $value, children: $children, filterKey: $key, canBeFiltered: true);
+    private function dataNode(
+        string $key,
+        string|int|float|bool|null $value = null,
+        ?array $children = null
+    ): TraceDataObject {
+        return new TraceDataObject(
+            key: $key,
+            value: $value,
+            children: $children,
+            filterKey: $key,
+            canBeFiltered: true
+        );
     }
 }

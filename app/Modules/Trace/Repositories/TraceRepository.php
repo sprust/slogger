@@ -42,9 +42,10 @@ readonly class TraceRepository
     public function findOneDetailByTraceId(string $traceId): ?TraceDto
     {
         $rows = $this->client->select(
-            sql: 'SELECT ' . self::TRACE_COLUMNS . ' FROM traces WHERE tid = {tid:String} ORDER BY uat DESC LIMIT 1',
+            sql: 'SELECT ' . self::TRACE_COLUMNS
+                . ' FROM traces WHERE tid = {tid:String} ORDER BY uat DESC LIMIT 1',
             params: ['tid' => $traceId],
-            queryIdPrefix: 'trace-detail'
+            queryIdPrefix: 'trace-detail',
         );
 
         return isset($rows[0]) ? $this->makeTraceDto($rows[0]) : null;
@@ -98,7 +99,8 @@ readonly class TraceRepository
 
         $rows = $this->client->select(
             sql: sprintf(
-                'SELECT %s FROM traces FINAL WHERE %s ORDER BY lat DESC, tid LIMIT {limit:UInt32} OFFSET {offset:UInt32}',
+                ('SELECT %s FROM traces FINAL WHERE %s ORDER BY lat DESC, tid '
+                    . 'LIMIT {limit:UInt32} OFFSET {offset:UInt32}'),
                 self::TRACE_COLUMNS,
                 $condition->sql
             ),
@@ -107,13 +109,10 @@ readonly class TraceRepository
                 'limit'  => $perPage,
                 'offset' => max(0, $page - 1) * $perPage,
             ],
-            queryIdPrefix: 'trace-list'
+            queryIdPrefix: 'trace-list',
         );
 
-        return array_map(
-            fn(array $row): TraceDto => $this->makeTraceDto($row),
-            $rows
-        );
+        return array_map(fn(array $row): TraceDto => $this->makeTraceDto($row), $rows);
     }
 
     /**
@@ -137,7 +136,7 @@ readonly class TraceRepository
                     self::NODE_COLUMNS
                 ),
                 params: ['tids' => $traceIdsChunk],
-                queryIdPrefix: 'trace-tree-nodes'
+                queryIdPrefix: 'trace-tree-nodes',
             );
 
             array_push($rows, ...$chunkRows);
@@ -172,19 +171,22 @@ readonly class TraceRepository
     {
         $rows = $this->client->select(
             sql: "SELECT min(hour) AS first, max(hour) AS last FROM (SELECT DISTINCT "
-            . "toDateTime64(parseDateTime64BestEffort(partition, 0, 'UTC'), 6, 'UTC') AS hour "
-            . "FROM system.parts WHERE database = currentDatabase() AND table = 'traces' AND active AND rows > 0) "
-            . 'HAVING count() > 0',
-            queryIdPrefix: 'trace-range'
+                . "toDateTime64(parseDateTime64BestEffort(partition, 0, 'UTC'), 6, 'UTC') AS hour "
+                . "FROM system.parts WHERE database = currentDatabase() AND table = 'traces' AND active AND rows > 0) "
+                . 'HAVING count() > 0',
+            queryIdPrefix: 'trace-range',
         );
 
         if (!isset($rows[0])) {
-            return new TraceDataRangeObject(firstHour: null, lastHour: null);
+            return new TraceDataRangeObject(
+                firstHour: null,
+                lastHour: null,
+            );
         }
 
         return new TraceDataRangeObject(
             firstHour: $this->rowReader->time($rows[0]['first']),
-            lastHour: $this->rowReader->time($rows[0]['last'])
+            lastHour: $this->rowReader->time($rows[0]['last']),
         );
     }
 
@@ -199,11 +201,12 @@ readonly class TraceRepository
     {
         $partitions = $this->client->select(
             sql: 'SELECT partition_id, sum(rows) AS rows FROM system.parts '
-            . "WHERE database = currentDatabase() AND table = 'traces' AND active "
-            . 'AND parseDateTime64BestEffort(partition, 0, \'UTC\') + INTERVAL 1 HOUR <= {to:DateTime64(6, \'UTC\')} '
-            . 'GROUP BY partition_id ORDER BY partition_id',
+                . "WHERE database = currentDatabase() AND table = 'traces' AND active "
+                . ('AND parseDateTime64BestEffort(partition, 0, \'UTC\') + INTERVAL '
+                    . '1 HOUR <= {to:DateTime64(6, \'UTC\')} ')
+                . 'GROUP BY partition_id ORDER BY partition_id',
             params: ['to' => $loggedAtTo],
-            queryIdPrefix: 'trace-clear'
+            queryIdPrefix: 'trace-clear',
         );
 
         return array_map(
@@ -222,7 +225,7 @@ readonly class TraceRepository
     {
         $this->client->command(
             sql: sprintf("ALTER TABLE traces DROP PARTITION ID '%s'", $this->checkPartitionId($partitionId)),
-            queryIdPrefix: 'trace-clear'
+            queryIdPrefix: 'trace-clear',
         );
     }
 
@@ -252,16 +255,14 @@ readonly class TraceRepository
             type: (string) $row['tp'],
             status: (string) $row['st'],
             tags: $this->rowReader->tags($row),
-            data: new TraceDataToObjectBuilder(
-                $this->rowReader->data((string) $row['dt_raw'])
-            )->build(),
+            data: new TraceDataToObjectBuilder($this->rowReader->data((string) $row['dt_raw']))->build(),
             duration: $this->rowReader->float($row['dur'] ?? null),
             memory: $this->rowReader->float($row['mem'] ?? null),
             cpu: $this->rowReader->float($row['cpu'] ?? null),
             pid: $this->rowReader->int($row['pid'] ?? null),
             loggedAt: $this->rowReader->time($row['lat']),
             createdAt: $this->rowReader->time($row['cat']),
-            updatedAt: $this->rowReader->time($row['uat'])
+            updatedAt: $this->rowReader->time($row['uat']),
         );
     }
 }

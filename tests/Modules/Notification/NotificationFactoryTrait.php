@@ -18,12 +18,19 @@ use Illuminate\Support\Carbon;
 
 trait NotificationFactoryTrait
 {
-    private function channelTypes(?TelegramSender $telegramSender = null): NotificationChannelTypeRegistry
-    {
+    private function channelTypes(
+        ?TelegramSender $telegramSender = null
+    ): NotificationChannelTypeRegistry {
         return new NotificationChannelTypeRegistry(
-            telegram: new TelegramChannelType($telegramSender ?? $this->createMock(TelegramSender::class)),
-            slack: new SlackChannelType($this->createMock(SlackSender::class)),
-            webhook: new WebhookChannelType($this->createMock(WebhookSender::class))
+            telegram: new TelegramChannelType(
+                $telegramSender ?? $this->createMock(TelegramSender::class)
+            ),
+            slack: new SlackChannelType(
+                $this->createMock(SlackSender::class)
+            ),
+            webhook: new WebhookChannelType(
+                $this->createMock(WebhookSender::class)
+            )
         );
     }
 
@@ -36,7 +43,10 @@ trait NotificationFactoryTrait
             name: 'ops chat',
             type: NotificationChannelTypeEnum::Telegram,
             enabled: $enabled,
-            settings: new TelegramSettingsObject(botToken: '123:abc', chatId: '-100500'),
+            settings: new TelegramSettingsObject(
+                botToken: '123:abc',
+                chatId: '-100500'
+            ),
             createdAt: $now,
             updatedAt: $now
         );

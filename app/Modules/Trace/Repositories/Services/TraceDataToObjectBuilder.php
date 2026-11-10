@@ -11,7 +11,7 @@ class TraceDataToObjectBuilder
 {
     private const int FILTERABLE_LIST_DEPTH = 1;
 
-    private string $key;
+    private string $key = '';
 
     /**
      * @param array<array-key, mixed>|string|bool|int|float|null $data data that is not an
@@ -28,7 +28,7 @@ class TraceDataToObjectBuilder
         return $this->buildRecursive(
             data: $this->data,
             filterKey: '',
-            listDepth: 0
+            listDepth: 0,
         );
     }
 
@@ -48,7 +48,7 @@ class TraceDataToObjectBuilder
                 value: null,
                 children: null,
                 filterKey: $filterKey,
-                canBeFiltered: $canBeFiltered
+                canBeFiltered: $canBeFiltered,
             );
         }
 
@@ -58,7 +58,7 @@ class TraceDataToObjectBuilder
                 value: get_class($data),
                 children: null,
                 filterKey: $filterKey,
-                canBeFiltered: $canBeFiltered
+                canBeFiltered: $canBeFiltered,
             );
         }
 
@@ -68,7 +68,7 @@ class TraceDataToObjectBuilder
                 value: $data,
                 children: null,
                 filterKey: $filterKey,
-                canBeFiltered: $canBeFiltered
+                canBeFiltered: $canBeFiltered,
             );
         }
 
@@ -87,12 +87,12 @@ class TraceDataToObjectBuilder
                 ? $this->buildRecursive(
                     data: $dataValue,
                     filterKey: $filterKey === '' ? (string) $dataKey : "$filterKey.$dataKey",
-                    listDepth: $listDepth
+                    listDepth: $listDepth,
                 )
                 : $this->buildRecursive(
                     data: $dataValue,
                     filterKey: $filterKey,
-                    listDepth: $filterKey === '' ? self::FILTERABLE_LIST_DEPTH + 1 : $listDepth + 1
+                    listDepth: $filterKey === '' ? self::FILTERABLE_LIST_DEPTH + 1 : $listDepth + 1,
                 );
 
             $this->key = $currentKey;
@@ -103,7 +103,7 @@ class TraceDataToObjectBuilder
             value: null,
             children: $children,
             filterKey: $filterKey,
-            canBeFiltered: $canBeFiltered
+            canBeFiltered: $canBeFiltered,
         );
     }
 }

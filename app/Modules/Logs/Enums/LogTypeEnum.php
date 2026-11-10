@@ -6,10 +6,10 @@ namespace App\Modules\Logs\Enums;
 
 enum LogTypeEnum: string
 {
-    case Laravel = 'laravel';
-    case NginxAccess = 'nginx_access';
-    case NginxError = 'nginx_error';
-    case Receiver = 'receiver';
-    case SconcurAccess = 'sconcur_access';
+    case Laravel        = 'laravel';
+    case NginxAccess    = 'nginx_access';
+    case NginxError     = 'nginx_error';
+    case Receiver       = 'receiver';
+    case SconcurAccess  = 'sconcur_access';
     case SconcurJournal = 'sconcur_journal';
 }

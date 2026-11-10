@@ -16,8 +16,9 @@ use Illuminate\Support\Carbon;
  */
 trait WatcherIncidentEventFactoryTrait
 {
-    private function incidentEvent(?WatcherEventPayloadInterface $payload = null): WatcherIncidentEventObject
-    {
+    private function incidentEvent(
+        ?WatcherEventPayloadInterface $payload = null
+    ): WatcherIncidentEventObject {
         return new WatcherIncidentEventObject(
             id: '68be1f000000000000000010',
             incidentId: '68be1f000000000000000009',
@@ -32,8 +33,12 @@ trait WatcherIncidentEventFactoryTrait
         int $bufferCount = 12000
     ): BufferOverflowEventPayloadObject {
         return new BufferOverflowEventPayloadObject(
-            settings: new BufferOverflowEventSettingsObject(threshold: $threshold),
-            measured: new BufferOverflowEventMeasuredObject(bufferCount: $bufferCount)
+            settings: new BufferOverflowEventSettingsObject(
+                threshold: $threshold
+            ),
+            measured: new BufferOverflowEventMeasuredObject(
+                bufferCount: $bufferCount
+            )
         );
     }
 

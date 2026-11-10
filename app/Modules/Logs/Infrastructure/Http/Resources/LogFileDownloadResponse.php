@@ -24,7 +24,7 @@ class LogFileDownloadResponse extends StreamedResponse
                     preg_replace('/[^\x20-\x7E]/', '_', $download->file->name) ?? 'log.txt'
                 ),
                 'X-Accel-Buffering'   => 'no',
-            ]
+            ],
         );
     }
 }

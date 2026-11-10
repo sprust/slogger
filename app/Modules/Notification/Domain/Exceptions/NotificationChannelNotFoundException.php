@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Domain\Exceptions;
 
-use Exception;
-
-class NotificationChannelNotFoundException extends Exception
+class NotificationChannelNotFoundException extends AbstractNotificationException
 {
     public function __construct(int $channelId)
     {

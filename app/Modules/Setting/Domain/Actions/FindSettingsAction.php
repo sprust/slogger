@@ -34,14 +34,17 @@ readonly class FindSettingsAction
             function (SettingDefinitionObject $definition) use ($stored): SettingObject {
                 $storedValue  = $stored[$definition->key->value] ?? null;
                 $defaultValue = $this->settingValueResolver->findDefault($definition);
-                $value        = $this->settingValueResolver->findStored($definition, $storedValue);
+                $value        = $this->settingValueResolver->findStored(
+                    definition: $definition,
+                    stored: $storedValue,
+                );
 
                 return new SettingObject(
                     definition: $definition,
                     value: $value ?? $defaultValue,
                     defaultValue: $defaultValue,
                     isOverridden: !is_null($value),
-                    updatedAt: $storedValue?->updatedAt
+                    updatedAt: $storedValue?->updatedAt,
                 );
             },
             $this->settingDefinitionFinder->findAll()

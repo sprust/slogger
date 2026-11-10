@@ -13,10 +13,16 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class SlowTracesIncidentEventController extends AbstractIncidentEventController
 {
     #[OaListItemTypeAttribute(SlowTracesIncidentEventResource::class)]
-    public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
-    {
+    public function index(
+        string $id,
+        IndexIncidentEventsRequest $request
+    ): AnonymousResourceCollection {
         return SlowTracesIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::SlowTraces, $id, $request->validated())
+            $this->incidentEvents(
+                type: WatcherTypeEnum::SlowTraces,
+                incidentId: $id,
+                validated: $request->validated(),
+            )
         );
     }
 }

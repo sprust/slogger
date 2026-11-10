@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Infrastructure;
 
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Notification\Infrastructure\Exceptions\NotificationExceptionManager;
+use App\Modules\Notification\Infrastructure\Jobs\SendNotificationJob;
+use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
+use App\Modules\Notification\Infrastructure\Listeners\DispatchNotificationListener;
+use App\Modules\Watcher\Domain\Events\WatcherIncidentChangedEvent;
+use App\Modules\Notification\Infrastructure\Listeners\EnqueueNotificationsListener;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Notification\Domain\Actions\Mutations\CreateChannelAction;
 use App\Modules\Notification\Domain\Actions\Mutations\DeleteChannelAction;
 use App\Modules\Notification\Domain\Actions\Mutations\EnqueueNotificationsAction;
@@ -28,48 +34,68 @@ use App\Modules\Notification\Domain\Services\Types\TelegramChannelType;
 use App\Modules\Notification\Domain\Services\Types\WebhookChannelType;
 use App\Modules\Notification\Repositories\ChannelRepository;
 use App\Modules\Notification\Repositories\NotificationRepository;
-use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use GuzzleHttp\Psr7\HttpFactory;
 use SConcur\Features\HttpClient\HttpClient;
 use Illuminate\Contracts\Foundation\Application;
 use SConcur\Features\HttpClient\HttpClientOptions;
+use Illuminate\Console\Scheduling\Schedule;
 
 class NotificationServiceProvider extends BaseServiceProvider
 {
-    public function boot(): void
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
+    protected function onRegister(): void
     {
         $this->app->singleton(
-            TelegramSender::class,
-            static fn(): TelegramSender => new TelegramSender(
-                httpClient: self::makeHttpClient()
-            )
+            abstract: TelegramSender::class,
+            concrete: static fn(): TelegramSender => new TelegramSender(
+                self::makeHttpClient(),
+            ),
         );
 
         $this->app->singleton(
-            SlackSender::class,
-            static fn(Application $app): SlackSender => new SlackSender(
+            abstract: SlackSender::class,
+            concrete: static fn(Application $app): SlackSender => new SlackSender(
                 httpClient: self::makeHttpClient(),
-                resultReader: $app->make(HttpSendResultReader::class)
-            )
+                resultReader: $app->make(
+                    abstract: HttpSendResultReader::class,
+                ),
+            ),
         );
 
         $this->app->singleton(
-            WebhookSender::class,
-            static fn(Application $app): WebhookSender => new WebhookSender(
+            abstract: WebhookSender::class,
+            concrete: static fn(Application $app): WebhookSender => new WebhookSender(
                 httpClient: self::makeHttpClient(),
-                resultReader: $app->make(HttpSendResultReader::class)
-            )
+                resultReader: $app->make(
+                    abstract: HttpSendResultReader::class,
+                ),
+            ),
         );
 
         $this->app->singleton(
-            IncidentMessageFactory::class,
-            static fn(Application $app): IncidentMessageFactory => new IncidentMessageFactory(
-                watcherTypes: $app->make(WatcherTypeRegistry::class),
-                appName: (string) config('app.name')
-            )
+            abstract: IncidentMessageFactory::class,
+            concrete: static fn(Application $app): IncidentMessageFactory => new IncidentMessageFactory(
+                (string) config('app.name'),
+            ),
         );
+    }
 
-        parent::boot();
+    protected function getJobs(): array
+    {
+        return [
+            SendNotificationJob::class,
+        ];
+    }
+
+    protected function getListeners(): array
+    {
+        return [
+            NotificationEnqueuedEvent::class   => [DispatchNotificationListener::class],
+            WatcherIncidentChangedEvent::class => [EnqueueNotificationsListener::class],
+        ];
     }
 
     protected function getContracts(): array
@@ -97,15 +123,25 @@ class NotificationServiceProvider extends BaseServiceProvider
         ];
     }
 
+    protected function getExceptionManagerClass(): ?string
+    {
+        return NotificationExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
+    }
+
     private static function makeHttpClient(): HttpClient
     {
         return new HttpClient(
             responseFactory: new HttpFactory(),
             options: new HttpClientOptions(
-                requestTimeoutMs: 10_000,
-                connectTimeoutMs: 3_000,
-                responseHeaderTimeoutMs: 5_000
-            )
+                requestTimeoutMs: 10000,
+                connectTimeoutMs: 3000,
+                responseHeaderTimeoutMs: 5000,
+            ),
         );
     }
 }

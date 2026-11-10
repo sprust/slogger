@@ -20,12 +20,22 @@ class BufferCheckersTest extends TestCase
 
     public function testAFullBufferIsReported(): void
     {
-        $this->assertNotNull($this->checkBuffer(bufferCount: 1000, threshold: 1000));
+        $this->assertNotNull(
+            $this->checkBuffer(
+                bufferCount: 1000,
+                threshold: 1000
+            )
+        );
     }
 
     public function testABufferUnderTheThresholdSaysNothing(): void
     {
-        $this->assertNull($this->checkBuffer(bufferCount: 999, threshold: 1000));
+        $this->assertNull(
+            $this->checkBuffer(
+                bufferCount: 999,
+                threshold: 1000
+            )
+        );
     }
 
     /**
@@ -34,17 +44,32 @@ class BufferCheckersTest extends TestCase
      */
     public function testABufferSizeThatCouldNotBeReadIsNotReportedAsEmpty(): void
     {
-        $this->assertNull($this->checkBuffer(bufferCount: null, threshold: 1));
+        $this->assertNull(
+            $this->checkBuffer(
+                bufferCount: null,
+                threshold: 1
+            )
+        );
     }
 
     public function testNewInvalidDocumentsAreReported(): void
     {
-        $this->assertNotNull($this->checkInvalid(countSince: 3, threshold: 1));
+        $this->assertNotNull(
+            $this->checkInvalid(
+                countSince: 3,
+                threshold: 1
+            )
+        );
     }
 
     public function testNoNewInvalidDocumentsSayNothing(): void
     {
-        $this->assertNull($this->checkInvalid(countSince: 0, threshold: 1));
+        $this->assertNull(
+            $this->checkInvalid(
+                countSince: 0,
+                threshold: 1
+            )
+        );
     }
 
     /**
@@ -56,11 +81,18 @@ class BufferCheckersTest extends TestCase
         $now = Carbon::parse('2026-09-07 12:00:00');
 
         $action = $this->createMock(CountInvalidTraceBufferSinceAction::class);
-        $action->expects($this->once())
+        $action
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
-            ->with($this->callback(
-                static fn(Carbon $since): bool => $since->toDateTimeString() === '2026-09-07 11:50:00'
-            ))
+            ->with(
+                $this->callback(
+                    static fn(
+                        Carbon $since
+                    ): bool => $since->toDateTimeString() === '2026-09-07 11:50:00'
+                )
+            )
             ->willReturn(0);
 
         new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(
@@ -113,11 +145,16 @@ class BufferCheckersTest extends TestCase
         ?Carbon $collectSince = null
     ): void {
         $action = $this->createMock(CountInvalidTraceBufferSinceAction::class);
-        $action->expects($this->once())
+        $action
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
-            ->with($this->callback(
-                static fn(Carbon $since): bool => $since->toDateTimeString() === $expected
-            ))
+            ->with(
+                $this->callback(
+                    static fn(Carbon $since): bool => $since->toDateTimeString() === $expected
+                )
+            )
             ->willReturn(0);
 
         new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(
@@ -138,7 +175,9 @@ class BufferCheckersTest extends TestCase
         return new BufferOverflowChecker()->check(
             $this->watcher(
                 WatcherTypeEnum::BufferOverflow,
-                new BufferOverflowSettingsObject(threshold: $threshold)
+                new BufferOverflowSettingsObject(
+                    threshold: $threshold
+                )
             ),
             new WatcherCheckContextObject(Carbon::now(), $bufferCount)
         );
@@ -152,7 +191,9 @@ class BufferCheckersTest extends TestCase
         return new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(
             $this->watcher(
                 WatcherTypeEnum::InvalidBufferGrown,
-                new InvalidBufferGrownSettingsObject(threshold: $threshold),
+                new InvalidBufferGrownSettingsObject(
+                    threshold: $threshold
+                ),
                 lastTriggeredAt: Carbon::now()->subMinute()
             ),
             new WatcherCheckContextObject(Carbon::now(), null)

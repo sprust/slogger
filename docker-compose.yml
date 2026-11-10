@@ -227,6 +227,99 @@ services:
       - ./storage/api/json-schemes/:/app/json-schemes
     command: [ "npm", "run", "${FRONTEND_DOCKER_COMMAND}" ]
 
+  test-redis:
+    image: redis:7.2-alpine
+    profiles:
+      - testing
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+    tmpfs:
+      - /data:size=128m
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
+  test-mysql:
+    profiles:
+      - testing
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: slogger_test
+      MYSQL_ROOT_PASSWORD: testing
+    tmpfs:
+      - /var/lib/mysql:rw,noexec,nosuid,size=1024m
+    command:
+      - --sync_binlog=0
+      - --skip-log-bin
+      - --performance_schema=0
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -ptesting
+      interval: 2s
+      timeout: 5s
+      retries: 40
+
+  test-mongo:
+    profiles:
+      - testing
+    image: mongo:8.0.5
+    command:
+      - mongod
+      - --wiredTigerCacheSizeGB
+      - '0.25'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: testing
+    tmpfs:
+      - /data/db:rw,noexec,nosuid,size=1024m
+      - /data/configdb:rw,noexec,nosuid,size=128m
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)'
+      interval: 2s
+      timeout: 5s
+      retries: 40
+
+  test-clickhouse:
+    profiles:
+      - testing
+    image: clickhouse/clickhouse-server:26.8.14.3
+    environment:
+      CLICKHOUSE_DB: slogger_test
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: testing
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    mem_limit: 2g
+    tmpfs:
+      - /var/lib/clickhouse:rw,noexec,nosuid,size=2048m
+      - /var/log/clickhouse-server:rw,noexec,nosuid,size=128m
+    volumes:
+      - ./docker/clickhouse/config.d/low-memory.xml:/etc/clickhouse-server/config.d/low-memory.xml:ro
+      - ./docker/clickhouse/users.d/profile.xml:/etc/clickhouse-server/users.d/profile.xml:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'wget -q -O /dev/null http://127.0.0.1:8123/ping'
+      interval: 2s
+      timeout: 5s
+      retries: 40
+
 volumes:
   mysql:
     driver: local

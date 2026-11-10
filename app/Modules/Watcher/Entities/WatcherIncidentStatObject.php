@@ -12,8 +12,7 @@ namespace App\Modules\Watcher\Entities;
  */
 readonly class WatcherIncidentStatObject
 {
-    public function __construct(
-        public int $openedCount
-    ) {
+    public function __construct(public int $openedCount)
+    {
     }
 }

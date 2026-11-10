@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Trace\Repositories\Services;
 
+use RuntimeException;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use PHPUnit\Framework\TestCase;
@@ -80,8 +81,8 @@ class TraceDataToObjectBuilderTest extends TestCase
 
         $builder = new TraceDataToObjectBuilder($data);
 
-        $expected = json_decode(json_encode($expected), true);
-        $actual   = json_decode(json_encode($builder->build()), true);
+        $expected = json_decode((json_encode($expected) ?: throw new RuntimeException('Missing JSON content')), true);
+        $actual   = json_decode((json_encode($builder->build()) ?: throw new RuntimeException('Missing JSON content')), true);
 
         self::assertSame(
             expected: $expected,
@@ -102,13 +103,12 @@ class TraceDataToObjectBuilderTest extends TestCase
         ];
 
         $object = new TraceDataToObjectBuilder($data)->build();
+        self::assertNotNull($object->children);
+        self::assertNotNull($object->children[3]->children);
 
         self::assertSame(
             expected: ['sql', 'connection', 'bindings', '__trace'],
-            actual: array_map(
-                static fn(TraceDataObject $child) => $child->key,
-                $object->children
-            ),
+            actual: array_map(static fn(TraceDataObject $child) => $child->key, $object->children),
         );
 
         self::assertSame(
@@ -132,13 +132,29 @@ class TraceDataToObjectBuilderTest extends TestCase
         $name = $object->children[0]->children[0]->children[0];
         $tag  = $object->children[1]->children[0];
 
-        self::assertSame('listeners.0.name', $name->key);
-        self::assertSame('listeners.name', $name->filterKey);
-        self::assertTrue($name->canBeFiltered);
+        self::assertSame(
+            'listeners.0.name',
+            $name->key
+        );
+        self::assertSame(
+            'listeners.name',
+            $name->filterKey
+        );
+        self::assertTrue(
+            $name->canBeFiltered
+        );
 
-        self::assertSame('tags.0', $tag->key);
-        self::assertSame('tags', $tag->filterKey);
-        self::assertTrue($tag->canBeFiltered);
+        self::assertSame(
+            'tags.0',
+            $tag->key
+        );
+        self::assertSame(
+            'tags',
+            $tag->filterKey
+        );
+        self::assertTrue(
+            $tag->canBeFiltered
+        );
     }
 
     public function testAValueInsideAListInsideAListCannotBeFiltered(): void
@@ -153,11 +169,21 @@ class TraceDataToObjectBuilderTest extends TestCase
         $tag  = $object->children[0]->children[0]->children[0]->children[0];
         $cell = $object->children[1]->children[0]->children[0];
 
-        self::assertSame('groups.0.tags.0', $tag->key);
-        self::assertFalse($tag->canBeFiltered);
+        self::assertSame(
+            'groups.0.tags.0',
+            $tag->key
+        );
+        self::assertFalse(
+            $tag->canBeFiltered
+        );
 
-        self::assertSame('matrix.0.0', $cell->key);
-        self::assertFalse($cell->canBeFiltered);
+        self::assertSame(
+            'matrix.0.0',
+            $cell->key
+        );
+        self::assertFalse(
+            $cell->canBeFiltered
+        );
     }
 
     public function testAValueOfDataThatIsAListCannotBeFiltered(): void
@@ -168,18 +194,34 @@ class TraceDataToObjectBuilderTest extends TestCase
 
         $name = $object->children[0]->children[0];
 
-        self::assertSame('0.name', $name->key);
-        self::assertFalse($name->canBeFiltered);
+        self::assertSame(
+            '0.name',
+            $name->key
+        );
+        self::assertFalse(
+            $name->canBeFiltered
+        );
     }
 
     public function testAKeyUnderTheFirstElementOfDataThatIsAListKeepsTheIndex(): void
     {
         $object = new TraceDataToObjectBuilder([
-            [['id' => 1]],
+            [
+                ['id' => 1],
+            ],
         ])->build();
 
-        self::assertSame('0', $object->children[0]->key);
-        self::assertSame('0.0', $object->children[0]->children[0]->key);
-        self::assertSame('0.0.id', $object->children[0]->children[0]->children[0]->key);
+        self::assertSame(
+            '0',
+            $object->children[0]->key
+        );
+        self::assertSame(
+            '0.0',
+            $object->children[0]->children[0]->key
+        );
+        self::assertSame(
+            '0.0.id',
+            $object->children[0]->children[0]->children[0]->key
+        );
     }
 }

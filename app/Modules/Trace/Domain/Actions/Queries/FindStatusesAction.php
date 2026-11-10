@@ -11,9 +11,8 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindStatusesAction
 {
-    public function __construct(
-        private TraceContentRepository $repository
-    ) {
+    public function __construct(private TraceContentRepository $repository)
+    {
     }
 
     /**

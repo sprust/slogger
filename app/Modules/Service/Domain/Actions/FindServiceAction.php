@@ -9,9 +9,8 @@ use App\Modules\Service\Repositories\ServiceRepository;
 
 readonly class FindServiceAction
 {
-    public function __construct(
-        private ServiceRepository $serviceRepository
-    ) {
+    public function __construct(private ServiceRepository $serviceRepository)
+    {
     }
 
     public function handle(int $id): ?ServiceObject

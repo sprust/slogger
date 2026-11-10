@@ -16,9 +16,8 @@ use App\Modules\Watcher\Repositories\WatcherRepository;
  */
 readonly class DeleteWatcherAction
 {
-    public function __construct(
-        private WatcherRepository $watcherRepository
-    ) {
+    public function __construct(private WatcherRepository $watcherRepository)
+    {
     }
 
     public function handle(int $watcherId): void

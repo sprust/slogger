@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Watcher\Domain\Actions;
 
+use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Domain\Actions\Mutations\TrimWatcherTimelineAction;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
@@ -27,7 +28,9 @@ class TrimWatcherTimelineActionTest extends TestCase
     {
         $this->assertCutAt(
             '2026-09-07 11:45:00',
-            new NoNewTracesSettingsObject(periodMinutes: 10)
+            new NoNewTracesSettingsObject(
+                periodMinutes: 10
+            )
         );
     }
 
@@ -36,7 +39,10 @@ class TrimWatcherTimelineActionTest extends TestCase
     {
         $this->assertCutAt(
             '2026-09-07 11:50:00',
-            new ManyTracesSettingsObject(windowMinutes: 5, threshold: 1000)
+            new ManyTracesSettingsObject(
+                windowMinutes: 5,
+                threshold: 1000
+            )
         );
     }
 
@@ -47,18 +53,26 @@ class TrimWatcherTimelineActionTest extends TestCase
     public function testAWatcherWithoutALineIsLeftAlone(): void
     {
         $repository = $this->createMock(WatcherTimelineRepository::class);
-        $repository->expects($this->never())->method('trim');
+        $repository->expects(
+            $this->never()
+        )->method('trim');
 
         new TrimWatcherTimelineAction($repository)->handle(
-            $this->watcher(WatcherTypeEnum::BufferOverflow, new BufferOverflowSettingsObject()),
+            $this->watcher(
+                WatcherTypeEnum::BufferOverflow,
+                new BufferOverflowSettingsObject()
+            ),
             Carbon::parse(self::NOW)
         );
     }
 
-    private function assertCutAt(string $expected, object $settings): void
+    private function assertCutAt(string $expected, WatcherSettingsInterface $settings): void
     {
         $repository = $this->createMock(WatcherTimelineRepository::class);
-        $repository->expects($this->once())
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method('trim')
             ->with(
                 1,

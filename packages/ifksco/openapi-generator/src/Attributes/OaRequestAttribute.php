@@ -3,7 +3,7 @@
 namespace Ifksco\OpenApiGenerator\Attributes;
 
 use Attribute;
-use Ifksco\OpenApiGenerator\Json\Schemes\OaRequestScheme;
+use Ifksco\OpenApiGenerator\Objects\Json\Schemes\OaRequestScheme;
 
 #[Attribute]
 class OaRequestAttribute

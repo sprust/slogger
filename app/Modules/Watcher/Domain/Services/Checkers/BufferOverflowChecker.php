@@ -17,8 +17,10 @@ use App\Modules\Watcher\Entities\WatcherObject;
  */
 readonly class BufferOverflowChecker implements WatcherCheckerInterface
 {
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof BufferOverflowSettingsObject) {
@@ -36,8 +38,12 @@ readonly class BufferOverflowChecker implements WatcherCheckerInterface
         }
 
         return new BufferOverflowEventPayloadObject(
-            settings: new BufferOverflowEventSettingsObject(threshold: $settings->threshold),
-            measured: new BufferOverflowEventMeasuredObject(bufferCount: $context->bufferCount)
+            settings: new BufferOverflowEventSettingsObject(
+                threshold: $settings->threshold,
+            ),
+            measured: new BufferOverflowEventMeasuredObject(
+                bufferCount: $context->bufferCount,
+            ),
         );
     }
 }

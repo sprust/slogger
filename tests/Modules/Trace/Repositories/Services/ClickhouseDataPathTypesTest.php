@@ -16,26 +16,48 @@ class ClickhouseDataPathTypesTest extends TestCase
     {
         $client = new FakeClickhouseClient();
 
-        $this->assertSame([], new ClickhouseDataPathTypes($client, new Repository(new ArrayStore()))->arrayPaths());
-        $this->assertSame([], $client->selects);
+        $this->assertSame(
+            [],
+            new ClickhouseDataPathTypes($client, new Repository(new ArrayStore()))->arrayPaths()
+        );
+        $this->assertSame(
+            [],
+            $client->selects
+        );
     }
 
     public function testRefreshKeepsTheArraysOfObjectsOnly(): void
     {
-        $client = new FakeClickhouseClient([[[
-            'paths' => [
-                'user.id' => ['Int64'],
-                'roles'   => ['Array(Nullable(String))'],
-                'items'   => ['Array(JSON(max_dynamic_types=16, max_dynamic_paths=256))'],
-                'a.list'  => ['String', 'Array(JSON(max_dynamic_types=16, max_dynamic_paths=256))'],
+        $client = new FakeClickhouseClient([
+            [
+                [
+                    'paths' => [
+                        'user.id' => ['Int64'],
+                        'roles'   => ['Array(Nullable(String))'],
+                        'items'   => ['Array(JSON(max_dynamic_types=16, max_dynamic_paths=256))'],
+                        'a.list'  => ['String', 'Array(JSON(max_dynamic_types=16, max_dynamic_paths=256))'],
+                    ],
+                ],
             ],
-        ]]]);
+        ]);
 
         $pathTypes = new ClickhouseDataPathTypes($client, new Repository(new ArrayStore()));
 
-        $this->assertSame(['a.list', 'items'], $pathTypes->refresh());
-        $this->assertSame(['a.list', 'items'], $pathTypes->arrayPaths());
-        $this->assertCount(1, $client->selects);
-        $this->assertSame('trace-data-paths', $client->selects[0]['queryIdPrefix']);
+        $this->assertSame(
+            ['a.list', 'items'],
+            $pathTypes->refresh()
+        );
+        $this->assertSame(
+            ['a.list', 'items'],
+            $pathTypes->arrayPaths()
+        );
+        $this->assertCount(
+            1,
+            $client->selects
+        );
+        $this->assertSame(
+            'trace-data-paths',
+            $client->selects[0]['queryIdPrefix']
+        );
     }
 }

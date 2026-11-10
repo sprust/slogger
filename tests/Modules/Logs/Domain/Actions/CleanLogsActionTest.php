@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Actions;
 
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Logs\Domain\Actions\CleanLogsAction;
 use App\Modules\Logs\Domain\Actions\IndexLogsAction;
 use App\Modules\Logs\Enums\LogTypeEnum;
@@ -25,18 +26,49 @@ class CleanLogsActionTest extends TestCase
         mkdir($this->tempDir . '/logs/nginx');
 
         config()->set('cache.mutex_store', 'array');
-        config()->set('module-logs.sources', [
-            ['name' => 'Laravel', 'folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel],
-            ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'access*.log', 'type' => LogTypeEnum::NginxAccess, 'keep_days' => 14],
-            ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'error*.log', 'type' => LogTypeEnum::NginxError],
-        ]);
+        config()->set(
+            'module-logs.sources',
+            [
+                [
+                    'name'    => 'Laravel',
+                    'folder'  => $this->tempDir . '/logs',
+                    'pattern' => '*.log',
+                    'type'    => LogTypeEnum::Laravel,
+                ],
+                [
+                    'name'      => 'Nginx',
+                    'folder'    => $this->tempDir . '/logs/nginx',
+                    'pattern'   => 'access*.log',
+                    'type'      => LogTypeEnum::NginxAccess,
+                    'keep_days' => 14,
+                ],
+                [
+                    'name'    => 'Nginx',
+                    'folder'  => $this->tempDir . '/logs/nginx',
+                    'pattern' => 'error*.log',
+                    'type'    => LogTypeEnum::NginxError,
+                ],
+            ]
+        );
 
         $this->now = new Carbon('2026-09-25 12:00:00', 'UTC');
 
-        $this->write('logs/laravel-2026-08-01.log', days: 55);
-        $this->write('logs/nginx/access-2026-09-10.log', days: 15);
-        $this->write('logs/nginx/access-2026-09-11.log', days: 13);
-        $this->write('logs/nginx/error.log', days: 40);
+        $this->write(
+            'logs/laravel-2026-08-01.log',
+            days: 55
+        );
+        $this->write(
+            'logs/nginx/access-2026-09-10.log',
+            days: 15
+        );
+        $this->write(
+            'logs/nginx/access-2026-09-11.log',
+            days: 13
+        );
+        $this->write(
+            'logs/nginx/error.log',
+            days: 40
+        );
     }
 
     protected function tearDown(): void
@@ -50,29 +82,57 @@ class CleanLogsActionTest extends TestCase
     {
         $result = $this->app->make(CleanLogsAction::class)->handle($this->now);
 
-        $this->assertSame([$this->tempDir . '/logs/nginx/access-2026-09-10.log'], $result->deletedFiles);
-        $this->assertFileDoesNotExist($this->tempDir . '/logs/nginx/access-2026-09-10.log');
-        $this->assertFileExists($this->tempDir . '/logs/nginx/access-2026-09-11.log');
-        $this->assertFileExists($this->tempDir . '/logs/laravel-2026-08-01.log');
-        $this->assertFileExists($this->tempDir . '/logs/nginx/error.log');
+        $this->assertSame(
+            [$this->tempDir . '/logs/nginx/access-2026-09-10.log'],
+            $result->deletedFiles
+        );
+        $this->assertFileDoesNotExist(
+            $this->tempDir . '/logs/nginx/access-2026-09-10.log'
+        );
+        $this->assertFileExists(
+            $this->tempDir . '/logs/nginx/access-2026-09-11.log'
+        );
+        $this->assertFileExists(
+            $this->tempDir . '/logs/laravel-2026-08-01.log'
+        );
+        $this->assertFileExists(
+            $this->tempDir . '/logs/nginx/error.log'
+        );
     }
 
     public function testIndexesOfFilesThatAreGoneAreDeletedAndTheRestKept(): void
     {
         $batch = $this->app->make(IndexLogsAction::class)->handle();
 
-        $this->assertCount(4, $batch->files);
+        $this->assertCount(
+            4,
+            $batch->files
+        );
 
         unlink($this->tempDir . '/logs/laravel-2026-08-01.log');
 
         $result = $this->app->make(CleanLogsAction::class)->handle($this->now);
 
-        $this->assertSame(2, $result->deletedIndexes);
-        $this->assertSame(0, $result->skippedIndexes);
-        $this->assertDirectoryDoesNotExist($this->indexDir('logs/laravel-2026-08-01.log'));
-        $this->assertDirectoryDoesNotExist($this->indexDir('logs/nginx/access-2026-09-10.log'));
-        $this->assertDirectoryExists($this->indexDir('logs/nginx/access-2026-09-11.log'));
-        $this->assertDirectoryExists($this->indexDir('logs/nginx/error.log'));
+        $this->assertSame(
+            2,
+            $result->deletedIndexes
+        );
+        $this->assertSame(
+            0,
+            $result->skippedIndexes
+        );
+        $this->assertDirectoryDoesNotExist(
+            $this->indexDir('logs/laravel-2026-08-01.log')
+        );
+        $this->assertDirectoryDoesNotExist(
+            $this->indexDir('logs/nginx/access-2026-09-10.log')
+        );
+        $this->assertDirectoryExists(
+            $this->indexDir('logs/nginx/access-2026-09-11.log')
+        );
+        $this->assertDirectoryExists(
+            $this->indexDir('logs/nginx/error.log')
+        );
     }
 
     public function testAnIndexInUseIsLeftForTheNextRun(): void
@@ -81,23 +141,52 @@ class CleanLogsActionTest extends TestCase
 
         unlink($this->tempDir . '/logs/laravel-2026-08-01.log');
 
-        Cache::store('array')->lock('mutex:logs-index:' . sha1($this->tempDir . '/logs/laravel-2026-08-01.log'), 10)->get();
+        $cacheStore = Cache::store('array')->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+
+        $cacheStore->lock(
+            'mutex:logs-index:' . sha1($this->tempDir . '/logs/laravel-2026-08-01.log'),
+            10
+        )
+            ->get();
 
         $result = $this->app->make(CleanLogsAction::class)->handle($this->now);
 
-        $this->assertSame(1, $result->deletedIndexes);
-        $this->assertSame(1, $result->skippedIndexes);
-        $this->assertDirectoryExists($this->indexDir('logs/laravel-2026-08-01.log'));
+        $this->assertSame(
+            1,
+            $result->deletedIndexes
+        );
+        $this->assertSame(
+            1,
+            $result->skippedIndexes
+        );
+        $this->assertDirectoryExists(
+            $this->indexDir('logs/laravel-2026-08-01.log')
+        );
     }
 
     public function testIndexingTakesEveryFileOfEverySource(): void
     {
         $batch = $this->app->make(IndexLogsAction::class)->handle();
 
-        $this->assertFalse($batch->indexing);
-        $this->assertSame([], $batch->missingFileIds);
-        $this->assertSame($batch->totalBytes, $batch->indexedBytes);
-        $this->assertCount(4, $batch->files);
+        $this->assertFalse(
+            $batch->indexing
+        );
+        $this->assertSame(
+            [],
+            $batch->missingFileIds
+        );
+        $this->assertSame(
+            $batch->totalBytes,
+            $batch->indexedBytes
+        );
+        $this->assertCount(
+            4,
+            $batch->files
+        );
     }
 
     private function write(string $relativePath, int $days): void

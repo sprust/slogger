@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure;
 
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Trace\Infrastructure\Exceptions\TraceExceptionManager;
+use App\Modules\Trace\Infrastructure\Jobs\BuildTraceTreeCacheJob;
+use App\Modules\Trace\Infrastructure\Jobs\DeleteTraceTreeCacheJob;
+use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
+use App\Modules\Trace\Infrastructure\Listeners\DispatchTraceTreeCacheBuildListener;
+use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
+use App\Modules\Trace\Infrastructure\Listeners\DispatchTraceTreeCacheDeleteListener;
+use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
+use App\Modules\Trace\Infrastructure\Listeners\BroadcastTraceTreeStateListener;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
@@ -50,14 +59,38 @@ use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use Illuminate\Console\Scheduling\Schedule;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
-    public function boot(): void
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
+    protected function onRegister(): void
     {
         $this->app->singleton(TraceFieldTitlesService::class);
+    }
 
-        parent::boot();
+    protected function getJobs(): array
+    {
+        return [
+            BuildTraceTreeCacheJob::class,
+            DeleteTraceTreeCacheJob::class,
+        ];
+    }
+
+    protected function getListeners(): array
+    {
+        return [
+            TraceTreeCacheBuildRequestedEvent::class => [
+                DispatchTraceTreeCacheBuildListener::class,
+            ],
+            TraceTreeCacheDeleteRequestedEvent::class => [
+                DispatchTraceTreeCacheDeleteListener::class,
+            ],
+            TraceTreeCacheStateChangedEvent::class => [BroadcastTraceTreeStateListener::class],
+        ];
     }
 
     protected function getContracts(): array
@@ -113,5 +146,15 @@ class TraceServiceProvider extends BaseServiceProvider
             ClickhouseTraceFilterBuilder::class,
             ClickhouseTraceRowReader::class,
         ];
+    }
+
+    protected function getExceptionManagerClass(): ?string
+    {
+        return TraceExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
     }
 }

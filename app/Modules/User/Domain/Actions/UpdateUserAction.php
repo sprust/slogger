@@ -10,9 +10,8 @@ use App\Modules\User\Repositories\UserRepository;
 
 readonly class UpdateUserAction
 {
-    public function __construct(
-        private UserRepository $userRepository
-    ) {
+    public function __construct(private UserRepository $userRepository)
+    {
     }
 
     /**
@@ -27,7 +26,7 @@ readonly class UpdateUserAction
         $this->userRepository->updateName(
             id: $parameters->id,
             firstName: $parameters->firstName,
-            lastName: $parameters->lastName
+            lastName: $parameters->lastName,
         );
     }
 }

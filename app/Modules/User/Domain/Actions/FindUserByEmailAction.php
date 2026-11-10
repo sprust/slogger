@@ -9,13 +9,12 @@ use App\Modules\User\Repositories\UserRepository;
 
 readonly class FindUserByEmailAction
 {
-    public function __construct(
-        private UserRepository $userRepository
-    ) {
+    public function __construct(private UserRepository $userRepository)
+    {
     }
 
     public function handle(string $email): ?UserDetailObject
     {
-        return $this->userRepository->findByEmail(email: $email);
+        return $this->userRepository->findByEmail($email);
     }
 }

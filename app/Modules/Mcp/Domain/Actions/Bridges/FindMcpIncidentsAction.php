@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
 use App\Modules\Mcp\Entities\Bridges\McpIncidentObject;
+use App\Modules\Mcp\Transports\McpIncidentObjectTransport;
 use App\Modules\Mcp\Entities\Bridges\McpIncidentPageObject;
 use App\Modules\Mcp\Parameters\FindMcpIncidentsParameters;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
@@ -12,6 +13,7 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Parameters\FindIncidentsParameters;
+use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 
 readonly class FindMcpIncidentsAction
 {
@@ -19,7 +21,8 @@ readonly class FindMcpIncidentsAction
 
     public function __construct(
         private FindIncidentsAction $findIncidentsAction,
-        private FindWatcherAction $findWatcherAction
+        private FindWatcherAction $findWatcherAction,
+        private McpIncidentObjectTransport $mcpIncidentObjectTransport
     ) {
     }
 
@@ -27,22 +30,24 @@ readonly class FindMcpIncidentsAction
     {
         $incidents = $this->findIncidentsAction->handle(
             new FindIncidentsParameters(
-                status: $parameters->status,
+                status: $parameters->status === null
+                    ? null
+                    : WatcherIncidentStatusEnum::from($parameters->status->value),
                 watcherId: $parameters->watcherId,
                 page: $parameters->page,
-                perPage: self::PER_PAGE
+                perPage: self::PER_PAGE,
             )
         );
-
         $next = $this->findIncidentsAction->handle(
             new FindIncidentsParameters(
-                status: $parameters->status,
+                status: $parameters->status === null
+                    ? null
+                    : WatcherIncidentStatusEnum::from($parameters->status->value),
                 watcherId: $parameters->watcherId,
                 page: $parameters->page * self::PER_PAGE + 1,
-                perPage: 1
+                perPage: 1,
             )
         );
-
         $watchers = [];
 
         return new McpIncidentPageObject(
@@ -52,19 +57,22 @@ readonly class FindMcpIncidentsAction
                         $watchers[$incident->watcherId] = $this->findWatcher($incident->watcherId);
                     }
 
-                    return new McpIncidentObject(
+                    return $this->mcpIncidentObjectTransport->fromWatcher(
                         incident: $incident,
-                        watcher: $watchers[$incident->watcherId]
+                        watcher: $watchers[$incident->watcherId],
                     );
                 },
                 $incidents
             ),
-            hasMore: count($next) > 0
+            hasMore: count($next) > 0,
         );
     }
 
     private function findWatcher(int $watcherId): ?WatcherObject
     {
-        return $this->findWatcherAction->handle($watcherId, withTrashed: true);
+        return $this->findWatcherAction->handle(
+            id: $watcherId,
+            withTrashed: true,
+        );
     }
 }

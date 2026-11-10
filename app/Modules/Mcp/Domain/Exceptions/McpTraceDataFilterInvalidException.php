@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Exceptions;
 
-use Exception;
-
-class McpTraceDataFilterInvalidException extends Exception
+class McpTraceDataFilterInvalidException extends AbstractMcpException
 {
-    public function __construct(
-        public readonly string $condition
-    ) {
+    public function __construct(public readonly string $condition)
+    {
         parent::__construct("Invalid data filter condition [$condition]");
     }
 }

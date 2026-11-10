@@ -12,9 +12,8 @@ use App\Services\Clickhouse\ClickhouseQueryException;
  */
 readonly class RefreshTraceDataPathTypesAction
 {
-    public function __construct(
-        private ClickhouseDataPathTypes $pathTypes,
-    ) {
+    public function __construct(private ClickhouseDataPathTypes $pathTypes)
+    {
     }
 
     /**

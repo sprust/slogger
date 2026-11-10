@@ -29,9 +29,15 @@ readonly class ManyTracesWatcherType implements WatcherTypeDefinitionInterface
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
         return new ManyTracesSettingsObject(
-            windowMinutes: ArrayValueGetter::intNull($settings, 'window_minutes') ?? 5,
-            threshold: ArrayValueGetter::intNull($settings, 'threshold') ?? 1000,
-            filter: $this->filterOf($settings)
+            windowMinutes: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'window_minutes',
+            ) ?? 5,
+            threshold: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'threshold',
+            ) ?? 1000,
+            filter: $this->filterOf($settings),
         );
     }
 
@@ -49,16 +55,16 @@ readonly class ManyTracesWatcherType implements WatcherTypeDefinitionInterface
                     title: 'Over the last, min',
                     valueType: 'int',
                     default: new ManyTracesSettingsObject()->windowMinutes,
-                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
+                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES,
                 ),
                 new WatcherTypeFieldObject(
                     key: 'threshold',
                     title: 'More traces than',
                     valueType: 'int',
                     default: new ManyTracesSettingsObject()->threshold,
-                    min: 1
+                    min: 1,
                 ),
-            ]
+            ],
         );
     }
 

@@ -35,36 +35,99 @@ class LogIndexRepositoryTest extends TestCase
     public function testRecordsSurviveTheRoundTripAndGoToTheirLevel(): void
     {
         $records = [
-            new LogIndexRecordObject(entryNo: 0, offset: 0, length: 10, loggedAt: 1_790_000_000, level: 5),
-            new LogIndexRecordObject(entryNo: 1, offset: 5_000_000_000, length: 4_000_000_000, loggedAt: 4_000_000_000, level: 0),
-            new LogIndexRecordObject(entryNo: 4_294_967_295, offset: 7, length: 1, loggedAt: 1, level: 5),
+            new LogIndexRecordObject(
+                entryNo: 0,
+                offset: 0,
+                length: 10,
+                loggedAt: 1_790_000_000,
+                level: 5
+            ),
+            new LogIndexRecordObject(
+                entryNo: 1,
+                offset: 5_000_000_000,
+                length: 4_000_000_000,
+                loggedAt: 4_000_000_000,
+                level: 0
+            ),
+            new LogIndexRecordObject(
+                entryNo: 4_294_967_295,
+                offset: 7,
+                length: 1,
+                loggedAt: 1,
+                level: 5
+            ),
         ];
 
         $this->repository->appendRecords('f', $records);
 
-        $this->assertEquals($records, $this->repository->readRecords('f', null, 0, 10));
-        $this->assertEquals([$records[0], $records[2]], $this->repository->readRecords('f', 5, 0, 10));
-        $this->assertEquals([$records[1]], $this->repository->readRecords('f', 0, 0, 10));
-        $this->assertEquals([$records[1]], $this->repository->readRecords('f', null, 1, 1));
-        $this->assertSame(3, $this->repository->countRecords('f', null));
-        $this->assertSame(2, $this->repository->countRecords('f', 5));
-        $this->assertSame(0, $this->repository->countRecords('f', 3));
-        $this->assertSame([0, 5], $this->repository->findLevels('f'));
+        $this->assertEquals(
+            $records,
+            $this->repository->readRecords('f', null, 0, 10)
+        );
+        $this->assertEquals(
+            [$records[0], $records[2]],
+            $this->repository->readRecords('f', 5, 0, 10)
+        );
+        $this->assertEquals(
+            [$records[1]],
+            $this->repository->readRecords('f', 0, 0, 10)
+        );
+        $this->assertEquals(
+            [$records[1]],
+            $this->repository->readRecords('f', null, 1, 1)
+        );
+        $this->assertSame(
+            3,
+            $this->repository->countRecords('f', null)
+        );
+        $this->assertSame(
+            2,
+            $this->repository->countRecords('f', 5)
+        );
+        $this->assertSame(
+            0,
+            $this->repository->countRecords('f', 3)
+        );
+        $this->assertSame(
+            [0, 5],
+            $this->repository->findLevels('f')
+        );
     }
 
     public function testRecordsAreTruncatedByCount(): void
     {
-        $this->repository->appendRecords('f', [
-            new LogIndexRecordObject(entryNo: 0, offset: 0, length: 1, loggedAt: 1, level: 1),
-            new LogIndexRecordObject(entryNo: 1, offset: 1, length: 1, loggedAt: 1, level: 1),
-        ]);
+        $this->repository->appendRecords(
+            'f',
+            [
+                new LogIndexRecordObject(
+                    entryNo: 0,
+                    offset: 0,
+                    length: 1,
+                    loggedAt: 1,
+                    level: 1
+                ),
+                new LogIndexRecordObject(
+                    entryNo: 1,
+                    offset: 1,
+                    length: 1,
+                    loggedAt: 1,
+                    level: 1
+                ),
+            ]
+        );
 
         $this->repository->truncateRecords('f', null, 1);
         $this->repository->truncateRecords('f', 1, 0);
         $this->repository->truncateRecords('f', 9, 0);
 
-        $this->assertSame(1, $this->repository->countRecords('f', null));
-        $this->assertSame(0, $this->repository->countRecords('f', 1));
+        $this->assertSame(
+            1,
+            $this->repository->countRecords('f', null)
+        );
+        $this->assertSame(
+            0,
+            $this->repository->countRecords('f', 1)
+        );
     }
 
     public function testMetaSurvivesTheRoundTrip(): void
@@ -79,33 +142,64 @@ class LogIndexRepositoryTest extends TestCase
             headHash: md5('head'),
             entriesCount: 3,
             levelCounts: [
-                new LogLevelCountObject(level: 0, count: 1),
-                new LogLevelCountObject(level: 5, count: 2),
+                new LogLevelCountObject(
+                    level: 0,
+                    count: 1
+                ),
+                new LogLevelCountObject(
+                    level: 5,
+                    count: 2
+                ),
             ]
         );
 
         $this->repository->saveMeta('f', $meta);
 
-        $this->assertEquals($meta, $this->repository->findMeta('f'));
+        $this->assertEquals(
+            $meta,
+            $this->repository->findMeta('f')
+        );
     }
 
     public function testAMissingIndexHasNoMetaAndNoRecords(): void
     {
-        $this->assertNull($this->repository->findMeta('missing'));
-        $this->assertSame(0, $this->repository->countRecords('missing', null));
-        $this->assertSame([], $this->repository->findLevels('missing'));
+        $this->assertNull(
+            $this->repository->findMeta('missing')
+        );
+        $this->assertSame(
+            0,
+            $this->repository->countRecords('missing', null)
+        );
+        $this->assertSame(
+            [],
+            $this->repository->findLevels('missing')
+        );
     }
 
     public function testDeleteRemovesTheWholeIndex(): void
     {
-        $this->repository->appendRecords('f', [
-            new LogIndexRecordObject(entryNo: 0, offset: 0, length: 1, loggedAt: 1, level: 1),
-        ]);
+        $this->repository->appendRecords(
+            'f',
+            [
+                new LogIndexRecordObject(
+                    entryNo: 0,
+                    offset: 0,
+                    length: 1,
+                    loggedAt: 1,
+                    level: 1
+                ),
+            ]
+        );
 
         $this->repository->delete('f');
         $this->repository->delete('f');
 
-        $this->assertSame(0, $this->repository->countRecords('f', null));
-        $this->assertDirectoryDoesNotExist($this->tempDir . '/index/f');
+        $this->assertSame(
+            0,
+            $this->repository->countRecords('f', null)
+        );
+        $this->assertDirectoryDoesNotExist(
+            $this->tempDir . '/index/f'
+        );
     }
 }

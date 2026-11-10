@@ -30,8 +30,10 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof NoNewTracesSettingsObject) {
@@ -50,22 +52,33 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
         // A line whose head the receiver dropped is missing the beginning of this window,
         // and an empty window is exactly what this watcher reports. Silence it cannot
         // vouch for is not silence.
-        if ($this->analyzer->startsAfter($timeline, $from)) {
+        if (
+            $this->analyzer->startsAfter(
+                timeline: $timeline,
+                from: $from,
+            )
+        ) {
             return null;
         }
 
-        $count = $this->analyzer->countIn($timeline, $from, $to);
+        $count = $this->analyzer->countIn(
+            timeline: $timeline,
+            from: $from,
+            to: $to,
+        );
 
         if ($count > 0) {
             return null;
         }
 
         return new NoNewTracesEventPayloadObject(
-            settings: new NoNewTracesEventSettingsObject(periodMinutes: $settings->periodMinutes),
+            settings: new NoNewTracesEventSettingsObject(
+                periodMinutes: $settings->periodMinutes,
+            ),
             measured: new NoNewTracesEventMeasuredObject(
                 windowFrom: $from->toDateTimeString(),
-                windowTo: $to->toDateTimeString()
-            )
+                windowTo: $to->toDateTimeString(),
+            ),
         );
     }
 }

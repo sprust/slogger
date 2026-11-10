@@ -18,9 +18,7 @@ class BroadcastServiceProvider extends ServiceProvider
         // sets the user resolver, which is what SConcurBroadcaster::auth() reaches
         // through $request->user() when it runs the callbacks of routes/channels.php.
         Broadcast::routes([
-            'middleware' => [
-                AuthMiddleware::class,
-            ],
+            'middleware' => [AuthMiddleware::class],
         ]);
 
         require base_path('routes/channels.php');

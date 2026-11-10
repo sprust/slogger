@@ -26,7 +26,9 @@ readonly class FindChannelsAction
             array_filter(
                 array_map(
                     fn(ChannelDto $dto): ?ChannelObject => $this->channelFactory->make($dto),
-                    $this->channelRepository->find($enabled)
+                    $this->channelRepository->find(
+                        enabled: $enabled,
+                    )
                 )
             )
         );

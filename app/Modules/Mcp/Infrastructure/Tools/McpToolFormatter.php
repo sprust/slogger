@@ -7,8 +7,8 @@ namespace App\Modules\Mcp\Infrastructure\Tools;
 use App\Modules\Mcp\Entities\Bridges\McpIncidentObject;
 use App\Modules\Mcp\Entities\Bridges\McpTraceTreeNodeObject;
 use App\Modules\Mcp\Entities\Bridges\McpTraceTreeObject;
-use App\Modules\Trace\Entities\Trace\TraceServiceObject;
-use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
+use App\Modules\Mcp\Entities\Trace\TraceServiceObject;
+use App\Modules\Mcp\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use Illuminate\Support\Carbon;
 
@@ -26,7 +26,7 @@ readonly class McpToolFormatter
                 'error' => $error,
                 'hint'  => $hint,
             ],
-            isError: true
+            isError: true,
         );
     }
 
@@ -34,7 +34,10 @@ readonly class McpToolFormatter
     {
         return $this->error(
             error: 'invalid_time',
-            hint: sprintf('Argument "%s" is not an ISO 8601 time, for example 2026-09-28T20:00:00Z.', $argument)
+            hint: sprintf(
+                'Argument "%s" is not an ISO 8601 time, for example 2026-09-28T20:00:00Z.',
+                $argument
+            ),
         );
     }
 
@@ -46,7 +49,7 @@ readonly class McpToolFormatter
         return $this->error(
             error: 'query_failed',
             hint: 'The trace storage could not answer this query. Try a shorter period, fewer services '
-            . 'or narrower filters.'
+                . 'or narrower filters.',
         );
     }
 
@@ -60,7 +63,7 @@ readonly class McpToolFormatter
             hint: sprintf(
                 'No services with ids [%s]. Call get_services to get the ids.',
                 implode(', ', $serviceIds)
-            )
+            ),
         );
     }
 
@@ -79,14 +82,12 @@ readonly class McpToolFormatter
             'last_event_at'  => $this->time($incident->lastEventAt),
             'events_count'   => $incident->eventsCount,
             'closed_at'      => $this->time($incident->closedAt),
-            'watcher'        => is_null($watcher)
-                ? null
-                : [
-                    'id'          => $watcher->id,
-                    'name'        => $watcher->name,
-                    'type'        => $watcher->type->value,
-                    'service_ids' => $watcher->match->serviceIds ?? [],
-                ],
+            'watcher'        => is_null($watcher) ? null : [
+                'id'          => $watcher->id,
+                'name'        => $watcher->name,
+                'type'        => $watcher->type->value,
+                'service_ids' => $watcher->serviceIds,
+            ],
         ];
     }
 
@@ -94,7 +95,7 @@ readonly class McpToolFormatter
     {
         return $this->error(
             error: 'trace_not_found',
-            hint: "Trace [$traceId] not found. Take trace ids from this installation only."
+            hint: "Trace [{$traceId}] not found. Take trace ids from this installation only.",
         );
     }
 
@@ -103,12 +104,10 @@ readonly class McpToolFormatter
      */
     public function service(?TraceServiceObject $service): ?array
     {
-        return is_null($service)
-            ? null
-            : [
-                'id'   => $service->id,
-                'name' => $service->name,
-            ];
+        return is_null($service) ? null : [
+            'id'   => $service->id,
+            'name' => $service->name,
+        ];
     }
 
     /**
@@ -136,17 +135,16 @@ readonly class McpToolFormatter
     public function treeNotReady(McpTraceTreeObject $tree, string $buildingHint): ?McpToolResult
     {
         return match ($tree->status) {
-            TraceTreeCacheStateStatusEnum::Finished => null,
-            TraceTreeCacheStateStatusEnum::Failed,
-            TraceTreeCacheStateStatusEnum::Canceled => $this->error(
+            TraceTreeCacheStateStatusEnum::Finished                                        => null,
+            TraceTreeCacheStateStatusEnum::Failed, TraceTreeCacheStateStatusEnum::Canceled => $this->error(
                 error: 'tree_' . $tree->status->value,
                 hint: sprintf(
                     'Building the tree of root trace [%s] ended with status %s%s. '
-                    . 'Only the user can rebuild it in the SLogger UI.',
+                        . 'Only the user can rebuild it in the SLogger UI.',
                     $tree->rootTraceId,
                     $tree->status->value,
-                    is_null($tree->error) ? '' : ": $tree->error"
-                )
+                    is_null($tree->error) ? '' : ": {$tree->error}"
+                ),
             ),
             default => new McpToolResult(
                 data: [
@@ -154,7 +152,7 @@ readonly class McpToolFormatter
                     'root_trace_id'       => $tree->rootTraceId,
                     'retry_after_seconds' => 10,
                     'hint'                => $buildingHint,
-                ]
+                ],
             ),
         };
     }

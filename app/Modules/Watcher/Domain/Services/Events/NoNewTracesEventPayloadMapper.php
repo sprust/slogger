@@ -24,12 +24,22 @@ readonly class NoNewTracesEventPayloadMapper implements WatcherEventPayloadMappe
 
         /** @var array<string, mixed> $settings */
         /** @var array<string, mixed> $measured */
-        $settingsPeriodMinutes = ArrayValueGetter::intNull($settings, 'period_minutes');
+        $settingsPeriodMinutes = ArrayValueGetter::intNull(
+            data: $settings,
+            key: 'period_minutes',
+        );
 
-        $measuredWindowFrom = ArrayValueGetter::stringNull($measured, 'window_from');
-        $measuredWindowTo   = ArrayValueGetter::stringNull($measured, 'window_to');
+        $measuredWindowFrom = ArrayValueGetter::stringNull(
+            data: $measured,
+            key: 'window_from',
+        );
+        $measuredWindowTo   = ArrayValueGetter::stringNull(
+            data: $measured,
+            key: 'window_to',
+        );
 
-        if (is_null($settingsPeriodMinutes)
+        if (
+            is_null($settingsPeriodMinutes)
             || is_null($measuredWindowFrom)
             || is_null($measuredWindowTo)
         ) {
@@ -38,19 +48,21 @@ readonly class NoNewTracesEventPayloadMapper implements WatcherEventPayloadMappe
 
         return new NoNewTracesEventPayloadObject(
             settings: new NoNewTracesEventSettingsObject(
-                periodMinutes: $settingsPeriodMinutes
+                periodMinutes: $settingsPeriodMinutes,
             ),
             measured: new NoNewTracesEventMeasuredObject(
                 windowFrom: $measuredWindowFrom,
-                windowTo: $measuredWindowTo
-            )
+                windowTo: $measuredWindowTo,
+            ),
         );
     }
 
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof NoNewTracesEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

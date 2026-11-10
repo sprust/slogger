@@ -10,9 +10,8 @@ use App\Modules\Service\Repositories\ServiceRepository;
 
 readonly class SortServicesAction
 {
-    public function __construct(
-        private ServiceRepository $serviceRepository
-    ) {
+    public function __construct(private ServiceRepository $serviceRepository)
+    {
     }
 
     /**

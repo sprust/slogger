@@ -25,9 +25,8 @@ class RefreshTraceDataPathTypesTask implements TaskInterface
 
     private ?int $refreshedAt = null;
 
-    public function __construct(
-        private readonly RefreshTraceDataPathTypesAction $refreshAction,
-    ) {
+    public function __construct(private readonly RefreshTraceDataPathTypesAction $refreshAction)
+    {
     }
 
     public function name(): string

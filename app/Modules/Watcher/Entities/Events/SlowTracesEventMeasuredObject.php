@@ -7,8 +7,7 @@ namespace App\Modules\Watcher\Entities\Events;
 /** What the checker saw. */
 readonly class SlowTracesEventMeasuredObject
 {
-    public function __construct(
-        public float $slowest
-    ) {
+    public function __construct(public float $slowest)
+    {
     }
 }

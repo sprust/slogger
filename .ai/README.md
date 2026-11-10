@@ -6,6 +6,18 @@ Centralized source of instructions for AI assistants (Claude Code and others) wo
 
 ---
 
+## Required Rules And Guides
+
+Read [rules.md](rules.md) and [code-style.md](code-style.md) before editing code,
+including the rules for vertical arrays and named arguments. Read relevant
+[tests](skills/tests.md), [repositories](skills/repositories.md),
+[admin](skills/admin.md) and
+[documentation](skills/documentation.md) guides before work in those areas.
+[Architecture notes](architecture-notes.md) record implementation decisions and audit limitations.
+Existing authorization in the conversation applies to the ongoing task.
+
+---
+
 ## Approval Policy
 
 - Before making any changes (even trivial ones), show the user a plan describing what files and lines will be modified.
@@ -31,6 +43,9 @@ Centralized source of instructions for AI assistants (Claude Code and others) wo
 ```bash
 # Run all code analysis + tests (required after backend changes)
 make check
+
+# Prepare isolated tmpfs test databases (once and after storage restarts)
+make test-prepare
 
 # Run PHPUnit tests only
 make test
@@ -74,7 +89,7 @@ make stop
 - Main orchestration is done through the root `makefile` and Docker Compose.
 - Domain code is organized mostly in `app/Modules`, while Eloquent models remain in `app/Models`.
 
-HTTP request path: **Route → Controller → Domain Action/Service → Repository → Model**
+HTTP request path: **Route → Controller → module UseCase → Actions/Services → Repository → Model**
 
 Domain events are emitted for flows that trigger queues or framework side effects; listeners in `Infrastructure/Listeners/` handle the infrastructure side.
 
@@ -173,7 +188,7 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 
 ## Typical Request Flow
 
-- Route → HTTP controller → module `Domain` action/service → repository → model/storage.
+- Route → HTTP controller → module `Domain/UseCases` → Actions/Services → repository → model/storage.
 - Request validation and API resources usually live in module `Infrastructure/Http`.
 - Framework-specific adapters should stay in `Infrastructure`; business logic should stay in `Domain`.
 - UI-driven changes are usually traced through `frontend/src/components/pages` → `frontend/src/api-schema` → backend route/controller → module domain code.
@@ -197,143 +212,105 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 
 ## Module Layering Rules
 
-Source of truth: `code-analyse/deptrac-layers.yaml`.
+The project checks live in `code-analyse/deptrac`, `code-analyse/phpstan`,
+`code-analyse/cs-fixer` and `code-analyse/module-structure`. The existing make targets
+use these files directly. PHPStan checks app, tests and seeders, including the copied
+NoMultilineArrayKeyRule. Module structure is checked by its standalone CLI.
 
-### Typical Module Tree
+The source Deptrac layer/module matrices are retained. Common is excluded from the
+module matrix; shared Domain modules are project-specific. These checks do not enforce
+the full code conventions below: input Parameters, UseCase orchestration and the allowed
+business integration graph also require code review. Do not add a baseline to hide errors.
+Regression fixtures in tests/Architecture exercise the copied rules.
 
-Typical module root: `app/Modules/<ModuleName>`.
+A module may contain `Domain/{Actions,Services,UseCases,Events,Exceptions}`,
+`Entities`, `Parameters`, `Enums`, `Helpers`, `Transports`, `Repositories/{Dto,Services}` and
+`Infrastructure`. Infrastructure includes HTTP, commands, jobs, listeners, tasks,
+services, broadcasting, protocol, tools, prompts and exception managers. Unused
+folders need not exist. Module providers live in the root of Infrastructure; their base
+lives in `Common/Infrastructure/Providers`. The copied layer collectors do not collect root Infrastructure providers or Enums as separate layers.
 
-```text
-app/Modules/<ModuleName>/
-├── Domain/
-│   ├── Actions/
-│   ├── Services/
-│   └── Exceptions/
-├── Entities/
-├── Parameters/
-├── Repositories/
-│   ├── Dto/
-│   └── Services/
-├── Infrastructure/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   ├── Requests/
-│   │   ├── Resources/
-│   │   └── Services/
-│   └── Commands/
-└── Enums/
-```
+- Actions and Services use their module's repositories and data. Actions expose
+  one public business method, `handle`. Use ordinary constructor DI.
+- UseCases orchestrate Actions and Services, expose `handle`, and do not call
+  repositories or other UseCases. Business HTTP endpoints call one local UseCase;
+  protocol parsing/routing remains in Infrastructure.
+- Entities and Parameters hold local or common data types, including nested
+  fields, collections and enums. Foreign DTOs must be converted to local types by module `Transports/*Transport`,
+  called from Domain. Do not bypass this rule with inheritance, aliases, `mixed` or untyped arrays.
+- Actions/UseCases accept local Parameters. Domain may construct foreign Parameters
+  immediately before an allowed foreign Action call. The copied PHPStan rules do not validate these input contracts automatically.
+- Transports convert typed Entities/Parameters/Enums along the declared module graph;
+  they may use their own repositories but never foreign Domain, Repositories or
+  Infrastructure. Domain/UseCases/Repositories use local Transports; Entities,
+  Parameters, Enums and Infrastructure do not. Source Object inputs are allowed
+  only in Transports, not public Domain business methods.
+- Repositories perform persistence primitives and mapping, use their owned Models,
+  and do not call another repository. Repository mapping services/DTOs remain allowed.
+  Public results are data objects or primitives, never Model/Builder instances.
+  Physical deletion remains supported.
+- Infrastructure calls its own Domain, uses its own data and Common infrastructure.
+  Foreign Events/Exceptions are integration contracts, not access to foreign business
+  Actions. Providers bind their own layers and Common contracts; global Laravel
+  providers and ModulesConfig are composition points.
+- Enums do not access repositories/adapters. Common has no reverse dependencies on
+  business modules. Domain does not construct HTTP responses.
 
-Notes:
-- Not every module contains every directory. Minimal modules may have only part of this tree.
-- Shared/support modules may also include directories such as `Helpers`.
-- HTTP entrypoints for a module are usually placed in `Infrastructure/Http`.
-- Console or framework-facing adapters should go into `Infrastructure/...`, not into `Domain`.
-- Keep business use cases in `Domain/Actions`, domain services in `Domain/Services`, and transport/input objects in `Parameters`.
-- Repositories are part of the declared deptrac layer and may contain DTOs or helper services related to persistence/mapping.
+Only Domain Actions/Services may use foreign Domain/data, along these directions:
 
-### Declared Layers
+| Source | Foreign modules |
+| --- | --- |
+| Auth | User |
+| Cleaner | Trace, Setting |
+| Logs | Setting |
+| Trace | Service |
+| Watcher | Trace, Logs, Auth |
+| Notification | Watcher |
+| Mcp | Service, Watcher, Trace, Logs, Setting |
 
-- `Domain` — `app/Modules/<Module>/Domain`
-- `Entities` — `app/Modules/<Module>/Entities`
-- `Parameters` — `app/Modules/<Module>/Parameters`
-- `Repositories` — `app/Modules/<Module>/Repositories`
-- `Infrastructure` — only nested directories inside `app/Modules/<Module>/Infrastructure/<Subdir>`
-- `Models` — `app/Models`
+These are business-code conventions. The copied module matrix discovers modules
+automatically and permits cross-module Domain/Objects dependencies. Providers, Infrastructure
+and UseCases may use the Events/Exceptions of their declared integrations, but
+not foreign Entities, Parameters or services. There are no MCP bridge exceptions.
 
-### Cross-Module Dependencies
+Model ownership remains a code convention, not an additional copied module collector. In particular,
+`Models/Traces/TraceMetric` belongs to Dashboard and
+`Models/Traces/TraceClearingProcess` belongs to Cleaner. Shared abstract Models
+belong to Common. Models do not depend on module enums; repositories map storage
+values to domain types.
 
-Deptrac compares layers, not modules, so `Watcher\Domain` reaching into `Trace\Domain`
-passes the tool. Nothing but this list stands between that and a graph nobody can follow,
-so a new cross-module edge is added here or is not added.
+---
 
-`Notification` → `Watcher`. One way only: `Watcher` knows nothing about channels.
+## Application Dispatcher
 
-- `Domain\Actions\Mutations\EnqueueNotificationsAction` → `Watcher\Entities`,
-  `Watcher\Enums` — the incident, its event and its status are what a message is made of.
-- `Domain\Services\IncidentMessageFactory` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
-  `Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface`, `Watcher\Entities`
-  — to read a watcher type's title, to render an event's numbers under the names they are
-  stored by, and the same three objects.
-- `Infrastructure\Listeners\EnqueueNotificationsListener` → `Watcher\Domain\Events`,
-  `Watcher\Domain\Actions\Queries` — it listens for `WatcherIncidentChangedEvent` and
-  reads the watcher and the latest event behind it.
-- `Infrastructure\NotificationServiceProvider` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
-  to build the message factory above.
+`Common/Domain/Services/DispatcherInterface` is the application boundary for
+`event(object)`, `dispatch(ShouldQueue)`, `report(Throwable)` and
+`registerJobs(array<class-string<ShouldQueue>>)`. Its singleton implementation
+forwards calls immediately through Laravel event/bus/exception contracts. It
+keeps only the boot-time set of job classes, never request payload or routing state.
 
-`Cleaner` → `Trace`. One way only: `Trace` knows nothing about the cleaner.
+Module providers bind services in `register()` with their existing lifetimes.
+During `boot()`, `getJobs()` registers application jobs idempotently and
+`getListeners()` attaches local listeners. The five jobs are Trace build/delete
+cache, Notification send, Cleaner clear traces and Dashboard refresh statistics.
+Global EventServiceProvider does not duplicate these mappings. Package jobs are
+not intercepted. Commands remain registered by their owner module.
 
-- `Domain\Actions\ClearTracesAction` → `Trace\Domain\Actions\Mutations\DeletePartitionsAction`,
-  `Trace\Entities` — to drop the hours past the retention.
+A job's connection overrides `queue.default`; its queue overrides the chosen
+connection's configured queue, with `default` as fallback. A sync driver is
+allowed without RabbitMQ topology. Async routing requires the configured
+`sconcur.queue.rabbitmq.connection`, driver `sconcur_rabbitmq`, and membership in
+`sconcur.queue.rabbitmq.queues`. Worker groups and running consumer counts are not
+an allow-list. Unknown jobs/routes are skipped and logged directly with the class
+and route, without payload or recursive report. Transport exceptions propagate;
+the dispatcher does not retry. The same job object reaches Laravel, preserving
+delay, after-commit, retries and backoff. No PendingDispatch destructor is involved.
 
-`Watcher` → `Trace`.
-
-- `Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to count what
-  the receiver could not act on.
-- `Infrastructure\Tasks\CheckWatchersTask` → `Trace\Domain`, to read the buffer size
-  once for a whole pass rather than once per watcher.
-
-`Watcher` → `Logs`.
-
-- `Domain\Services\Checkers\LogErrorsChecker` → `Logs\Domain\Actions\FindLogErrorStatAction`,
-  `Logs\Entities` — to count the errors written to the application log and read the
-  latest of them.
-- `Domain\Services\Checkers\ReceiverErrorsChecker` → `Logs\Domain\Actions\FindReceiverErrorStatAction`,
-  `Logs\Entities` — the same for the receiver log.
-
-`Watcher` → `Auth`.
-
-- `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,
-  to record who closed an incident. The only place outside `Auth` that reaches into it.
-
-`Mcp` → `Service`, `Watcher`, `Trace`, `Logs`. One way only: none of them knows about MCP. Tools
-never call another module; only the bridge actions in `Mcp\Domain\Actions\Bridges` do,
-and they hand the other module's entities back as they are.
-
-- `Domain\Actions\Bridges\FindMcpServicesAction` → `Service\Domain\Actions\FindServicesAction`,
-  `Service\Entities`.
-- `Domain\Actions\Bridges\FindMcpDataRangeAction` → `Trace\Domain\Actions\Queries\FindTraceDataRangeAction`,
-  `Trace\Entities`.
-- `Domain\Actions\Bridges\FindMcpIncidentsAction` → `Watcher\Domain\Actions\Queries\FindIncidentsAction`,
-  `FindWatcherAction`, `Watcher\Parameters\FindIncidentsParameters`, `Watcher\Entities`.
-- `Domain\Actions\Bridges\FindMcpIncidentEventsAction` → `Watcher\Domain\Actions\Queries\FindIncidentAction`,
-  `FindWatcherAction`, `FindIncidentEventsAction`, `Watcher\Domain\Services\Types\WatcherTypeRegistry`
-  (to render an event's numbers under the names they are stored by), `Watcher\Entities`.
-- `Domain\Actions\Bridges\FindMcpTraceAction` → `Trace\Domain\Actions\Queries\FindTraceDetailAction`.
-- `Domain\Actions\Bridges\FindMcpTraceTreeAction` → `Trace\Domain\Actions\Queries\FindTraceTreeStateAction`,
-  `FindTraceTreeAction` (only to start the first build, as the UI does), `FindTraceTreeChildrenAction`.
-- `Domain\Actions\Bridges\FindMcpTraceTreeFilteredAction` → `FindTraceTreeStateAction`,
-  `FindTraceTreeFilteredAction`, `Trace\Parameters\TraceTreeFilterParameters`.
-- `Domain\Actions\Bridges\FindMcpTraceFacetsAction` → `Trace\Domain\Actions\Queries\FindTypesAction`,
-  `FindStatusesAction`, `FindTagsAction` and their `Trace\Parameters\TraceFind*Parameters`.
-- `Domain\Actions\Bridges\FindMcpTracesAction` → `Trace\Domain\Actions\Queries\FindTracesAction`,
-  `Trace\Parameters\TraceFindParameters`, `Trace\Parameters\Data\TraceDataFilterParameters`.
-- `Domain\Actions\Bridges\FindMcpTraceDataFieldsAction` → `FindTracesAction`, `FindTraceDetailAction`.
-- `Domain\Actions\Bridges\FindMcpTraceGroupsAction` → `Trace\Domain\Actions\Queries\FindTraceGroupsAction`,
-  `CompareMcpTraceGroupsAction` → `CompareTraceGroupsAction`, with `Trace\Parameters\TraceFindGroupsParameters`,
-  `TraceCompareGroupsParameters`, `Trace\Parameters\Data\TraceDataFilterParameters` (the `data_filter` of
-  `aggregate_traces`), `Trace\Enums\TraceGroupFieldEnum`, `TraceCompareByEnum`.
-- `Domain\Services\McpTraceDataFilterParser` → `Trace\Parameters\Data`, `Trace\Enums\TraceDataFilterComp*Enum`;
-  `Domain\Services\McpTracePeriodMapper` → `Trace\Parameters\PeriodParameters`.
-- `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,
-  to put service names on tree nodes.
-- `Domain\Actions\Bridges\FindMcpLogEntriesAction` → `Logs\Domain\Actions\FindLogFilesAction`,
-  `FindLogEntriesAction`, `Logs\Domain\Services\Formats\LogFormatRegistry` (the level names of a
-  source's format), `Logs\Parameters\FindLogEntriesParameters`, `Logs\Entities`, `Logs\Enums`.
-- `Infrastructure\Tools\GetTraceDataTool` → `Trace\Infrastructure\Http\Resources\Data\TraceDataResource`,
-  so that the model gets a trace's data exactly as the UI does. The only edge between two
-  modules' `Infrastructure`.
-- `Parameters`, `Domain\Exceptions`, `Entities\Bridges`, `Infrastructure\Tools` → `Watcher\Enums`,
-  `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums`, `Logs\Entities` — the
-  objects the bridges return.
-
-### Allowed Dependencies
-
-- `Domain` may depend only on `Entities`, `Parameters`, `Repositories`.
-- `Parameters` may depend only on `Entities`.
-- `Repositories` may depend only on `Entities`, `Parameters`, `Models`.
-- `Infrastructure` may depend only on `Domain`, `Parameters`, `Entities`.
-- `Models` must not depend on other declared layers.
+`report` passes the original exception to the existing Handler, including its
+expected-error filters. No separate reporter wrapper or Horizon dependency is added.
+Immediate trace broadcasts stay immediate and retain their existing rescue policy.
+The two scheduled application jobs use named callbacks through the dispatcher;
+frequencies and the separate scheduled commands/SConcur tasks remain unchanged.
 
 ---
 
@@ -390,12 +367,12 @@ and they hand the other module's entities back as they are.
 
 ## Change Rules
 
-- Treat `code-analyse/deptrac-layers.yaml` as an architectural constraint, not as documentation-only. New code in `app/Modules` must fit the declared layers or the deptrac config must be explicitly updated.
-- If a module needs infrastructure code, place it inside a nested subdirectory of `Infrastructure`. Deptrac does not collect files directly under `app/Modules/<Module>/Infrastructure`.
+- Treat `code-analyse/deptrac/deptrac-layers.yaml` as an architectural constraint, not as documentation-only. New code in `app/Modules` must fit the declared layers or the deptrac config must be explicitly updated.
+- Put adapters inside the relevant nested `Infrastructure` directory. Module providers and the base in `Infrastructure/Providers` retain their placement; the copied Deptrac collectors do not define a dedicated provider layer.
 - Changes in backend business logic should usually stay inside the relevant module instead of leaking into controllers or unrelated services.
 - `frontend/src/api-schema` is generated code. Prefer regenerating it instead of editing it manually.
 - Domain events are domain logic. If a flow needs to trigger queues or other framework integrations, emit a domain event first and handle infrastructure side effects in listeners.
-- For Laravel jobs, prefer the `dispatch()` helper instead of static `::dispatch()`.
+- Send application jobs through `DispatcherInterface::dispatch()`; register their classes in the owning module provider.
 - Use `PSR-12` formatting for PHP changes.
 - If a class is an action, it should expose a single `handle(...)` method only.
 - Repositories should not contain business operations like `cancel*`; keep them as persistence primitives such as `updateStatus(...)`, and call them from actions like `Cancel*Action`.
@@ -424,7 +401,7 @@ and they hand the other module's entities back as they are.
   is an ordinary field and stays with the others, before the three above.
 - Call with named arguments once a call is written across more than one line —
   `new HttpClient(responseFactory: ..., options: ...)`, `$sender->send(channel: ..., text: ...)`.
-  Short single-line calls stay positional. Named arguments bind to parameter names, so
+  Use named arguments for multiple arguments or optional parameters, as specified in `rules.md`. Named arguments bind to parameter names, so
   the names of an interface's parameters become part of its contract, and the same goes
   for a third-party constructor: renaming a parameter is then a breaking change.
 - A call passed as an argument to another call goes on its own line:
@@ -577,9 +554,25 @@ New features and behavior changes are specified with [OpenSpec](https://openspec
 - `openspec/changes/archive/` — finished changes, merged into `openspec/specs/`.
 - `openspec/config.yaml` — project context and per-artifact rules fed to every artifact. Artifacts are written in Russian.
 
-Cycle: `/opsx:explore` (optional) → `/opsx:propose <idea>` → review → `/opsx:apply` → `/opsx:archive`. `/opsx:update` revises the artifacts of an open change, and `/opsx:sync` merges its delta specs without archiving.
+Cycle: explore (optional) → propose → review → apply → archive. Update revises the artifacts of an open change, and sync merges its delta specs without archiving.
 
-OpenSpec does not relax the Approval Policy: a proposal is the plan to approve, and `/opsx:apply` starts only after explicit approval. Commits and pushes still need their own approval.
+| Workflow | Codex skill | Claude command |
+| --- | --- | --- |
+| Explore | `$openspec-explore` | `/opsx:explore` |
+| Propose | `$openspec-propose` | `/opsx:propose` |
+| Apply | `$openspec-apply-change` | `/opsx:apply` |
+| Update | `$openspec-update-change` | `/opsx:update` |
+| Sync | `$openspec-sync-specs` | `/opsx:sync` |
+| Archive | `$openspec-archive-change` | `/opsx:archive` |
+
+Codex uses the generated `.agents/skills/openspec-*/SKILL.md` files, installed by
+`openspec init --tools codex`. Do not add `opsx-*` wrappers for the same workflows.
+Keep project-specific rules here and in `openspec/config.yaml`, not in generated skills.
+Before using a workflow, read this guide and run commands from the project root.
+If `openspec` is missing from PATH, check `~/.local/bin/openspec` before reporting it
+uninstalled. Installing the CLI or initializing a project still requires a user request.
+
+OpenSpec does not relax the Approval Policy: a proposal is the plan to approve, and apply starts only after explicit approval. Selecting a workflow automatically does not grant approval. Commits and pushes still need their own approval.
 
 Existing `.ai/plans/` files stay where they are; new work goes through `openspec/changes/`.
 
@@ -599,16 +592,16 @@ You are a strict code reviewer for the SLogger project (Laravel 12 / PHP 8.4, Vu
 **What to Check:**
 
 1. **Architecture (deptrac)**
-   - Domain depends only on Entities, Parameters, Repositories
-   - Infrastructure depends only on Domain, Parameters, Entities
-   - Repositories depend only on Entities, Parameters, Models
+   - Check the layer and module matrices above and both Deptrac configurations
+   - UseCases call local Actions/Services, not Repositories or other UseCases
+   - Entities/Parameters use local or common data; conversions belong to Transports
    - Business logic has not leaked into controllers, requests, or commands
 
 2. **Code Rules**
    - Action classes expose only a `handle(...)` method — no extra public methods
    - Repositories contain only persistence primitives (not `cancelOrder`, but `updateStatus`)
    - Each entity has its own dedicated controller — no mixing
-   - New Laravel jobs use `dispatch()`, not the static `::dispatch()`
+   - New application jobs use `DispatcherInterface::dispatch()` and module registration
    - PSR-12 formatting
 
 3. **Tests**
@@ -700,3 +693,80 @@ What is intentionally excluded.
 - Business logic must not leak into controllers
 
 When the spec is ready — output it and ask whether implementation can begin.
+
+## Module Exception Managers
+
+Each module with domain exceptions declares `Domain/Exceptions/Abstract<Module>Exception`
+extending PHP `Exception`. Concrete domain errors extend their module base;
+`isHandlingException` checks that base. `getDontReport` lists concrete expected errors,
+so new subclasses are reportable automatically. Unknown subclasses receive a safe generic
+message; known errors retain their response mapping. Auth exposes the exception message,
+so its exception constructors must supply user-facing text. Common also registers its manager.
+
+Each module registers its manager through `getExceptionManagerClass()` on its provider.
+`Common/Infrastructure/Exceptions/Manager` contains BaseExceptionManager,
+ExceptionManagerInterface, ExceptionManagers and JsonHttpExceptionResponseObject.
+Reportability (`isReportable`) and response mapping (`makeJsonHttpResponse`) are
+independent; an unhandled exception returns null, and the registry uses the first
+manager that handles it. The base unwraps StreamedResponseException.
+
+Handler filters ordinary reports through ExceptionManagers. Explicit Dispatcher::report
+wraps ReportableException and reports the original exception through Laravel, bypassing
+only the module's dontReport list. Laravel's own exclusions still apply.
+Internal missing log files, invalid MCP server configuration and mutex timeouts remain
+reportable HTTP 500 errors with `Server Error`; paths, settings and lock keys stay in
+the original exception for reporting. Infrastructure MCP protocol errors keep their own handling.
+Mapped JSON errors keep SLogger statuses; non-JSON requests retain content negotiation.
+The DTO adds the boolean isError solely to preserve Dashboard's existing `error` response and
+JSON 503 even without an Accept header. MCP protocol/tool errors stay in their handlers.
+
+Business controllers call one local UseCase per operation. Read-after-write and type
+guards belong to that scenario. UseCases return complete DTOs or throw domain errors;
+controllers validate transport input and construct resources. The five queued job
+classes retain their FQCN and payload fields; `LegacyJobPayloadTest` compares them
+against serialized fixtures generated from the pre-refactor classes.
+
+MCP bridges return local Entities and enums, including nested trace data, tree nodes,
+groups, incidents and service summaries. `Mcp/Transports` converts source DTOs and
+query parameters; tools do not use another module's resource or data contract.
+`TraceDataParityTest` checks recursive HTTP/MCP data output, null, empty children,
+scalar types, key order and untruncated long values.
+
+## Module Provider Lifecycle
+
+`ModulesConfig::getProviders()` is the single provider list used by `config/app.php`
+and `Console/Kernel::schedule`; Common goes first. Each module declares `setSchedule`,
+`getCommands`, `getJobs`, `getListeners` and `getExceptionManagerClass`, using empty
+lists or null where appropriate. Module providers use `onRegister` and `onBoot`
+instead of overriding Laravel's lifecycle methods.
+
+`Common/Infrastructure/Providers/BaseServiceProvider` registers the existing SLogger
+`getContracts` singletons before `onRegister` factories. At boot it calls `onBoot`,
+registers listeners, console-only commands, jobs and the exception manager. It does
+not cache the application or dispatcher in static properties. Scheduled callbacks
+in Cleaner and Dashboard use DispatcherInterface; User and Logs own their scheduled
+commands. Frequencies, names and overlap locks are preserved.
+
+## OpenAPI Generation
+
+The local `packages/ifksco/openapi-generator` uses a source-based generator.
+`config/oa-generator.php` registers only `AdminApiRoutesParser`; Go receiver routes
+are outside Laravel generation. `make oa-generate` generates both disk aliases
+(`oa:generate private`, `oa:generate public`), then regenerates the frontend client.
+Keep `storage/api/json-schemes/admin-api-openapi-scheme.json` and generated TypeScript
+in sync. Requests use `present` and nested `required` in their schemas. The SLogger
+streamed list annotation remains supported, and Laravel resource wrappers are preserved.
+Parser configuration and extension resolvers must not leak between application containers.
+
+## Test Storage and Factories
+
+Follow [skills/tests.md](skills/tests.md). The committed `.env.testing` and shared
+`tests/bootstrap.php` isolate PHPUnit and `tests/console.php` from working environment
+variables and config cache. A guard checks storage addresses before providers boot.
+`make test-prepare` starts test MySQL/MongoDB/ClickHouse/Redis and recreates test schemas;
+`make test-down` stops those services. Prepare again after stopping tmpfs storage.
+Integration cases use BaseModuleTestCase, container resolution and readonly entity
+factories with unique parents, without per-case database rollback/reset. The test bootstrap
+fakes events before providers boot so DispatcherInterface receives the fake; the base
+test prevents Laravel HTTP stray requests. Tests of actual event delivery
+opt out with `protected bool $fakeEvents = false`. SConcur context cleanup is preserved.

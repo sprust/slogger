@@ -17,15 +17,21 @@ readonly class McpHeaderValidator
      */
     public function validate(McpRequestMessage $message, McpRequestHeaders $headers): string
     {
-        $headerVersion = $this->read($message, 'MCP-Protocol-Version', $headers->protocolVersion, encodable: false);
+        $headerVersion = $this->read(
+            message: $message,
+            header: 'MCP-Protocol-Version',
+            value: $headers->protocolVersion,
+            encodable: false,
+        );
 
         if (is_null($headerVersion)) {
             throw $this->mismatch(
-                $message,
-                sprintf(
-                    'Header mismatch: MCP-Protocol-Version header is required; this server supports protocol version %s only',
+                message: $message,
+                text: sprintf(
+                    ('Header mismatch: MCP-Protocol-Version header is required; this '
+                        . 'server supports protocol version %s only'),
                     McpVersionValidator::SUPPORTED_VERSION
-                )
+                ),
             );
         }
 
@@ -34,39 +40,49 @@ readonly class McpHeaderValidator
 
         if ($bodyVersion !== $headerVersion) {
             throw $this->mismatch(
-                $message,
-                sprintf(
+                message: $message,
+                text: sprintf(
                     'Header mismatch: MCP-Protocol-Version header value [%s] does not match params._meta["%s"]',
                     $headerVersion,
                     self::META_PROTOCOL_VERSION
-                )
+                ),
             );
         }
 
-        $headerMethod = $this->read($message, 'Mcp-Method', $headers->method, encodable: false);
+        $headerMethod = $this->read(
+            message: $message,
+            header: 'Mcp-Method',
+            value: $headers->method,
+            encodable: false,
+        );
 
         if ($headerMethod !== $message->method) {
             throw $this->mismatch(
-                $message,
-                sprintf(
+                message: $message,
+                text: sprintf(
                     'Header mismatch: Mcp-Method header value [%s] does not match body value [%s]',
                     $headerMethod ?? '',
                     $message->method
-                )
+                ),
             );
         }
 
         if (in_array($message->method, self::NAMED_METHODS, true)) {
-            $headerName = $this->read($message, 'Mcp-Name', $headers->name, encodable: true);
+            $headerName = $this->read(
+                message: $message,
+                header: 'Mcp-Name',
+                value: $headers->name,
+                encodable: true,
+            );
             $bodyName   = $message->params['name'] ?? null;
 
             if (is_null($headerName) || $headerName !== $bodyName) {
                 throw $this->mismatch(
-                    $message,
-                    sprintf(
+                    message: $message,
+                    text: sprintf(
                         'Header mismatch: Mcp-Name header value [%s] does not match params.name',
                         $headerName ?? ''
-                    )
+                    ),
                 );
             }
         }
@@ -77,24 +93,38 @@ readonly class McpHeaderValidator
     /**
      * @throws McpProtocolException
      */
-    private function read(McpRequestMessage $message, string $header, ?string $value, bool $encodable): ?string
-    {
+    private function read(
+        McpRequestMessage $message,
+        string $header,
+        ?string $value,
+        bool $encodable
+    ): ?string {
         if (is_null($value) || $value === '') {
             return null;
         }
 
         if (preg_match('/^[\x20-\x7E\t]+$/', $value) !== 1) {
-            throw $this->mismatch($message, "Header mismatch: $header header contains invalid characters");
+            throw $this->mismatch(
+                message: $message,
+                text: "Header mismatch: $header header contains invalid characters",
+            );
         }
 
-        if (!$encodable || !str_starts_with($value, '=?base64?') || !str_ends_with($value, '?=')) {
+        if (
+            !$encodable
+            || !str_starts_with($value, '=?base64?')
+            || !str_ends_with($value, '?=')
+        ) {
             return $value;
         }
 
         $decoded = base64_decode(substr($value, 9, -2), true);
 
         if ($decoded === false) {
-            throw $this->mismatch($message, "Header mismatch: $header header is not valid Base64");
+            throw $this->mismatch(
+                message: $message,
+                text: "Header mismatch: $header header is not valid Base64",
+            );
         }
 
         return $decoded;
@@ -106,7 +136,7 @@ readonly class McpHeaderValidator
             errorCode: McpErrorCodeEnum::HeaderMismatch,
             message: $text,
             httpStatus: Response::HTTP_BAD_REQUEST,
-            requestId: $message->id
+            requestId: $message->id,
         );
     }
 }

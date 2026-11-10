@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Common\Domain\Exceptions\MutexLockTimeoutException;
 use App\Modules\Common\Domain\Services\Mutex\AbstractMutex;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
@@ -68,7 +69,12 @@ trait MutexTestTrait
 
     protected function isHeldIn(string $store, string $key): bool
     {
-        $probe = Cache::store($store)->lock("mutex:$key", 10);
+        $cacheStore = Cache::store($store)->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+        $probe = $cacheStore->lock("mutex:$key", 10);
 
         if ($probe->get()) {
             $probe->release();
@@ -96,9 +102,6 @@ trait MutexTestTrait
 
         $results = $waitGroup->waitResults();
 
-        return array_map(
-            static fn(string $key): mixed => $results[$key],
-            $keys
-        );
+        return array_map(static fn(string $key): mixed => $results[$key], $keys);
     }
 }

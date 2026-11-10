@@ -13,17 +13,32 @@ class McpTracePeriodResolverTest extends TestCase
 {
     public function testTakesThePeriodExactly(): void
     {
-        $this->assertPeriod('2026-09-28 10:20:00', '2026-09-28 12:05:00', '2026-09-28 10:20:00', '2026-09-28 12:05:00');
+        $this->assertPeriod(
+            '2026-09-28 10:20:00',
+            '2026-09-28 12:05:00',
+            '2026-09-28 10:20:00',
+            '2026-09-28 12:05:00'
+        );
     }
 
     public function testHourBoundaryIsKept(): void
     {
-        $this->assertPeriod('2026-09-28 10:00:00', '2026-09-28 12:00:00', '2026-09-28 10:00:00', '2026-09-28 12:00:00');
+        $this->assertPeriod(
+            '2026-09-28 10:00:00',
+            '2026-09-28 12:00:00',
+            '2026-09-28 10:00:00',
+            '2026-09-28 12:00:00'
+        );
     }
 
     public function testWholeRetentionPasses(): void
     {
-        $this->assertPeriod('2026-09-25 10:30:00', '2026-09-28 10:30:00', '2026-09-25 10:30:00', '2026-09-28 10:30:00');
+        $this->assertPeriod(
+            '2026-09-25 10:30:00',
+            '2026-09-28 10:30:00',
+            '2026-09-25 10:30:00',
+            '2026-09-28 10:30:00'
+        );
     }
 
     public function testLongerThanRetentionIsTooWide(): void
@@ -31,7 +46,10 @@ class McpTracePeriodResolverTest extends TestCase
         try {
             $this->resolve('2026-09-25 02:00:00', '2026-09-28 10:00:00');
         } catch (McpTracePeriodTooWideException $exception) {
-            $this->assertSame(72, $exception->maxHours);
+            $this->assertSame(
+                72,
+                $exception->maxHours
+            );
 
             return;
         }
@@ -68,8 +86,14 @@ class McpTracePeriodResolverTest extends TestCase
             72
         );
 
-        $this->assertSame('2026-09-28T10:20:00+00:00', $period->from->toIso8601String());
-        $this->assertSame('2026-09-28T12:05:00+00:00', $period->to->toIso8601String());
+        $this->assertSame(
+            '2026-09-28T10:20:00+00:00',
+            $period->from->toIso8601String()
+        );
+        $this->assertSame(
+            '2026-09-28T12:05:00+00:00',
+            $period->to->toIso8601String()
+        );
     }
 
     public function testGivenBoundsAreNotChanged(): void
@@ -79,20 +103,40 @@ class McpTracePeriodResolverTest extends TestCase
 
         new McpTracePeriodResolver()->resolve($from, $to, 72);
 
-        $this->assertSame('Europe/Moscow', $from->getTimezone()->getName());
-        $this->assertSame('2026-09-28 15:05:00', $to->toDateTimeString());
+        $this->assertSame(
+            'Europe/Moscow',
+            $from->getTimezone()->getName()
+        );
+        $this->assertSame(
+            '2026-09-28 15:05:00',
+            $to->toDateTimeString()
+        );
     }
 
-    private function assertPeriod(string $expectedFrom, string $expectedTo, string $from, string $to): void
-    {
+    private function assertPeriod(
+        string $expectedFrom,
+        string $expectedTo,
+        string $from,
+        string $to
+    ): void {
         $period = $this->resolve($from, $to);
 
-        $this->assertSame($expectedFrom, $period->from->toDateTimeString());
-        $this->assertSame($expectedTo, $period->to->toDateTimeString());
+        $this->assertSame(
+            $expectedFrom,
+            $period->from->toDateTimeString()
+        );
+        $this->assertSame(
+            $expectedTo,
+            $period->to->toDateTimeString()
+        );
     }
 
     private function resolve(string $from, string $to): McpTracePeriodObject
     {
-        return new McpTracePeriodResolver()->resolve(Carbon::parse($from, 'UTC'), Carbon::parse($to, 'UTC'), 72);
+        return new McpTracePeriodResolver()->resolve(
+            Carbon::parse($from, 'UTC'),
+            Carbon::parse($to, 'UTC'),
+            72
+        );
     }
 }

@@ -13,6 +13,8 @@ use Tests\TestCase;
 
 class ReportWorkerWatchdogListenerTest extends TestCase
 {
+    protected bool $fakeEvents = false;
+
     public function testAWatchdogKillIsReported(): void
     {
         Exceptions::fake();
@@ -55,7 +57,8 @@ class ReportWorkerWatchdogListenerTest extends TestCase
 
         Exceptions::assertReported(
             static fn(RuntimeException $exception): bool => $exception->getMessage()
-                === 'sconcur watchdog kill-escalated: worker 4243 of group [tasks] #0, silent for unknown, limit 60000 ms'
+                === ('sconcur watchdog kill-escalated: worker 4243 of group [tasks] '
+                    . '#0, silent for unknown, limit 60000 ms')
         );
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use App\Modules\Common\Domain\Exceptions\AbstractCommonException;
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Common\Domain\Exceptions\MutexLockTimeoutException;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
 use ArrayObject;
@@ -30,11 +32,15 @@ class MutexManagerTest extends TestCase
 
         $this->manager->lock($mutex);
 
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
         $this->manager->unlock($mutex);
 
-        $this->assertFalse($this->isHeld('a'));
+        $this->assertFalse(
+            $this->isHeld('a')
+        );
     }
 
     public function testTheSameCoroutineEntersAgainAndUnlocksOnTheLastUnlock(): void
@@ -46,28 +52,43 @@ class MutexManagerTest extends TestCase
 
         $this->manager->unlock($mutex);
 
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
         $this->manager->unlock($mutex);
 
-        $this->assertFalse($this->isHeld('a'));
+        $this->assertFalse(
+            $this->isHeld('a')
+        );
     }
 
     public function testDifferentKeysDoNotShareALock(): void
     {
         $first  = $this->makeMutex('a');
-        $second = $this->makeMutex('b', waitForBlockSec: 0);
+        $second = $this->makeMutex(
+            'b',
+            waitForBlockSec: 0
+        );
 
         $this->manager->lock($first);
         $this->manager->lock($second);
 
-        $this->assertTrue($this->isHeld('a'));
-        $this->assertTrue($this->isHeld('b'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
+        $this->assertTrue(
+            $this->isHeld('b')
+        );
 
         $this->manager->unlock($second);
 
-        $this->assertTrue($this->isHeld('a'));
-        $this->assertFalse($this->isHeld('b'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
+        $this->assertFalse(
+            $this->isHeld('b')
+        );
 
         $this->manager->unlock($first);
     }
@@ -79,15 +100,28 @@ class MutexManagerTest extends TestCase
         $this->manager->lock($mutex);
 
         $results = $this->runCoroutines(
-            fn(): string => $this->tryLock($this->manager, $this->makeMutex('a', waitForBlockSec: 0))
+            fn(): string => $this->tryLock(
+                $this->manager,
+                $this->makeMutex(
+                    'a',
+                    waitForBlockSec: 0
+                )
+            )
         );
 
-        $this->assertSame(['timeout'], $results);
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertSame(
+            ['timeout'],
+            $results
+        );
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
         $this->manager->unlock($mutex);
 
-        $this->assertFalse($this->isHeld('a'));
+        $this->assertFalse(
+            $this->isHeld('a')
+        );
     }
 
     public function testAChildCoroutineDoesNotUnlockTheParentsMutex(): void
@@ -104,60 +138,100 @@ class MutexManagerTest extends TestCase
             }
         );
 
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
         $this->manager->unlock($mutex);
 
-        $this->assertFalse($this->isHeld('a'));
+        $this->assertFalse(
+            $this->isHeld('a')
+        );
     }
 
     public function testAMutexHeldByAChildIsNotSeenByTheParent(): void
     {
         $this->runCoroutines(
             function (): string {
-                $this->manager->lock($this->makeMutex('a'));
+                $this->manager->lock(
+                    $this->makeMutex('a')
+                );
 
                 return 'locked';
             }
         );
 
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
-        $this->assertSame('timeout', $this->tryLock($this->manager, $this->makeMutex('a', waitForBlockSec: 0)));
+        $this->assertSame(
+            'timeout',
+            $this->tryLock(
+                $this->manager,
+                $this->makeMutex(
+                    'a',
+                    waitForBlockSec: 0
+                )
+            )
+        );
     }
 
     public function testATimeoutNamesTheKeyAndLeavesNothingToUnlock(): void
     {
-        $foreignLock = Cache::store('array')->lock('mutex:a', 10);
+        $cacheStore = Cache::store('array')->getStore();
+        self::assertInstanceOf(
+            LockProvider::class,
+            $cacheStore
+        );
+
+        $foreignLock = $cacheStore
+            ->lock('mutex:a', 10);
         $foreignLock->get();
 
-        $mutex = $this->makeMutex('a', waitForBlockSec: 0);
+        $mutex = $this->makeMutex(
+            'a',
+            waitForBlockSec: 0
+        );
 
         try {
             $this->manager->lock($mutex);
 
             $this->fail('The mutex was taken over a foreign lock');
         } catch (MutexLockTimeoutException $exception) {
-            $this->assertSame('Mutex [a] was not acquired in time', $exception->getMessage());
-            $this->assertInstanceOf(RuntimeException::class, $exception);
+            $this->assertSame(
+                'Mutex [a] was not acquired in time',
+                $exception->getMessage()
+            );
+            $this->assertInstanceOf(
+                AbstractCommonException::class,
+                $exception
+            );
         }
 
         $this->manager->unlock($mutex);
 
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
         $foreignLock->release();
     }
 
     public function testUnlockingAMutexThatIsNotHeldDoesNothing(): void
     {
-        $this->manager->unlock($this->makeMutex('a'));
+        $this->manager->unlock(
+            $this->makeMutex('a')
+        );
 
-        $this->assertFalse($this->isHeld('a'));
+        $this->assertFalse(
+            $this->isHeld('a')
+        );
     }
 
     public function testHandlersRunOnceWhileTheLockIsHeld(): void
     {
+        /** @var ArrayObject<int, array<bool|string>> $calls */
         $calls = new ArrayObject();
 
         $mutex = $this->makeMutex(
@@ -186,10 +260,12 @@ class MutexManagerTest extends TestCase
 
     public function testAFailingAfterLockHandlerReleasesTheLock(): void
     {
+        $handlerException = new RuntimeException('after-lock');
+
         $mutex = $this->makeMutex(
             key: 'a',
-            afterLock: static function (): never {
-                throw new RuntimeException('after-lock');
+            afterLock: static function () use ($handlerException): never {
+                throw $handlerException;
             }
         );
 
@@ -198,16 +274,27 @@ class MutexManagerTest extends TestCase
 
             $this->fail('The handler exception did not reach the caller');
         } catch (RuntimeException $exception) {
-            $this->assertSame('after-lock', $exception->getMessage());
+            $this->assertSame(
+                'after-lock',
+                $exception->getMessage()
+            );
+            $this->assertSame(
+                $handlerException,
+                $exception->getPrevious()
+            );
         }
 
-        $this->assertFalse($this->isHeld('a'));
+        $this->assertFalse(
+            $this->isHeld('a')
+        );
 
         $retry = $this->makeMutex('a');
 
         $this->manager->lock($retry);
 
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
         $this->manager->unlock($retry);
     }
@@ -228,16 +315,23 @@ class MutexManagerTest extends TestCase
 
             $this->fail('The handler exception did not reach the caller');
         } catch (RuntimeException $exception) {
-            $this->assertSame('before-release', $exception->getMessage());
+            $this->assertSame(
+                'before-release',
+                $exception->getMessage()
+            );
         }
 
-        $this->assertFalse($this->isHeld('a'));
+        $this->assertFalse(
+            $this->isHeld('a')
+        );
 
         $retry = $this->makeMutex('a');
 
         $this->manager->lock($retry);
 
-        $this->assertTrue($this->isHeld('a'));
+        $this->assertTrue(
+            $this->isHeld('a')
+        );
 
         $this->manager->unlock($retry);
     }

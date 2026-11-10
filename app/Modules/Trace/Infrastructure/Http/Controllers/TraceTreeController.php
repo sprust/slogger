@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeFilteredAction;
+use App\Modules\Trace\Domain\UseCases\FindTraceTreeByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTraceTreeChildrenByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTraceTreeContentByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTraceTreeFilteredByAdminUseCase;
 use App\Modules\Trace\Parameters\TraceTreeFilterParameters;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeChildrenRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeContentRequest;
@@ -25,10 +25,10 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 readonly class TraceTreeController
 {
     public function __construct(
-        private FindTraceTreeAction $findTraceTreeAction,
-        private FindTraceTreeContentAction $findTraceTreeContentAction,
-        private FindTraceTreeChildrenAction $findTraceTreeChildrenAction,
-        private FindTraceTreeFilteredAction $findTraceTreeFilteredAction,
+        private FindTraceTreeByAdminUseCase $findTraceTreeByAdminUseCase,
+        private FindTraceTreeContentByAdminUseCase $findTraceTreeContentByAdminUseCase,
+        private FindTraceTreeChildrenByAdminUseCase $findTraceTreeChildrenByAdminUseCase,
+        private FindTraceTreeFilteredByAdminUseCase $findTraceTreeFilteredByAdminUseCase
     ) {
     }
 
@@ -40,15 +40,20 @@ readonly class TraceTreeController
     {
         $validated = $request->validated();
 
-        $traceTree = $this->findTraceTreeAction->handle(
-            traceId: ArrayValueGetter::string($validated, 'trace_id'),
-            fresh: ArrayValueGetter::bool($validated, 'fresh'),
-            isChild: ArrayValueGetter::bool($validated, 'is_child'),
+        $traceTree = $this->findTraceTreeByAdminUseCase->handle(
+            traceId: ArrayValueGetter::string(
+                data: $validated,
+                key: 'trace_id',
+            ),
+            fresh: ArrayValueGetter::bool(
+                data: $validated,
+                key: 'fresh',
+            ),
+            isChild: ArrayValueGetter::bool(
+                data: $validated,
+                key: 'is_child',
+            ),
         );
-
-        if (is_null($traceTree)) {
-            abort(404, 'Trace not found');
-        }
 
         return new TraceTreeResponse($traceTree);
     }
@@ -58,16 +63,17 @@ readonly class TraceTreeController
      */
     public function content(TraceTreeContentRequest $request): TraceTreeContentResource
     {
-        $validated = $request->validated();
-
-        $traceTreeObjects = $this->findTraceTreeContentAction->handle(
-            traceId: ArrayValueGetter::string($validated, 'trace_id'),
-            isChild: ArrayValueGetter::bool($validated, 'is_child'),
+        $validated        = $request->validated();
+        $traceTreeObjects = $this->findTraceTreeContentByAdminUseCase->handle(
+            traceId: ArrayValueGetter::string(
+                data: $validated,
+                key: 'trace_id',
+            ),
+            isChild: ArrayValueGetter::bool(
+                data: $validated,
+                key: 'is_child',
+            ),
         );
-
-        if ($traceTreeObjects === null) {
-            abort(404, 'Trace or state not found');
-        }
 
         return new TraceTreeContentResource($traceTreeObjects);
     }
@@ -77,11 +83,23 @@ readonly class TraceTreeController
         $validated = $request->validated();
 
         return new TraceTreeChildrenResource(
-            $this->findTraceTreeChildrenAction->handle(
-                rootTraceId: ArrayValueGetter::string($validated, 'root_trace_id'),
-                parentTraceId: ArrayValueGetter::stringNull($validated, 'parent_trace_id'),
-                cursor: ArrayValueGetter::stringNull($validated, 'cursor'),
-                limit: ArrayValueGetter::intNull($validated, 'limit') ?? TraceTreeChildrenRequest::DEFAULT_LIMIT,
+            $this->findTraceTreeChildrenByAdminUseCase->handle(
+                rootTraceId: ArrayValueGetter::string(
+                    data: $validated,
+                    key: 'root_trace_id',
+                ),
+                parentTraceId: ArrayValueGetter::stringNull(
+                    data: $validated,
+                    key: 'parent_trace_id',
+                ),
+                cursor: ArrayValueGetter::stringNull(
+                    data: $validated,
+                    key: 'cursor',
+                ),
+                limit: ArrayValueGetter::intNull(
+                    data: $validated,
+                    key: 'limit',
+                ) ?? TraceTreeChildrenRequest::DEFAULT_LIMIT,
             )
         );
     }
@@ -91,13 +109,28 @@ readonly class TraceTreeController
         $validated = $request->validated();
 
         return new TraceTreeFilteredResource(
-            $this->findTraceTreeFilteredAction->handle(
-                rootTraceId: ArrayValueGetter::string($validated, 'root_trace_id'),
+            $this->findTraceTreeFilteredByAdminUseCase->handle(
+                rootTraceId: ArrayValueGetter::string(
+                    data: $validated,
+                    key: 'root_trace_id',
+                ),
                 parameters: new TraceTreeFilterParameters(
-                    serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
-                    types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
-                    tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
-                    statuses: ArrayValueGetter::arrayStringNull($validated, 'statuses') ?? [],
+                    serviceIds: ArrayValueGetter::arrayIntNull(
+                        data: $validated,
+                        key: 'service_ids',
+                    ) ?? [],
+                    types: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'types',
+                    ) ?? [],
+                    tags: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'tags',
+                    ) ?? [],
+                    statuses: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'statuses',
+                    ) ?? [],
                 ),
             )
         );

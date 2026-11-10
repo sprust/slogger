@@ -39,7 +39,7 @@ readonly class WebhookSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Channel is not a webhook one'
+                error: 'Channel is not a webhook one',
             );
         }
 
@@ -47,21 +47,24 @@ readonly class WebhookSender implements NotificationSenderInterface
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Url is not set'
+                error: 'Url is not set',
             );
         }
 
         try {
-            $body = json_encode([
-                'channel' => $channel->name,
-                'text'    => $this->cut($text),
-                'sent_at' => gmdate('c'),
-            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $body = json_encode(
+                [
+                    'channel' => $channel->name,
+                    'text'    => $this->cut($text),
+                    'sent_at' => gmdate('c'),
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
         } catch (JsonException $exception) {
             return new SendResultObject(
                 delivered: false,
                 permanent: true,
-                error: 'Message could not be encoded: ' . $exception->getMessage()
+                error: 'Message could not be encoded: ' . $exception->getMessage(),
             );
         }
 
@@ -77,17 +80,23 @@ readonly class WebhookSender implements NotificationSenderInterface
                     method: 'POST',
                     uri: $settings->url,
                     headers: $headers,
-                    body: $body
+                    body: $body,
                 )
             );
         } catch (Throwable $exception) {
             return new SendResultObject(
                 delivered: false,
-                error: $this->withoutToken($exception->getMessage(), $settings->token)
+                error: $this->withoutToken(
+                    message: $exception->getMessage(),
+                    token: $settings->token,
+                ),
             );
         }
 
-        return $this->resultReader->read($response, 'Webhook');
+        return $this->resultReader->read(
+            response: $response,
+            endpointName: 'Webhook',
+        );
     }
 
     public function escape(string $value): string
@@ -111,7 +120,8 @@ readonly class WebhookSender implements NotificationSenderInterface
             return $text;
         }
 
-        return mb_substr($text, 0, self::MAX_TEXT_LENGTH - 1) . '…';
+        return mb_substr($text, 0, self::MAX_TEXT_LENGTH - 1)
+            . '…';
     }
 
     private function withoutToken(string $message, string $token): string

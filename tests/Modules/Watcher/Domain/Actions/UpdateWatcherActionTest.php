@@ -41,7 +41,9 @@ class UpdateWatcherActionTest extends TestCase
     public function testAWindowThatGrewStartsCollectingAgain(): void
     {
         $this->assertCollectSinceIsNow(
-            stored: new NoNewTracesSettingsObject(periodMinutes: 10),
+            stored: new NoNewTracesSettingsObject(
+                periodMinutes: 10
+            ),
             edited: ['period_minutes' => 60]
         );
     }
@@ -50,7 +52,9 @@ class UpdateWatcherActionTest extends TestCase
     public function testAWindowThatShrankKeepsTheLine(): void
     {
         $this->assertCollectSinceIsKept(
-            stored: new NoNewTracesSettingsObject(periodMinutes: 60),
+            stored: new NoNewTracesSettingsObject(
+                periodMinutes: 60
+            ),
             edited: ['period_minutes' => 10]
         );
     }
@@ -59,7 +63,9 @@ class UpdateWatcherActionTest extends TestCase
     public function testAnEditThatChangesNothingAboutTheWindowKeepsTheLine(): void
     {
         $this->assertCollectSinceIsKept(
-            stored: new NoNewTracesSettingsObject(periodMinutes: 10),
+            stored: new NoNewTracesSettingsObject(
+                periodMinutes: 10
+            ),
             edited: ['period_minutes' => 10]
         );
     }
@@ -71,11 +77,18 @@ class UpdateWatcherActionTest extends TestCase
     public function testAChangedFilterThrowsTheLineAway(): void
     {
         $timelines = $this->createMock(WatcherTimelineRepository::class);
-        $timelines->expects($this->once())->method('delete')->with(1);
+        $timelines->expects(
+            $this->once()
+        )->method('delete')->with(1);
 
         $this->assertCollectSinceIsNow(
-            stored: new NoNewTracesSettingsObject(periodMinutes: 10),
-            edited: ['period_minutes' => 10, 'filter' => ['service_ids' => [3]]],
+            stored: new NoNewTracesSettingsObject(
+                periodMinutes: 10
+            ),
+            edited: [
+                'period_minutes' => 10,
+                'filter'         => ['service_ids' => [3]],
+            ],
             timelines: $timelines
         );
     }
@@ -83,14 +96,21 @@ class UpdateWatcherActionTest extends TestCase
     public function testAChangedStatusFilterThrowsTheLineAway(): void
     {
         $timelines = $this->createMock(WatcherTimelineRepository::class);
-        $timelines->expects($this->once())->method('delete')->with(1);
+        $timelines->expects(
+            $this->once()
+        )->method('delete')->with(1);
 
         $this->assertCollectSinceIsNow(
             stored: new NoNewTracesSettingsObject(
                 periodMinutes: 10,
-                filter: new WatcherTraceFilterObject(statuses: ['failed'])
+                filter: new WatcherTraceFilterObject(
+                    statuses: ['failed']
+                )
             ),
-            edited: ['period_minutes' => 10, 'filter' => ['statuses' => ['success']]],
+            edited: [
+                'period_minutes' => 10,
+                'filter'         => ['statuses' => ['success']],
+            ],
             timelines: $timelines
         );
     }
@@ -99,16 +119,24 @@ class UpdateWatcherActionTest extends TestCase
     public function testTheSameFilterInAnotherOrderIsNotAChange(): void
     {
         $timelines = $this->createMock(WatcherTimelineRepository::class);
-        $timelines->expects($this->never())->method('delete');
+        $timelines->expects(
+            $this->never()
+        )->method('delete');
 
         $this->assertCollectSinceIsKept(
             stored: new NoNewTracesSettingsObject(
                 periodMinutes: 10,
-                filter: new WatcherTraceFilterObject(serviceIds: [3, 7], types: ['http'])
+                filter: new WatcherTraceFilterObject(
+                    serviceIds: [3, 7],
+                    types: ['http']
+                )
             ),
             edited: [
                 'period_minutes' => 10,
-                'filter'         => ['service_ids' => [7, 3], 'types' => ['http']],
+                'filter'         => [
+                    'service_ids' => [7, 3],
+                    'types'       => ['http'],
+                ],
             ],
             timelines: $timelines
         );
@@ -121,7 +149,9 @@ class UpdateWatcherActionTest extends TestCase
     public function testSwitchingAWatcherBackOnStartsCollectingAgain(): void
     {
         $this->assertCollectSinceIsNow(
-            stored: new NoNewTracesSettingsObject(periodMinutes: 10),
+            stored: new NoNewTracesSettingsObject(
+                periodMinutes: 10
+            ),
             edited: ['period_minutes' => 10],
             wasEnabled: false
         );
@@ -138,8 +168,13 @@ class UpdateWatcherActionTest extends TestCase
     ): void {
         $collectSince = $this->update($stored, $edited, $timelines, $wasEnabled);
 
-        $this->assertNotNull($collectSince);
-        $this->assertNotSame(self::COLLECTING_SINCE, $collectSince->toDateTimeString());
+        $this->assertNotNull(
+            $collectSince
+        );
+        $this->assertNotSame(
+            self::COLLECTING_SINCE,
+            $collectSince->toDateTimeString()
+        );
     }
 
     /**
@@ -153,8 +188,13 @@ class UpdateWatcherActionTest extends TestCase
     ): void {
         $collectSince = $this->update($stored, $edited, $timelines, $wasEnabled);
 
-        $this->assertNotNull($collectSince);
-        $this->assertSame(self::COLLECTING_SINCE, $collectSince->toDateTimeString());
+        $this->assertNotNull(
+            $collectSince
+        );
+        $this->assertSame(
+            self::COLLECTING_SINCE,
+            $collectSince->toDateTimeString()
+        );
     }
 
     /**
@@ -171,24 +211,29 @@ class UpdateWatcherActionTest extends TestCase
         $written = null;
 
         $watchers = $this->createMock(WatcherRepository::class);
-        $watchers->expects($this->once())
+        $watchers
+            ->expects(
+                $this->once()
+            )
             ->method('update')
             // Named, not indexed: the repository's signature grows.
-            ->willReturnCallback(function (
-                int $id,
-                string $name,
-                bool $enabled,
-                int $cooldownSeconds,
-                ?int $notificationChannelId,
-                bool $notifyOnOpened,
-                bool $notifyOnEvent,
-                bool $notifyOnClosed,
-                array $settings,
-                ?array $traceMatch,
-                ?Carbon $collectSince
-            ) use (&$written): void {
-                $written = $collectSince;
-            });
+            ->willReturnCallback(
+                function (
+                    int $id,
+                    string $name,
+                    bool $enabled,
+                    int $cooldownSeconds,
+                    ?int $notificationChannelId,
+                    bool $notifyOnOpened,
+                    bool $notifyOnEvent,
+                    bool $notifyOnClosed,
+                    array $settings,
+                    ?array $traceMatch,
+                    ?Carbon $collectSince
+                ) use (&$written): void {
+                    $written = $collectSince;
+                }
+            );
 
         $find = $this->createMock(FindWatcherAction::class);
         $find->method('handle')->willReturn($watcher);
@@ -249,12 +294,14 @@ class UpdateWatcherActionTest extends TestCase
     {
         $registry = $this->createMock(WatcherTypeRegistry::class);
 
-        $registry->method('for')->willReturn(
-            new NoNewTracesWatcherType(
-                $this->createMock(NoNewTracesChecker::class),
-                new NoNewTracesEventPayloadMapper()
-            )
-        );
+        $registry
+            ->method('for')
+            ->willReturn(
+                new NoNewTracesWatcherType(
+                    $this->createMock(NoNewTracesChecker::class),
+                    new NoNewTracesEventPayloadMapper()
+                )
+            );
 
         return $registry;
     }

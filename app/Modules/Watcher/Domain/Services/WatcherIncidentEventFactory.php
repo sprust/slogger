@@ -32,8 +32,10 @@ readonly class WatcherIncidentEventFactory
      * case of a document written before a number existed, which the TTL clears within a
      * month.
      */
-    public function make(WatcherIncidentEventDto $dto, WatcherTypeEnum $type): WatcherIncidentEventObject
-    {
+    public function make(
+        WatcherIncidentEventDto $dto,
+        WatcherTypeEnum $type
+    ): WatcherIncidentEventObject {
         $payload = $this->types->for($type)->eventPayloadMapper()->read($dto->payload);
 
         if (is_null($payload)) {
@@ -46,7 +48,7 @@ readonly class WatcherIncidentEventFactory
             id: $dto->id,
             incidentId: $dto->incidentId,
             payload: $payload,
-            occurredAt: $dto->occurredAt
+            occurredAt: $dto->occurredAt,
         );
     }
 }

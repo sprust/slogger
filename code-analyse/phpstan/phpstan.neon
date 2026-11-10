@@ -1,0 +1,67 @@
+includes:
+    - ../../vendor/larastan/larastan/extension.neon
+
+rules:
+    - CodeAnalyse\PhpStan\NoMultilineArrayKeyRule
+
+parameters:
+    level: 8
+
+    parallel:
+      jobSize: 10
+      maximumNumberOfProcesses: 8
+      minimumNumberOfJobsPerProcess: 5
+
+    # TODO: enable later
+    #checkMissingCallableSignature: true
+    checkUninitializedProperties: true
+    treatPhpDocTypesAsCertain: false
+
+    paths:
+        - ../../app
+        - ../../database/seeders
+        - ../../tests
+
+    excludePaths:
+        - ../../app/Console/Commands/Local
+        - ../../app/Models
+
+    tmpDir: .cache
+
+    exceptions:
+        checkedExceptionClasses:
+            - '#^RuntimeException#'
+
+        # Module exceptions extend Exception, not RuntimeException, so the regular run
+        # never reports a missing @throws for them. Uncomment to audit the @throws chains.
+        # One regex covers every module. It reports pre-existing gaps outside the code
+        # being changed, so run it over selected files:
+        # ./vendor/bin/phpstan analyse -c ./code-analyse/phpstan/phpstan.neon <files>
+        # checkedExceptionRegexes:
+        #     - '#^App\\Modules\\[^\\]+\\Domain\\Exceptions\\#'
+        check:
+            tooWideThrowType: true
+            missingCheckedExceptionInThrows: true
+
+    ignoreErrors:
+        -
+            identifiers:
+                # TODO
+                - offsetAccess.notFound
+        -
+            message: '#Unsafe usage of new static#'
+            path: "*Resource.php"
+        -
+            messages:
+                - '#Property [\s\S]* is never read, only written#'
+                - '#type has no value type specified in iterable type array#'
+            path: "*Resource.php"
+        -
+            message: '#return type has no value type specified in iterable type array#'
+            path: "*Request.php"
+        -
+            messages:
+                # TODO
+                - '#not allowed because of @no-named-arguments#'
+                - '#Class Tests\\[\s\S]* has an uninitialized property [\s\S]*. Give it default value or assign it in the constructor#'
+            path: "*tests/*Test*.php"

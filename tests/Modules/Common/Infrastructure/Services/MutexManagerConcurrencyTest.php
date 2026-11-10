@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Common\Infrastructure\Services;
 
+use Illuminate\Contracts\Cache\LockProvider;
 use App\Modules\Common\Domain\Services\Mutex\MutexManagerInterface;
 use ArrayObject;
 use Illuminate\Support\Facades\Cache;
@@ -34,7 +35,13 @@ class MutexManagerConcurrencyTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->keys as $key) {
-            Cache::store(self::STORE)->lock("mutex:$key")->forceRelease();
+            $cacheStore = Cache::store(self::STORE)->getStore();
+            self::assertInstanceOf(
+                LockProvider::class,
+                $cacheStore
+            );
+
+            $cacheStore->lock("mutex:$key")->forceRelease();
         }
 
         parent::tearDown();
@@ -50,14 +57,17 @@ class MutexManagerConcurrencyTest extends TestCase
 
         for ($index = 0; $index < 5; ++$index) {
             $callbacks[] = function () use ($key, $state): string {
-                $mutex = $this->makeMutex($key, waitForBlockSec: 10);
+                $mutex = $this->makeMutex(
+                    $key,
+                    waitForBlockSec: 10
+                );
 
                 $this->manager->lock($mutex);
 
                 try {
-                    ++$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) + 1;
 
-                    $state['maxInside'] = max($state['maxInside'], $state['inside']);
+                    $state['maxInside'] = max($state['maxInside'] ?? 0, $state['inside'] ?? 0);
 
                     $counter = $state['counter'];
 
@@ -65,7 +75,7 @@ class MutexManagerConcurrencyTest extends TestCase
 
                     $state['counter'] = $counter + 1;
 
-                    --$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) - 1;
                 } finally {
                     $this->manager->unlock($mutex);
                 }
@@ -74,16 +84,28 @@ class MutexManagerConcurrencyTest extends TestCase
             };
         }
 
-        $this->assertSame(array_fill(0, 5, 'done'), $this->runCoroutines(...$callbacks));
-        $this->assertSame(1, $state['maxInside']);
-        $this->assertSame(5, $state['counter']);
-        $this->assertFalse($this->isHeld($key));
+        $this->assertSame(
+            array_fill(0, 5, 'done'),
+            $this->runCoroutines(...$callbacks)
+        );
+        $this->assertSame(
+            1,
+            $state['maxInside']
+        );
+        $this->assertSame(
+            5,
+            $state['counter']
+        );
+        $this->assertFalse(
+            $this->isHeld($key)
+        );
     }
 
     public function testAWaiterEntersOnceTheHolderUnlocks(): void
     {
         $key = $this->makeKey();
 
+        /** @var ArrayObject<int, string> $order */
         $order = new ArrayObject();
 
         $this->runCoroutines(
@@ -107,7 +129,10 @@ class MutexManagerConcurrencyTest extends TestCase
             function () use ($key, $order): string {
                 Sleeper::usleep(10_000);
 
-                $mutex = $this->makeMutex($key, waitForBlockSec: 5);
+                $mutex = $this->makeMutex(
+                    $key,
+                    waitForBlockSec: 5
+                );
 
                 $this->manager->lock($mutex);
 
@@ -121,7 +146,10 @@ class MutexManagerConcurrencyTest extends TestCase
             }
         );
 
-        $this->assertSame(['holder in', 'holder out', 'waiter in'], $order->getArrayCopy());
+        $this->assertSame(
+            ['holder in', 'holder out', 'waiter in'],
+            $order->getArrayCopy()
+        );
     }
 
     public function testAWaiterGivesUpWhenTheHolderOutlastsTheWait(): void
@@ -145,11 +173,20 @@ class MutexManagerConcurrencyTest extends TestCase
             function () use ($key): string {
                 Sleeper::usleep(10_000);
 
-                return $this->tryLock($this->manager, $this->makeMutex($key, waitForBlockSec: 1));
+                return $this->tryLock(
+                    $this->manager,
+                    $this->makeMutex(
+                        $key,
+                        waitForBlockSec: 1
+                    )
+                );
             }
         );
 
-        $this->assertSame(['held', 'timeout'], $results);
+        $this->assertSame(
+            ['held', 'timeout'],
+            $results
+        );
     }
 
     public function testASiblingDoesNotEnterAMutexHeldAcrossASuspension(): void
@@ -175,12 +212,23 @@ class MutexManagerConcurrencyTest extends TestCase
             function () use ($key): string {
                 Sleeper::usleep(10_000);
 
-                return $this->tryLock($this->manager, $this->makeMutex($key, waitForBlockSec: 0));
+                return $this->tryLock(
+                    $this->manager,
+                    $this->makeMutex(
+                        $key,
+                        waitForBlockSec: 0
+                    )
+                );
             }
         );
 
-        $this->assertSame(['held', 'timeout'], $results);
-        $this->assertFalse($this->isHeld($key));
+        $this->assertSame(
+            ['held', 'timeout'],
+            $results
+        );
+        $this->assertFalse(
+            $this->isHeld($key)
+        );
     }
 
     public function testDifferentKeysDoNotWaitForEachOther(): void
@@ -191,18 +239,21 @@ class MutexManagerConcurrencyTest extends TestCase
 
         foreach ([$this->makeKey(), $this->makeKey()] as $key) {
             $callbacks[] = function () use ($key, $state): string {
-                $mutex = $this->makeMutex($key, waitForBlockSec: 0);
+                $mutex = $this->makeMutex(
+                    $key,
+                    waitForBlockSec: 0
+                );
 
                 $this->manager->lock($mutex);
 
                 try {
-                    ++$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) + 1;
 
-                    $state['maxInside'] = max($state['maxInside'], $state['inside']);
+                    $state['maxInside'] = max($state['maxInside'] ?? 0, $state['inside'] ?? 0);
 
                     Sleeper::usleep(50_000);
 
-                    --$state['inside'];
+                    $state['inside'] = ($state['inside'] ?? 0) - 1;
                 } finally {
                     $this->manager->unlock($mutex);
                 }
@@ -211,8 +262,14 @@ class MutexManagerConcurrencyTest extends TestCase
             };
         }
 
-        $this->assertSame(['done', 'done'], $this->runCoroutines(...$callbacks));
-        $this->assertSame(2, $state['maxInside']);
+        $this->assertSame(
+            ['done', 'done'],
+            $this->runCoroutines(...$callbacks)
+        );
+        $this->assertSame(
+            2,
+            $state['maxInside']
+        );
     }
 
     public function testALockLeftByAFinishedCoroutineExpires(): void
@@ -221,18 +278,32 @@ class MutexManagerConcurrencyTest extends TestCase
 
         $results = $this->runCoroutines(
             function () use ($key): string {
-                $this->manager->lock($this->makeMutex($key, maxLockSec: 1));
+                $this->manager->lock(
+                    $this->makeMutex(
+                        $key,
+                        maxLockSec: 1
+                    )
+                );
 
                 return 'abandoned';
             },
             function () use ($key): string {
                 Sleeper::usleep(10_000);
 
-                return $this->tryLock($this->manager, $this->makeMutex($key, waitForBlockSec: 3));
+                return $this->tryLock(
+                    $this->manager,
+                    $this->makeMutex(
+                        $key,
+                        waitForBlockSec: 3
+                    )
+                );
             }
         );
 
-        $this->assertSame(['abandoned', 'locked'], $results);
+        $this->assertSame(
+            ['abandoned', 'locked'],
+            $results
+        );
     }
 
     private function makeKey(): string

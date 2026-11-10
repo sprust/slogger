@@ -13,9 +13,8 @@ use LogicException;
 
 readonly class ManyTracesEventPayloadMapper implements WatcherEventPayloadMapperInterface
 {
-    public function __construct(
-        private WatcherEventGroupMapper $groups
-    ) {
+    public function __construct(private WatcherEventGroupMapper $groups)
+    {
     }
 
     public function read(array $payload): ?WatcherEventPayloadInterface
@@ -29,12 +28,22 @@ readonly class ManyTracesEventPayloadMapper implements WatcherEventPayloadMapper
 
         /** @var array<string, mixed> $settings */
         /** @var array<string, mixed> $measured */
-        $settingsWindowMinutes = ArrayValueGetter::intNull($settings, 'window_minutes');
-        $settingsThreshold     = ArrayValueGetter::intNull($settings, 'threshold');
+        $settingsWindowMinutes = ArrayValueGetter::intNull(
+            data: $settings,
+            key: 'window_minutes',
+        );
+        $settingsThreshold     = ArrayValueGetter::intNull(
+            data: $settings,
+            key: 'threshold',
+        );
 
-        $measuredWindowCount = ArrayValueGetter::intNull($measured, 'window_count');
+        $measuredWindowCount = ArrayValueGetter::intNull(
+            data: $measured,
+            key: 'window_count',
+        );
 
-        if (is_null($settingsWindowMinutes)
+        if (
+            is_null($settingsWindowMinutes)
             || is_null($settingsThreshold)
             || is_null($measuredWindowCount)
         ) {
@@ -44,19 +53,21 @@ readonly class ManyTracesEventPayloadMapper implements WatcherEventPayloadMapper
         return new ManyTracesEventPayloadObject(
             settings: new ManyTracesEventSettingsObject(
                 windowMinutes: $settingsWindowMinutes,
-                threshold: $settingsThreshold
+                threshold: $settingsThreshold,
             ),
             measured: new ManyTracesEventMeasuredObject(
-                windowCount: $measuredWindowCount
+                windowCount: $measuredWindowCount,
             ),
-            groups: $this->groups->read($payload['groups'] ?? null)
+            groups: $this->groups->read($payload['groups'] ?? null),
         );
     }
 
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof ManyTracesEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

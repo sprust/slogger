@@ -14,11 +14,17 @@ class TouchUserTokenActionTest extends TestCase
     {
         $tokens = $this->createMock(UserTokenRepository::class);
 
-        $tokens->expects($this->once())
+        $tokens
+            ->expects(
+                $this->once()
+            )
             ->method('touch')
             ->willReturnCallback(
                 function (string $token, Carbon $now, Carbon $expiresAt): bool {
-                    $this->assertSame('a-token', $token);
+                    $this->assertSame(
+                        'a-token',
+                        $token
+                    );
                     $this->assertSame(
                         UserTokenLifetimeService::IDLE_DAYS,
                         (int) $now->diffInDays($expiresAt)

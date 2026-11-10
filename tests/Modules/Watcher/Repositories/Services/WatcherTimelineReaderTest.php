@@ -17,81 +17,190 @@ class WatcherTimelineReaderTest extends TestCase
 {
     public function testBucketsOfTheSameMomentAreAddedTogether(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            $this->bucket('2026-09-07 10:00:00', count: 3, durationMax: 2),
-            $this->bucket('2026-09-07 10:00:00', count: 2, durationMax: 9),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    count: 3,
+                    durationMax: 2
+                ),
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    count: 2,
+                    durationMax: 9
+                ),
+            ]
+        );
 
-        $this->assertCount(1, $timeline->buckets);
-        $this->assertSame(5, $timeline->buckets[0]->count);
-        $this->assertSame(9.0, $timeline->buckets[0]->durationMax);
+        $this->assertCount(
+            1,
+            $timeline->buckets
+        );
+        $this->assertSame(
+            5,
+            $timeline->buckets[0]->count
+        );
+        $this->assertSame(
+            9.0,
+            $timeline->buckets[0]->durationMax
+        );
     }
 
     /** The same shape written twice is one shape seen more often, not two shapes. */
     public function testGroupsOfTheSameShapeAreAddedTogether(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            $this->bucket('2026-09-07 10:00:00', count: 1, groups: [
-                $this->group(count: 1, durationMax: 3, traceId: 'a'),
-            ]),
-            $this->bucket('2026-09-07 10:00:00', count: 1, groups: [
-                $this->group(count: 1, durationMax: 11, traceId: 'b'),
-            ]),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    count: 1,
+                    groups: [
+                        $this->group(
+                            count: 1,
+                            durationMax: 3,
+                            traceId: 'a'
+                        ),
+                    ]
+                ),
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    count: 1,
+                    groups: [
+                        $this->group(
+                            count: 1,
+                            durationMax: 11,
+                            traceId: 'b'
+                        ),
+                    ]
+                ),
+            ]
+        );
 
         $groups = $timeline->buckets[0]->groups;
 
-        $this->assertCount(1, $groups);
-        $this->assertSame(2, $groups[0]->count);
-        $this->assertSame(11.0, $groups[0]->durationMax);
+        $this->assertCount(
+            1,
+            $groups
+        );
+        $this->assertSame(
+            2,
+            $groups[0]->count
+        );
+        $this->assertSame(
+            11.0,
+            $groups[0]->durationMax
+        );
         // The slower of the two keeps its name: it is the one worth looking at.
-        $this->assertSame('b', $groups[0]->slowestTraceId);
+        $this->assertSame(
+            'b',
+            $groups[0]->slowestTraceId
+        );
     }
 
     public function testTheSlowestTraceKeepsItsStartThroughAMerge(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            $this->bucket('2026-09-07 10:00:00', count: 1, groups: [
-                $this->group(count: 1, durationMax: 3, traceId: 'a', traceLoggedAt: '2026-09-07 09:59:57'),
-            ]),
-            $this->bucket('2026-09-07 10:00:00', count: 1, groups: [
-                $this->group(count: 1, durationMax: 3600, traceId: 'b', traceLoggedAt: '2026-09-07 09:00:00'),
-            ]),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    count: 1,
+                    groups: [
+                        $this->group(
+                            count: 1,
+                            durationMax: 3,
+                            traceId: 'a',
+                            traceLoggedAt: '2026-09-07 09:59:57'
+                        ),
+                    ]
+                ),
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    count: 1,
+                    groups: [
+                        $this->group(
+                            count: 1,
+                            durationMax: 3600,
+                            traceId: 'b',
+                            traceLoggedAt: '2026-09-07 09:00:00'
+                        ),
+                    ]
+                ),
+            ]
+        );
 
         $group = $timeline->buckets[0]->groups[0];
 
-        $this->assertSame('b', $group->slowestTraceId);
-        $this->assertSame('2026-09-07 09:00:00', $group->slowestTraceLoggedAt?->toDateTimeString());
+        $this->assertSame(
+            'b',
+            $group->slowestTraceId
+        );
+        $this->assertSame(
+            '2026-09-07 09:00:00',
+            $group->slowestTraceLoggedAt?->toDateTimeString()
+        );
     }
 
     public function testAGroupWrittenBeforeTracesWereDatedHasNoStart(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            $this->bucket('2026-09-07 10:00:00', groups: [$this->group(durationMax: 5)]),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    groups: [$this->group(durationMax: 5)]
+                ),
+            ]
+        );
 
-        $this->assertNull($timeline->buckets[0]->groups[0]->slowestTraceLoggedAt);
+        $this->assertNull(
+            $timeline->buckets[0]->groups[0]->slowestTraceLoggedAt
+        );
     }
 
     /** Tags order is the receiver's, not ours, but it must not split a shape. */
     public function testTagOrderDoesNotSplitAShape(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            $this->bucket('2026-09-07 10:00:00', groups: [$this->group(tags: ['b', 'a'])]),
-            $this->bucket('2026-09-07 10:00:00', groups: [$this->group(tags: ['a', 'b'])]),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    groups: [
+                        $this->group(
+                            tags: ['b', 'a']
+                        ),
+                    ]
+                ),
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    groups: [
+                        $this->group(
+                            tags: ['a', 'b']
+                        ),
+                    ]
+                ),
+            ]
+        );
 
-        $this->assertCount(1, $timeline->buckets[0]->groups);
+        $this->assertCount(
+            1,
+            $timeline->buckets[0]->groups
+        );
     }
 
     public function testBucketsComeBackOldestFirst(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            $this->bucket('2026-09-07 10:00:30'),
-            $this->bucket('2026-09-07 10:00:00'),
-            $this->bucket('2026-09-07 10:00:15'),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                $this->bucket('2026-09-07 10:00:30'),
+                $this->bucket('2026-09-07 10:00:00'),
+                $this->bucket('2026-09-07 10:00:15'),
+            ]
+        );
 
         $this->assertSame(
             ['10:00:00', '10:00:15', '10:00:30'],
@@ -105,29 +214,55 @@ class WatcherTimelineReaderTest extends TestCase
      */
     public function testAShapeWithNoFinishedTraceHasNoSlowestOne(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            $this->bucket('2026-09-07 10:00:00', groups: [$this->group(traceId: '')]),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    groups: [$this->group(traceId: '')]
+                ),
+            ]
+        );
 
-        $this->assertNull($timeline->buckets[0]->groups[0]->slowestTraceId);
+        $this->assertNull(
+            $timeline->buckets[0]->groups[0]->slowestTraceId
+        );
     }
 
     /** A document written before a field existed, or by something else entirely. */
     public function testAMalformedBucketIsSkippedRatherThanFatal(): void
     {
-        $timeline = new WatcherTimelineReader()->read(1, [
-            'not a bucket',
-            ['c' => 5],
-            $this->bucket('2026-09-07 10:00:00', count: 1),
-        ]);
+        $timeline = new WatcherTimelineReader()->read(
+            1,
+            [
+                'not a bucket',
+                ['c' => 5],
+                $this->bucket(
+                    '2026-09-07 10:00:00',
+                    count: 1
+                ),
+            ]
+        );
 
-        $this->assertCount(1, $timeline->buckets);
-        $this->assertSame(1, $timeline->buckets[0]->count);
+        $this->assertCount(
+            1,
+            $timeline->buckets
+        );
+        $this->assertSame(
+            1,
+            $timeline->buckets[0]->count
+        );
     }
 
     public function testAnEmptyLineReadsAsNoBuckets(): void
     {
-        $this->assertSame([], new WatcherTimelineReader()->read(1, [])->buckets);
+        $this->assertSame(
+            [],
+            new WatcherTimelineReader()->read(
+                1,
+                []
+            )->buckets
+        );
     }
 
     /**

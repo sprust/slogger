@@ -30,8 +30,8 @@
 Необязательный аргумент, которого нет, SHALL не попадать в текст. Отсутствие обязательного аргумента SHALL давать ошибку JSON-RPC `-32602`.
 
 #### Scenario: Подстановка аргументов
-- **WHEN** клиент вызывает `prompts/get` для `investigate_errors` с `service: "pms"` и `period: "last 3 hours"`
-- **THEN** сообщение содержит `pms`, `last 3 hours` и шаги с `aggregate_traces` и `search_traces`
+- **WHEN** клиент вызывает `prompts/get` для `investigate_errors` с `service: "orders"` и `period: "last 3 hours"`
+- **THEN** сообщение содержит `orders`, `last 3 hours` и шаги с `aggregate_traces` и `search_traces`
 
 #### Scenario: Без необязательного аргумента
 - **WHEN** клиент вызывает `prompts/get` для `investigate_latency` без `type`

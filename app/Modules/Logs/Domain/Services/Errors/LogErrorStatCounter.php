@@ -40,8 +40,12 @@ readonly class LogErrorStatCounter
     /**
      * @param list<int> $levels
      */
-    public function count(LogTypeEnum $type, array $levels, Carbon $since, Carbon $until): LogLevelStatObject
-    {
+    public function count(
+        LogTypeEnum $type,
+        array $levels,
+        Carbon $since,
+        Carbon $until
+    ): LogLevelStatObject {
         $sinceTime = $since->getTimestamp();
         $untilTime = $until->getTimestamp();
 
@@ -51,7 +55,10 @@ readonly class LogErrorStatCounter
         $lastRecord = null;
 
         foreach ($this->logFileFinder->findAll() as $file) {
-            if ($file->type !== $type || intdiv($file->modifiedAtMs, 1000) < $sinceTime) {
+            if (
+                $file->type !== $type
+                || intdiv($file->modifiedAtMs, 1000) < $sinceTime
+            ) {
                 continue;
             }
 
@@ -61,7 +68,9 @@ readonly class LogErrorStatCounter
                 continue;
             }
 
-            $levelCounter = new LogLevelCounter($meta->levelCounts);
+            $levelCounter = new LogLevelCounter(
+                levelCounts: $meta->levelCounts,
+            );
 
             foreach ($levels as $level) {
                 $levelCount = $levelCounter->get($level);
@@ -71,7 +80,7 @@ readonly class LogErrorStatCounter
                         fileId: $file->id,
                         level: $level,
                         from: $from,
-                        count: min(self::SCAN_RECORDS, $levelCount - $from)
+                        count: min(self::SCAN_RECORDS, $levelCount - $from),
                     );
 
                     foreach ($records as $record) {
@@ -81,7 +90,15 @@ readonly class LogErrorStatCounter
 
                         ++$count;
 
-                        if ($lastRecord === null || $this->isLater($record, $file, $lastRecord, $lastFile)) {
+                        if (
+                            $lastRecord === null
+                            || $this->isLater(
+                                record: $record,
+                                file: $file,
+                                lastRecord: $lastRecord,
+                                lastFile: $lastFile,
+                            )
+                        ) {
                             $lastFile   = $file;
                             $lastRecord = $record;
                         }
@@ -92,14 +109,22 @@ readonly class LogErrorStatCounter
 
         return new LogLevelStatObject(
             count: $count,
-            lastMessage: $lastFile === null || $lastRecord === null ? null : $this->readMessage($lastFile, $lastRecord)
+            lastMessage: $lastFile === null || $lastRecord === null
+                ? null
+                : $this->readMessage(
+                    file: $lastFile,
+                    record: $lastRecord,
+                ),
         );
     }
 
     private function findMeta(LogFileObject $file): ?LogIndexMetaObject
     {
         try {
-            return $this->logIndexer->ensureFresh(file: $file, waitForLockSec: (int) config('module-logs.errors.wait_for_lock_sec'));
+            return $this->logIndexer->ensureFresh(
+                file: $file,
+                waitForLockSec: (int) config('module-logs.errors.wait_for_lock_sec'),
+            );
         } catch (LogFileNotFoundException) {
             return null;
         } catch (MutexLockTimeoutException) {
@@ -126,8 +151,16 @@ readonly class LogErrorStatCounter
 
     private function readMessage(LogFileObject $file, LogIndexRecordObject $record): ?string
     {
-        foreach ($this->logTextReader->read($file->path, [$record], self::MAX_MESSAGE_BYTES) as $entryText) {
-            return $this->logFormatRegistry->get($file->type)->parseEntry($entryText->text)->message;
+        $entryTexts = $this->logTextReader->read(
+            path: $file->path,
+            records: [$record],
+            maxEntryBytes: self::MAX_MESSAGE_BYTES,
+        );
+
+        foreach ($entryTexts as $entryText) {
+            return $this->logFormatRegistry
+                ->get($file->type)
+                ->parseEntry($entryText->text)->message;
         }
 
         return null;

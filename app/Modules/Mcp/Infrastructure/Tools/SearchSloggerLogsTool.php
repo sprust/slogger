@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
+use App\Modules\Logs\Domain\Exceptions\LogCursorInvalidException;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpLogEntriesAction;
 use App\Modules\Mcp\Domain\Exceptions\McpLogLevelNotFoundException;
 use App\Modules\Mcp\Domain\Exceptions\McpLogSourceNotFoundException;
@@ -47,55 +48,62 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            new McpToolProperty(
-                name: 'source',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Log source of SLogger, for example Laravel, Slogger, Nginx, Receiver, Sconcur.',
-                required: true,
-                max: 255
-            ),
-            new McpToolProperty(
-                name: 'levels',
-                type: McpToolPropertyTypeEnum::StringList,
-                description: 'Level names of the source, for example error, critical, warn, 5xx.',
-                max: 20
-            ),
-            new McpToolProperty(
-                name: 'from',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Start of the period, ISO 8601.',
-                max: 64
-            ),
-            new McpToolProperty(
-                name: 'to',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'End of the period, ISO 8601.',
-                max: 64
-            ),
-            new McpToolProperty(
-                name: 'query',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Text to search for.',
-                max: 255
-            ),
-            new McpToolProperty(
-                name: 'limit',
-                type: McpToolPropertyTypeEnum::Integer,
-                description: sprintf('Entries to return, %d by default.', self::DEFAULT_LIMIT),
-                min: 1,
-                max: FindMcpLogEntriesAction::MAX_LIMIT
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                new McpToolProperty(
+                    name: 'source',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Log source of SLogger, for example Laravel, Slogger, Nginx, Receiver, Sconcur.',
+                    required: true,
+                    max: 255,
+                ),
+                new McpToolProperty(
+                    name: 'levels',
+                    type: McpToolPropertyTypeEnum::StringList,
+                    description: 'Level names of the source, for example error, critical, warn, 5xx.',
+                    max: 20,
+                ),
+                new McpToolProperty(
+                    name: 'from',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Start of the period, ISO 8601.',
+                    max: 64,
+                ),
+                new McpToolProperty(
+                    name: 'to',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'End of the period, ISO 8601.',
+                    max: 64,
+                ),
+                new McpToolProperty(
+                    name: 'query',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Text to search for.',
+                    max: 255,
+                ),
+                new McpToolProperty(
+                    name: 'limit',
+                    type: McpToolPropertyTypeEnum::Integer,
+                    description: sprintf('Entries to return, %d by default.', self::DEFAULT_LIMIT),
+                    min: 1,
+                    max: FindMcpLogEntriesAction::MAX_LIMIT,
+                ),
+            ],
+        );
     }
 
+    /**
+     * @throws LogCursorInvalidException
+     */
     public function call(McpToolArguments $arguments): McpToolResult
     {
         $from = null;
         $to   = null;
 
         if ($arguments->has('from')) {
-            $from = $this->timeParser->parse($arguments->string('from'));
+            $from = $this->timeParser->parse(
+                $arguments->string('from')
+            );
 
             if (is_null($from)) {
                 return $this->formatter->invalidTime('from');
@@ -103,7 +111,9 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
         }
 
         if ($arguments->has('to')) {
-            $to = $this->timeParser->parse($arguments->string('to'));
+            $to = $this->timeParser->parse(
+                $arguments->string('to')
+            );
 
             if (is_null($to)) {
                 return $this->formatter->invalidTime('to');
@@ -118,13 +128,15 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
                     from: $from,
                     to: $to,
                     query: $arguments->stringNull('query'),
-                    limit: $arguments->intNull('limit') ?? self::DEFAULT_LIMIT
+                    limit: $arguments->intNull('limit') ?? self::DEFAULT_LIMIT,
                 )
             );
         } catch (McpLogSourceNotFoundException $exception) {
             return $this->formatter->error(
                 error: 'source_not_found',
-                hint: 'Known sources: ' . implode(', ', $exception->sources) . '.'
+                hint: 'Known sources: '
+                    . implode(', ', $exception->sources)
+                    . '.',
             );
         } catch (McpLogLevelNotFoundException $exception) {
             return $this->formatter->error(
@@ -133,7 +145,7 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
                     'Level "%s" is not a level of this source. Levels: %s.',
                     $exception->level,
                     implode(', ', $exception->levels)
-                )
+                ),
             );
         }
 
@@ -142,8 +154,9 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
                 data: [
                     'status'              => 'indexing',
                     'retry_after_seconds' => 5,
-                    'hint'                => 'The log files of this source are being indexed. Repeat the SAME call later.',
-                ]
+                    'hint'                => ('The log files of this source are being indexed. Repeat the SAME '
+                        . 'call later.'),
+                ],
             );
         }
 
@@ -159,7 +172,7 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
                     ],
                     $result->entries
                 ),
-            ]
+            ],
         );
     }
 }

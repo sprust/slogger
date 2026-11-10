@@ -18,7 +18,10 @@ interface NotificationChannelTypeDefinitionInterface
     /**
      * @param array<string, mixed> $submitted
      */
-    public function makeUpdatedSettings(array $submitted, ChannelSettingsInterface $stored): ChannelSettingsInterface;
+    public function makeUpdatedSettings(
+        array $submitted,
+        ChannelSettingsInterface $stored
+    ): ChannelSettingsInterface;
 
     public function describe(): ChannelTypeObject;
 

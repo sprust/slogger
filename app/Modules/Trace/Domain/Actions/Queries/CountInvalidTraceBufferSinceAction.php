@@ -9,9 +9,8 @@ use Illuminate\Support\Carbon;
 
 readonly class CountInvalidTraceBufferSinceAction
 {
-    public function __construct(
-        private TraceBufferRepository $bufferRepository
-    ) {
+    public function __construct(private TraceBufferRepository $bufferRepository)
+    {
     }
 
     /**
@@ -23,6 +22,9 @@ readonly class CountInvalidTraceBufferSinceAction
      */
     public function handle(Carbon $since, Carbon $until): int
     {
-        return $this->bufferRepository->countInvalidBetween($since, $until);
+        return $this->bufferRepository->countInvalidBetween(
+            since: $since,
+            until: $until,
+        );
     }
 }

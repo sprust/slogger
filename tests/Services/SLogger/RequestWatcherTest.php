@@ -24,7 +24,12 @@ class RequestWatcherTest extends TestCase
                 request: $this->request(
                     routeName: 'mcp',
                     uri: 'mcp',
-                    body: ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'get_services']]
+                    body: [
+                        'jsonrpc' => '2.0',
+                        'id'      => 1,
+                        'method'  => 'tools/call',
+                        'params'  => ['name' => 'get_services'],
+                    ]
                 ),
                 status: 200
             )
@@ -54,7 +59,12 @@ class RequestWatcherTest extends TestCase
                 request: $this->request(
                     routeName: 'mcp',
                     uri: 'mcp',
-                    body: ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'forged']]
+                    body: [
+                        'jsonrpc' => '2.0',
+                        'id'      => 1,
+                        'method'  => 'tools/call',
+                        'params'  => ['name' => 'forged'],
+                    ]
                 ),
                 status: 400
             )
@@ -88,7 +98,11 @@ class RequestWatcherTest extends TestCase
             content: (string) json_encode($body)
         );
 
-        $route = new Route('POST', $uri, []);
+        $route = new Route(
+            'POST',
+            $uri,
+            []
+        );
 
         $route->name($routeName);
         $route->bind($request);
@@ -109,6 +123,12 @@ class RequestWatcherTest extends TestCase
             context: new ArrayTraceContext()
         );
 
-        return new ReflectionMethod($watcher, 'getPostTags')->invoke($watcher, $request, new Response(status: $status));
+        return new ReflectionMethod($watcher, 'getPostTags')->invoke(
+            $watcher,
+            $request,
+            new Response(
+                status: $status
+            )
+        );
     }
 }

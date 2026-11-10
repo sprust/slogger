@@ -2,52 +2,59 @@
 
 namespace Ifksco\OpenApiGenerator;
 
-use Ifksco\OpenApiGenerator\Json\Properties\OaArrayProperty;
-use Ifksco\OpenApiGenerator\Json\Properties\OaObjectProperty;
-use Ifksco\OpenApiGenerator\Json\Properties\OaPaginationInfoProperty;
-use Ifksco\OpenApiGenerator\Json\Schemes\OaRequestScheme;
-use Ifksco\OpenApiGenerator\Objects\ParsedRoute;
+use BackedEnum;
+use Ifksco\OpenApiGenerator\Objects\Json\Other\ServerObject;
+use Ifksco\OpenApiGenerator\Objects\Json\Properties\OaArrayProperty;
+use Ifksco\OpenApiGenerator\Objects\Json\Properties\OaEnumProperty;
+use Ifksco\OpenApiGenerator\Objects\Json\Properties\OaObjectProperty;
+use Ifksco\OpenApiGenerator\Objects\Json\Schemes\OaRequestScheme;
+use Ifksco\OpenApiGenerator\Objects\Json\Schemes\OaScheme;
+use Ifksco\OpenApiGenerator\Objects\PathObject;
+use Ifksco\OpenApiGenerator\Sources\SourceInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use RuntimeException;
 
+/**
+ * @see https://swagger.io/docs/specification/v3_0/basic-structure/
+ */
 class JsonFileGenerator
 {
-    /** @var array<ParsedRoute> */
-    private array $parsedRoutes;
-
     private array $jsonData = [];
 
-    private array $securityMiddlewares;
-
-    public function __construct(array $parsedRoutes)
+    public function __construct(private readonly SourceInterface $source)
     {
-        $this->parsedRoutes        = $parsedRoutes;
-        $this->securityMiddlewares = config('oa-generator.security_middlewares');
     }
 
-    public function generate(bool $public): void
+    public function generate(bool $isPublic): void
     {
         $this->jsonData = [];
 
         $paths = [];
-        foreach ($this->parsedRoutes as $parsedRoute) {
-            $uri = "/$parsedRoute->uri";
+
+        /** @var array<class-string<BackedEnum>, OaEnumProperty> $enums */
+        $enums = [];
+
+        $hasSecurity = false;
+
+        foreach ($this->source->getPaths() as $path) {
+            $uri = '/'
+                . trim($path->uri, '/');
 
             if (!array_key_exists($uri, $paths)) {
                 $paths[$uri] = [];
             }
 
-            $method = strtolower($parsedRoute->methods[0]);
+            $method = strtolower($path->methods[0]);
 
             $parameters = [];
 
-            if ($parsedRoute->summary) {
-                $paths[$uri][$method]['summary'] = $parsedRoute->summary;
+            if ($path->summary) {
+                $paths[$uri][$method]['summary'] = $path->summary;
             }
 
-            if ($parsedRoute->pathParameters) {
-                foreach ($parsedRoute->pathParameters as $parameter) {
+            if ($path->pathParameters) {
+                foreach ($path->pathParameters as $parameter) {
                     $parameters[] = [
                         'name'     => trim($parameter, '?'),
                         'required' => !str_ends_with($parameter, '?'),
@@ -57,17 +64,17 @@ class JsonFileGenerator
                 }
             }
 
-            if ($parsedRoute->requestScheme) {
+            if ($path->requestScheme) {
                 if (Str::upper($method) !== 'GET') {
-                    $paths[$uri][$method]['requestBody'] = $this->defineRequestBody($parsedRoute);
+                    $paths[$uri][$method]['requestBody'] = $this->defineRequestBody($path);
                 } else {
-                    if ($parsedRoute->requestScheme->oneOf) {
+                    if ($path->requestScheme->oneOf || $path->requestScheme->items) {
                         throw new RuntimeException(
-                            "Route '$parsedRoute->uri': this for GET operations not implemented yet"
+                            "Route '$path->uri': this for GET operations not implemented yet"
                         );
                     }
 
-                    foreach ($parsedRoute->requestScheme->properties as $fieldName => $property) {
+                    foreach ($path->requestScheme->properties as $fieldName => $property) {
                         $parameters[] = [
                             'name'     => $fieldName,
                             'required' => $property->required ?? false,
@@ -84,45 +91,158 @@ class JsonFileGenerator
 
             $isDeleteMethod = Str::upper($method) === 'DELETE';
 
-            $paths[$uri][$method]['responses'] = (object) $this->defineResponses($parsedRoute, $isDeleteMethod);
+            $paths[$uri][$method]['responses'] = (object) $this->defineResponses($path, $isDeleteMethod);
 
             if ($isDeleteMethod && ($paths[$uri][$method]['requestBody'] ?? false)) {
                 throw new RuntimeException(
-                    "DELETE operations cannot have a requestBody for [$uri]"
+                    'DELETE operations cannot have a requestBody.',
                 );
             }
 
-            if ($this->hasSecurityMiddleware($parsedRoute)) {
+            foreach ($path->extensions as $extensionName => $extensionValue) {
+                $paths[$uri][$method][$extensionName] = $extensionValue;
+            }
+
+            if ($path->isSecurity) {
+                $hasSecurity = true;
+
                 $paths[$uri][$method]['security'][] = [
                     'bearerAuth' => [],
                 ];
             }
+
+            $this->detectEnums($path->responses, $enums);
         }
+
+        $schemas = [];
+
+        /**
+         * @var OaEnumProperty[] $enumProperties
+         */
+        $enumProperties = [
+            ...array_values($enums),
+            ...array_map(
+                static function (string $enumClass): OaEnumProperty {
+                    $enumProperty = new OaEnumProperty();
+
+                    $enumProperty->enum = array_map(
+                        fn(BackedEnum $backedEnum) => $backedEnum->value,
+                        $enumClass::cases()
+                    );
+
+                    $enumProperty->enumClass = $enumClass;
+
+                    return $enumProperty;
+                },
+                $this->source->getAdditionalEnums()
+            ),
+        ];
+
+        foreach ($enumProperties as $enumProperty) {
+            if (!$enumProperty->enumClass) {
+                throw new RuntimeException(
+                    "Enum class is not defined for enum property",
+                );
+            }
+
+            $enumClassBasename = class_basename($enumProperty->enumClass);
+
+            if (array_key_exists($enumClassBasename, $schemas)) {
+                throw new RuntimeException("Enum '$enumClassBasename' already exists in the schema");
+            }
+
+            $schemas[$enumClassBasename] = [
+                'type'            => $enumProperty->getEnumType()->value,
+                'enum'            => $enumProperty->enum,
+                'x-enum-varnames' => array_map(
+                    fn(BackedEnum $backedEnum) => $backedEnum->name,
+                    $enumProperty->enumClass::cases()
+                ),
+            ];
+        }
+
+        $description = $this->source->getDescription($isPublic);
 
         $this->jsonData = [
             'openapi'    => '3.0.0',
             'info'       => [
-                'title'   => config('app.name') . '-api-scheme',
-                'version' => '0.1',
+                'title'   => $this->source->getTitle(),
+                'version' => $this->source->getVersion(),
+                ...($description ? ['description' => $description] : []),
             ],
-            'components' => [
-                'securitySchemes' => [
-                    'bearerAuth' => [
-                        'type'         => 'http',
-                        'scheme'       => 'bearer',
-                        'bearerFormat' => 'JWT',
-                    ],
-                ],
+            'components' => (object) [
+                ...(
+                    $hasSecurity
+                    ? [
+                        'securitySchemes' => [
+                            'bearerAuth' => [
+                                'type'         => 'http',
+                                'scheme'       => 'bearer',
+                                'bearerFormat' => 'JWT',
+                            ],
+                        ],
+                    ]
+                    : []
+                ),
+                ...($schemas ? ['schemas' => $schemas] : []),
             ],
-            'paths'      => $paths,
+            'paths'      => (object) $paths,
         ];
 
-        if ($public) {
-            $this->jsonData['servers'] = config('app.open_api.servers');
+        if ($isPublic) {
+            $this->jsonData['servers'] = array_map(
+                static function (ServerObject $server) {
+                    $variables = [];
+
+                    if ($server->variables) {
+                        foreach ($server->variables as $variable) {
+                            $variables[$variable->name] = [
+                                'default' => $variable->default,
+                                ...(
+                                    $variable->description
+                                    ? [
+                                        'description' => $variable->description,
+                                    ]
+                                    : []
+                                ),
+                            ];
+                        }
+                    }
+
+                    return [
+                        'url' => $server->url,
+                        ...(
+                            $server->description
+                            ? [
+                                'description' => $server->description,
+                            ]
+                            : []
+                        ),
+                        ...(
+                            count($variables)
+                            ? [
+                                'variables' => $variables,
+                            ]
+                            : []
+                        ),
+                    ];
+                },
+                $this->source->getServers()
+            );
         }
     }
 
-    private function defineRequestBody(ParsedRoute $parsedRoute): array
+    public function saveToDisk(Filesystem $filesystem, string $fileName): void
+    {
+        $json = json_encode(
+            $this->jsonData,
+            JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+        );
+
+        $filesystem->put("$fileName.json", $json);
+    }
+
+    private function defineRequestBody(PathObject $parsedRoute): array
     {
         $contentType = $parsedRoute->requestScheme?->contentType ?? OaRequestScheme::OA_CONTENT_TYPE_JSON;
 
@@ -131,45 +251,71 @@ class JsonFileGenerator
             'content'  => [
                 $contentType => [
                     'schema' => (object) ($parsedRoute->requestScheme?->toArray() ?? []),
+                    ...(is_null($parsedRoute->requestExample) ? [] : ['example' => $parsedRoute->requestExample]),
                 ],
             ],
         ];
     }
 
-    private function defineResponses(ParsedRoute $parsedRoute, bool $isDeleteMethod): array
+    /**
+     * @param array<int, OaScheme|OaArrayProperty> $properties
+     * @param OaEnumProperty[]                     $enums
+     */
+    private function detectEnums(array $properties, array &$enums): void
+    {
+        foreach ($properties as $schema) {
+            if ($schema instanceof OaEnumProperty) {
+                if (
+                    !is_null($schema->enumClass)
+                    && !array_key_exists($schema->enumClass, $enums)
+                ) {
+                    $enums[$schema->enumClass] = $schema;
+                }
+
+                continue;
+            }
+
+            if ($schema instanceof OaArrayProperty) {
+                if (!is_null($schema->items)) {
+                    $this->detectEnums(
+                        [$schema->items],
+                        $enums
+                    );
+                }
+
+                continue;
+            }
+
+            if ($schema instanceof OaScheme) {
+                $this->detectEnums($schema->oneOf, $enums);
+                $this->detectEnums($schema->properties, $enums);
+            }
+
+            if ($schema instanceof OaObjectProperty && $schema->properties) {
+                $this->detectEnums($schema->properties, $enums);
+            }
+        }
+    }
+
+    private function defineResponses(PathObject $parsedRoute, bool $isDeleteMethod): array
     {
         $responses = [];
 
-        $wrap = 'data';
-
         foreach ($parsedRoute->responses ?: [200 => null] as $statusCode => $schema) {
             if ($isDeleteMethod && $schema) {
-                throw new RuntimeException('DELETE operations cannot have a responseBody.');
+                throw new RuntimeException(
+                    'DELETE operations cannot have a responseBody.',
+                );
             }
 
             $responses[$statusCode] = [
-                'description' => 'description',
+                'description' => 'description', // TODO: delete
             ];
 
             if (!$schema) {
                 $schemaJson = (object) [];
             } else {
-                $wrapProperty           = new OaObjectProperty();
-                $wrapProperty->required = true;
-
-                $wrapProperty->properties         = [
-                    $wrap => (object) $schema->toArray(),
-                ];
-                $wrapProperty->requiredProperties = [
-                    $wrap,
-                ];
-
-                if ($schema instanceof OaArrayProperty && $schema->isPagination) {
-                    $wrapProperty->properties['meta']   = (new OaPaginationInfoProperty())->toArray();
-                    $wrapProperty->requiredProperties[] = 'meta';
-                }
-
-                $schemaJson = $wrapProperty->toArray();
+                $schemaJson = (object) $schema->toArray();
             }
 
             if (!$isDeleteMethod) {
@@ -182,23 +328,5 @@ class JsonFileGenerator
         }
 
         return $responses;
-    }
-
-    public function saveToDisk(Filesystem $filesystem, string $fileName): void
-    {
-        $json = json_encode($this->jsonData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-        $filesystem->put("$fileName.json", $json);
-    }
-
-    private function hasSecurityMiddleware(ParsedRoute $parsedRoute): bool
-    {
-        foreach ($parsedRoute->middlewares as $routeMiddleware) {
-            if (in_array($routeMiddleware, $this->securityMiddlewares)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

@@ -25,12 +25,20 @@ class ClearTracesActionTest extends TestCase
     {
         parent::setUp();
 
-        Carbon::setTestNow(Carbon::parse('2026-09-29 12:34:56', 'UTC'));
+        Carbon::setTestNow(
+            Carbon::parse('2026-09-29 12:34:56', 'UTC')
+        );
 
         $this->processes        = $this->createMock(ProcessRepository::class);
         $this->deletePartitions = $this->createMock(DeletePartitionsAction::class);
 
-        $this->processes->method('create')->willReturn($this->process(id: 'new'));
+        $this->processes
+            ->method('create')
+            ->willReturn(
+                $this->process(
+                    id: 'new'
+                )
+            );
     }
 
     protected function tearDown(): void
@@ -42,24 +50,58 @@ class ClearTracesActionTest extends TestCase
 
     public function testDropsWhatEndedTheLifetimeAgo(): void
     {
-        $this->deletePartitions->expects($this->once())
+        $this->deletePartitions
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
-            ->with($this->callback(static fn(Carbon $to): bool => $to->eq(Carbon::parse('2026-09-26 12:34:56', 'UTC'))))
-            ->willReturn(new DeletedTracesObject(partitionsCount: 2, tracesCount: 30));
+            ->with(
+                $this->callback(
+                    static fn(Carbon $to): bool => $to->eq(
+                        Carbon::parse('2026-09-26 12:34:56', 'UTC')
+                    )
+                )
+            )
+            ->willReturn(
+                new DeletedTracesObject(
+                    partitionsCount: 2,
+                    tracesCount: 30
+                )
+            );
 
-        $this->processes->expects($this->once())
+        $this->processes
+            ->expects(
+                $this->once()
+            )
             ->method('update')
-            ->with('new', 2, 30, $this->isInstanceOf(Carbon::class), null);
+            ->with(
+                'new',
+                2,
+                30,
+                $this->isInstanceOf(Carbon::class),
+                null
+            );
 
         $this->action()->handle(72);
     }
 
     public function testRunThatDroppedNothingIsNotRecorded(): void
     {
-        $this->deletePartitions->method('handle')->willReturn(new DeletedTracesObject(partitionsCount: 0, tracesCount: 0));
+        $this->deletePartitions
+            ->method('handle')
+            ->willReturn(
+                new DeletedTracesObject(
+                    partitionsCount: 0,
+                    tracesCount: 0
+                )
+            );
 
-        $this->processes->expects($this->once())->method('deleteByProcessId')->with('new');
-        $this->processes->expects($this->never())->method('update');
+        $this->processes->expects(
+            $this->once()
+        )->method('deleteByProcessId')->with('new');
+        $this->processes->expects(
+            $this->never()
+        )->method('update');
 
         $this->action()->handle(72);
     }
@@ -68,24 +110,46 @@ class ClearTracesActionTest extends TestCase
     {
         $exception = new ClickhouseQueryException('Code: 159. Timeout exceeded');
 
-        $this->deletePartitions->method('handle')->willReturn(
-            new DeletedTracesObject(partitionsCount: 1, tracesCount: 10, exception: $exception)
-        );
+        $this->deletePartitions
+            ->method('handle')
+            ->willReturn(
+                new DeletedTracesObject(
+                    partitionsCount: 1,
+                    tracesCount: 10,
+                    exception: $exception
+                )
+            );
 
-        $this->processes->expects($this->once())
+        $this->processes
+            ->expects(
+                $this->once()
+            )
             ->method('update')
-            ->with('new', 1, 10, $this->isInstanceOf(Carbon::class), $exception);
+            ->with(
+                'new',
+                1,
+                10,
+                $this->isInstanceOf(Carbon::class),
+                $exception
+            );
 
         $this->action()->handle(72);
     }
 
     public function testFreshActiveRunBlocks(): void
     {
-        $this->processes->method('exists')->willReturn(
-            $this->process(id: 'running', createdAt: Carbon::now()->subMinutes(10))
-        );
+        $this->processes
+            ->method('exists')
+            ->willReturn(
+                $this->process(
+                    id: 'running',
+                    createdAt: Carbon::now()->subMinutes(10)
+                )
+            );
 
-        $this->deletePartitions->expects($this->never())->method('handle');
+        $this->deletePartitions->expects(
+            $this->never()
+        )->method('handle');
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Clearing process already active');
@@ -95,19 +159,47 @@ class ClearTracesActionTest extends TestCase
 
     public function testDeadRunIsClosedAndDoesNotBlock(): void
     {
-        $this->processes->method('exists')->willReturn(
-            $this->process(id: 'dead', createdAt: Carbon::now()->subMinutes(61), collectionsCount: 1, tracesCount: 5)
-        );
+        $this->processes
+            ->method('exists')
+            ->willReturn(
+                $this->process(
+                    id: 'dead',
+                    createdAt: Carbon::now()->subMinutes(61),
+                    collectionsCount: 1,
+                    tracesCount: 5
+                )
+            );
 
-        $this->deletePartitions->method('handle')->willReturn(new DeletedTracesObject(partitionsCount: 1, tracesCount: 7));
+        $this->deletePartitions
+            ->method('handle')
+            ->willReturn(
+                new DeletedTracesObject(
+                    partitionsCount: 1,
+                    tracesCount: 7
+                )
+            );
 
         $updates = [];
 
-        $this->processes->method('update')->willReturnCallback(
-            static function (string $processId, int $collectionsCount, int $tracesCount, ?Carbon $clearedAt, mixed $exception) use (&$updates): void {
-                $updates[] = [$processId, $collectionsCount, $tracesCount, $clearedAt !== null, $exception?->getMessage()];
-            }
-        );
+        $this->processes
+            ->method('update')
+            ->willReturnCallback(
+                static function (
+                    string $processId,
+                    int $collectionsCount,
+                    int $tracesCount,
+                    ?Carbon $clearedAt,
+                    mixed $exception
+                ) use (&$updates): void {
+                    $updates[] = [
+                        $processId,
+                        $collectionsCount,
+                        $tracesCount,
+                        $clearedAt !== null,
+                        $exception?->getMessage(),
+                    ];
+                }
+            );
 
         $this->action()->handle(72);
 

@@ -23,8 +23,12 @@ readonly class FindTraceTreeChildrenAction
     ) {
     }
 
-    public function handle(string $rootTraceId, ?string $parentTraceId, ?string $cursor, int $limit): TraceTreeChildrenObject
-    {
+    public function handle(
+        string $rootTraceId,
+        ?string $parentTraceId,
+        ?string $cursor,
+        int $limit
+    ): TraceTreeChildrenObject {
         if ($parentTraceId === null) {
             $items = $this->traceTreeCacheRepository->findTopNodes($rootTraceId);
 
@@ -34,7 +38,7 @@ readonly class FindTraceTreeChildrenAction
                 rootTraceId: $rootTraceId,
                 parentTraceId: $parentTraceId,
                 after: $cursor === null ? null : TraceTreeChildrenCursorObject::fromString($cursor),
-                limit: $limit
+                limit: $limit,
             );
 
             $items = $page->items;
@@ -49,7 +53,7 @@ readonly class FindTraceTreeChildrenAction
                 parentTraceIds: array_map(
                     static fn(TraceTreeRawObject $item): string => $item->traceId,
                     $items
-                )
+                ),
             ),
             nextCursor: $nextCursor,
         );

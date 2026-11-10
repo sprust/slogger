@@ -30,14 +30,18 @@ class SettingRepository
 
     public function findOne(SettingKeyEnum $key): ?SettingValueObject
     {
-        $setting = Setting::query()->where('key', $key->value)->first();
+        $setting = Setting::query()
+            ->where('key', $key->value)
+            ->first();
 
         return $setting ? $this->makeObjectByModel($setting) : null;
     }
 
     public function set(SettingKeyEnum $key, int $value): void
     {
-        $setting = Setting::query()->where('key', $key->value)->first() ?? new Setting();
+        $setting = Setting::query()
+            ->where('key', $key->value)
+            ->first() ?? new Setting();
 
         $setting->key   = $key->value;
         $setting->value = (string) $value;
@@ -47,7 +51,9 @@ class SettingRepository
 
     public function delete(SettingKeyEnum $key): void
     {
-        Setting::query()->where('key', $key->value)->delete();
+        Setting::query()
+            ->where('key', $key->value)
+            ->delete();
     }
 
     private function makeObjectByModel(Setting $setting): ?SettingValueObject
@@ -63,7 +69,7 @@ class SettingRepository
         return new SettingValueObject(
             key: $key,
             value: $value,
-            updatedAt: $setting->updated_at
+            updatedAt: $setting->updated_at,
         );
     }
 }

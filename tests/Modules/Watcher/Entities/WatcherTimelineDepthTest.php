@@ -59,18 +59,36 @@ class WatcherTimelineDepthTest extends TestCase
     /** Below the cap nothing was dropped, so a quiet head is an answer, not a gap. */
     public function testALineUnderTheCapIsTakenAtItsWord(): void
     {
-        $timeline = $this->timeline(startsAt: '2026-09-08 11:55:00', truncated: false);
+        $timeline = $this->timeline(
+            startsAt: '2026-09-08 11:55:00',
+            truncated: false
+        );
 
-        $this->assertFalse($this->analyzer()->startsAfter($timeline, Carbon::parse('2026-09-08 11:00:00')));
+        $this->assertFalse(
+            $this
+                ->analyzer()
+                ->startsAfter($timeline, Carbon::parse('2026-09-08 11:00:00'))
+        );
     }
 
     /** At the cap the head was cut, and the first bucket is where the line really begins. */
     public function testALineAtTheCapAdmitsWhereItBegins(): void
     {
-        $timeline = $this->timeline(startsAt: '2026-09-08 11:55:00', truncated: true);
+        $timeline = $this->timeline(
+            startsAt: '2026-09-08 11:55:00',
+            truncated: true
+        );
 
-        $this->assertTrue($this->analyzer()->startsAfter($timeline, Carbon::parse('2026-09-08 11:00:00')));
-        $this->assertFalse($this->analyzer()->startsAfter($timeline, Carbon::parse('2026-09-08 11:56:00')));
+        $this->assertTrue(
+            $this
+                ->analyzer()
+                ->startsAfter($timeline, Carbon::parse('2026-09-08 11:00:00'))
+        );
+        $this->assertFalse(
+            $this
+                ->analyzer()
+                ->startsAfter($timeline, Carbon::parse('2026-09-08 11:56:00'))
+        );
     }
 
     private function timeline(string $startsAt, bool $truncated): WatcherTimelineObject

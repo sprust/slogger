@@ -19,7 +19,10 @@ class LogLevelCounter
     public function __construct(array $levelCounts = [])
     {
         foreach ($levelCounts as $levelCount) {
-            $this->add($levelCount->level, $levelCount->count);
+            $this->add(
+                level: $levelCount->level,
+                count: $levelCount->count,
+            );
         }
     }
 
@@ -47,7 +50,10 @@ class LogLevelCounter
         $levelCounts = [];
 
         foreach ($this->counts as $level => $count) {
-            $levelCounts[] = new LogLevelCountObject(level: $level, count: $count);
+            $levelCounts[] = new LogLevelCountObject(
+                level: $level,
+                count: $count,
+            );
         }
 
         return $levelCounts;

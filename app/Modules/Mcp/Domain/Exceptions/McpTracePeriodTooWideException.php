@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Exceptions;
 
-use Exception;
-
-class McpTracePeriodTooWideException extends Exception
+class McpTracePeriodTooWideException extends AbstractMcpException
 {
-    public function __construct(
-        public readonly int $maxHours
-    ) {
+    public function __construct(public readonly int $maxHours)
+    {
         parent::__construct("The period is longer than $maxHours hours");
     }
 }

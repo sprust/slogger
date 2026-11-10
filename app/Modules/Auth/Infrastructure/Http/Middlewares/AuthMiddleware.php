@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Infrastructure\Http\Middlewares;
 
 use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
-use App\Modules\User\Domain\Actions\TouchUserTokenAction;
+use App\Modules\Auth\Domain\Actions\TouchUserTokenAction;
+use App\Modules\Auth\Parameters\TokenParameters;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +24,7 @@ readonly class AuthMiddleware
 
     public function __construct(
         private FindUserByTokenAction $findUserByTokenAction,
-        private TouchUserTokenAction $touchUserTokenAction,
+        private TouchUserTokenAction $touchUserTokenAction
     ) {
     }
 
@@ -37,18 +38,21 @@ readonly class AuthMiddleware
         $token = $request->bearerToken();
 
         if (!$token) {
-            abort(401);
+            abort(code: 401);
         }
 
         $user = $this->findUserByTokenAction->handle($token);
 
         if (!$user) {
-            abort(401);
+            abort(code: 401);
         }
 
-        $request->setUserResolver(fn() => $user);
+        $request->setUserResolver(static fn() => $user);
 
-        $request->attributes->set(self::AUTHENTICATED, true);
+        $request->attributes->set(
+            key: self::AUTHENTICATED,
+            value: true,
+        );
 
         return $next($request);
     }
@@ -68,12 +72,20 @@ readonly class AuthMiddleware
         // even for one this middleware refused — the framework calls it after handle(),
         // whether handle() returned or aborted — and a token that was rejected has no
         // business moving the row it was rejected against.
-        if (!$token || !$request->attributes->getBoolean(self::AUTHENTICATED)) {
+        if (
+            !$token || !$request->attributes->getBoolean(
+                key: self::AUTHENTICATED,
+            )
+        ) {
             return;
         }
 
         // Answers false for a session that ended during the request — a logout, most of
         // all, which must not be undone by the renewal of the very request that did it.
-        $this->touchUserTokenAction->handle($token);
+        $this->touchUserTokenAction->handle(
+            new TokenParameters(
+                token: $token,
+            )
+        );
     }
 }

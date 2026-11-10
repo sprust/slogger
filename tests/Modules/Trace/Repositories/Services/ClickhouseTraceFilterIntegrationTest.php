@@ -69,26 +69,35 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
 
     public function testIntegerAndFloatAreTheSameNumber(): void
     {
-        $this->insert('num', [
-            'int'    => '{"response":{"status":500}}',
-            'float'  => '{"response":{"status":500.0}}',
-            'string' => '{"response":{"status":"500"}}',
-            'less'   => '{"response":{"status":499.5}}',
-        ]);
+        $this->insert(
+            'num',
+            [
+                'int'    => '{"response":{"status":500}}',
+                'float'  => '{"response":{"status":500.0}}',
+                'string' => '{"response":{"status":"500"}}',
+                'less'   => '{"response":{"status":499.5}}',
+            ]
+        );
 
         $this->assertSame(
             ['num-float', 'num-int'],
-            $this->find('num', $this->numeric('dt.response.status', 500, TraceDataFilterCompNumericTypeEnum::Gte))
+            $this->find(
+                'num',
+                $this->numeric('dt.response.status', 500, TraceDataFilterCompNumericTypeEnum::Gte)
+            )
         );
     }
 
     public function testArrayOfScalarsMatchesAnyElement(): void
     {
-        $this->insert('scalars', [
-            'array' => '{"roles":["admin","dev"]}',
-            'value' => '{"roles":"admin"}',
-            'other' => '{"roles":["dev"]}',
-        ]);
+        $this->insert(
+            'scalars',
+            [
+                'array' => '{"roles":["admin","dev"]}',
+                'value' => '{"roles":"admin"}',
+                'other' => '{"roles":["dev"]}',
+            ]
+        );
 
         $this->assertSame(
             ['scalars-array', 'scalars-value'],
@@ -98,18 +107,57 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
 
     public function testNullAndMissingAreTwoThings(): void
     {
-        $this->insert('null', [
-            'null'    => '{"user":null}',
-            'missing' => '{"other":1}',
-            'value'   => '{"user":{"id":1}}',
-            'text'    => '"just text"',
-            'list'    => '[1,2]',
-        ]);
+        $this->insert(
+            'null',
+            [
+                'null'    => '{"user":null}',
+                'missing' => '{"other":1}',
+                'value'   => '{"user":{"id":1}}',
+                'text'    => '"just text"',
+                'list'    => '[1,2]',
+            ]
+        );
 
-        $this->assertSame(['null-null', 'null-value'], $this->find('null', $this->presence('dt.user', exists: true)));
-        $this->assertSame(['null-missing'], $this->find('null', $this->presence('dt.user', exists: false)));
-        $this->assertSame(['null-null'], $this->find('null', $this->presence('dt.user', null: true)));
-        $this->assertSame(['null-value'], $this->find('null', $this->presence('dt.user', null: false)));
+        $this->assertSame(
+            ['null-null', 'null-value'],
+            $this->find(
+                'null',
+                $this->presence(
+                    'dt.user',
+                    exists: true
+                )
+            )
+        );
+        $this->assertSame(
+            ['null-missing'],
+            $this->find(
+                'null',
+                $this->presence(
+                    'dt.user',
+                    exists: false
+                )
+            )
+        );
+        $this->assertSame(
+            ['null-null'],
+            $this->find(
+                'null',
+                $this->presence(
+                    'dt.user',
+                    null: true
+                )
+            )
+        );
+        $this->assertSame(
+            ['null-value'],
+            $this->find(
+                'null',
+                $this->presence(
+                    'dt.user',
+                    null: false
+                )
+            )
+        );
         $this->assertSame(
             ['null-missing', 'null-null', 'null-value'],
             $this->find('null', $this->numeric('dt.user', 5, TraceDataFilterCompNumericTypeEnum::Neq)),
@@ -119,16 +167,55 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
 
     public function testNullAndMissingThroughAnArrayOfObjects(): void
     {
-        $this->insert('items', [
-            'null'    => '{"items":[{"name":"a"},{"price":null}]}',
-            'missing' => '{"items":[{"name":"a"}]}',
-            'value'   => '{"items":[{"price":10},{"name":"b"}]}',
-        ]);
+        $this->insert(
+            'items',
+            [
+                'null'    => '{"items":[{"name":"a"},{"price":null}]}',
+                'missing' => '{"items":[{"name":"a"}]}',
+                'value'   => '{"items":[{"price":10},{"name":"b"}]}',
+            ]
+        );
 
-        $this->assertSame(['items-null', 'items-value'], $this->find('items', $this->presence('dt.items.price', exists: true)));
-        $this->assertSame(['items-missing'], $this->find('items', $this->presence('dt.items.price', exists: false)));
-        $this->assertSame(['items-null'], $this->find('items', $this->presence('dt.items.price', null: true)));
-        $this->assertSame(['items-value'], $this->find('items', $this->presence('dt.items.price', null: false)));
+        $this->assertSame(
+            ['items-null', 'items-value'],
+            $this->find(
+                'items',
+                $this->presence(
+                    'dt.items.price',
+                    exists: true
+                )
+            )
+        );
+        $this->assertSame(
+            ['items-missing'],
+            $this->find(
+                'items',
+                $this->presence(
+                    'dt.items.price',
+                    exists: false
+                )
+            )
+        );
+        $this->assertSame(
+            ['items-null'],
+            $this->find(
+                'items',
+                $this->presence(
+                    'dt.items.price',
+                    null: true
+                )
+            )
+        );
+        $this->assertSame(
+            ['items-value'],
+            $this->find(
+                'items',
+                $this->presence(
+                    'dt.items.price',
+                    null: false
+                )
+            )
+        );
         $this->assertSame(
             ['items-value'],
             $this->find('items', $this->numeric('dt.items.price', 10, TraceDataFilterCompNumericTypeEnum::Eq))
@@ -137,38 +224,86 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
 
     public function testCachePathIsNotFound(): void
     {
-        $this->insert('cache', [
-            'entry' => '{"type":"set","key":"product_12","cache":{"product_12":{"value":"x"}}}',
-            'other' => '{"type":"get"}',
-        ]);
+        $this->insert(
+            'cache',
+            [
+                'entry' => '{"type":"set","key":"product_12","cache":{"product_12":{"value":"x"}}}',
+                'other' => '{"type":"get"}',
+            ]
+        );
 
-        $this->assertSame([], $this->find('cache', $this->string('dt.cache.product_12.value', 'x', TraceDataFilterCompStringTypeEnum::Eq)));
-        $this->assertSame([], $this->find('cache', $this->presence('dt.cache.product_12.value', exists: true)));
-        $this->assertSame([], $this->find('cache', $this->presence('dt.cache.product_12.value', exists: false)));
-        $this->assertSame([], $this->find('cache', $this->string('dt.cache.product_12.value', 'y', TraceDataFilterCompStringTypeEnum::Neq)));
-        $this->assertSame(['cache-entry'], $this->find('cache', $this->string('dt.type', 'set', TraceDataFilterCompStringTypeEnum::Eq)));
+        $this->assertSame(
+            [],
+            $this->find(
+                'cache',
+                $this->string('dt.cache.product_12.value', 'x', TraceDataFilterCompStringTypeEnum::Eq)
+            )
+        );
+        $this->assertSame(
+            [],
+            $this->find(
+                'cache',
+                $this->presence(
+                    'dt.cache.product_12.value',
+                    exists: true
+                )
+            )
+        );
+        $this->assertSame(
+            [],
+            $this->find(
+                'cache',
+                $this->presence(
+                    'dt.cache.product_12.value',
+                    exists: false
+                )
+            )
+        );
+        $this->assertSame(
+            [],
+            $this->find(
+                'cache',
+                $this->string('dt.cache.product_12.value', 'y', TraceDataFilterCompStringTypeEnum::Neq)
+            )
+        );
+        $this->assertSame(
+            ['cache-entry'],
+            $this->find('cache', $this->string('dt.type', 'set', TraceDataFilterCompStringTypeEnum::Eq))
+        );
     }
 
     public function testContainsTakesTheTextAsItIs(): void
     {
-        $this->insert('uri', [
-            'dot' => '{"request":{"uri":"/x/a.b/y"}}',
-            'any' => '{"request":{"uri":"/x/axb/y"}}',
-        ]);
+        $this->insert(
+            'uri',
+            [
+                'dot' => '{"request":{"uri":"/x/a.b/y"}}',
+                'any' => '{"request":{"uri":"/x/axb/y"}}',
+            ]
+        );
 
-        $this->assertSame(['uri-dot'], $this->find('uri', $this->string('dt.request.uri', 'a.b', TraceDataFilterCompStringTypeEnum::Con)));
+        $this->assertSame(
+            ['uri-dot'],
+            $this->find('uri', $this->string('dt.request.uri', 'a.b', TraceDataFilterCompStringTypeEnum::Con))
+        );
     }
 
     public function testDateLikeStringIsAString(): void
     {
-        $this->insert('date', [
-            'at'    => '{"at":"2026-09-29 10:00:00"}',
-            'other' => '{"at":"2026-09-29 11:00:00"}',
-        ]);
+        $this->insert(
+            'date',
+            [
+                'at'    => '{"at":"2026-09-29 10:00:00"}',
+                'other' => '{"at":"2026-09-29 11:00:00"}',
+            ]
+        );
 
         $this->assertSame(
             ['date-at'],
-            $this->find('date', $this->string('dt.at', '2026-09-29 10:00:00', TraceDataFilterCompStringTypeEnum::Eq))
+            $this->find(
+                'date',
+                $this->string('dt.at', '2026-09-29 10:00:00', TraceDataFilterCompStringTypeEnum::Eq)
+            )
         );
     }
 
@@ -179,10 +314,15 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
         $database = sprintf('slogger_test_filters_%s', bin2hex(random_bytes(4)));
 
         if ($database === $config['database']) {
-            throw new RuntimeException('The test database must not be the one of the application');
+            throw new RuntimeException(
+                'The test database must not be the one of the application',
+            );
         }
 
-        $serverClient = $this->makeClient(config: $config, database: 'system');
+        $serverClient = $this->makeClient(
+            config: $config,
+            database: 'system'
+        );
 
         try {
             $serverClient->select('SELECT 1');
@@ -197,7 +337,10 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
         self::$serverClient = $serverClient;
         self::$database     = $database;
 
-        self::$client = $this->makeClient(config: $config, database: $database);
+        self::$client = $this->makeClient(
+            config: $config,
+            database: $database
+        );
 
         // the data columns of the traces table, as its migration makes them
         self::$client->command(
@@ -258,9 +401,15 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
             );
         }
 
-        $this->client()->command(
-            sprintf("INSERT INTO traces SETTINGS %s FORMAT JSONEachRow\n%s", self::INSERT_SETTINGS, implode("\n", $lines))
-        );
+        $this
+            ->client()
+            ->command(
+                sprintf(
+                    "INSERT INTO traces SETTINGS %s FORMAT JSONEachRow\n%s",
+                    self::INSERT_SETTINGS,
+                    implode("\n", $lines)
+                )
+            );
     }
 
     /**
@@ -269,46 +418,70 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
     private function find(string $scope, TraceDataFilterItemParameters $filterItem): array
     {
         $pathTypes = $this->createMock(ClickhouseDataPathTypes::class);
-        $pathTypes->method('arrayPaths')->willReturn(['items']);
+        $pathTypes
+            ->method('arrayPaths')
+            ->willReturn(['items']);
 
         $condition = new ClickhouseTraceFilterBuilder(new TraceDataPathResolver($pathTypes))->build(
-            data: new TraceDataFilterParameters(filter: [$filterItem])
+            data: new TraceDataFilterParameters(
+                filter: [$filterItem]
+            )
         );
 
-        $rows = $this->client()->select(
-            sql: sprintf('SELECT tid FROM traces WHERE startsWith(tid, {scope:String}) AND %s ORDER BY tid', $condition->sql),
-            params: [...$condition->params, 'scope' => "$scope-"]
-        );
+        $rows = $this
+            ->client()
+            ->select(
+                sql: sprintf(
+                    'SELECT tid FROM traces WHERE startsWith(tid, {scope:String}) AND %s ORDER BY tid',
+                    $condition->sql
+                ),
+                params: [...$condition->params, 'scope' => "$scope-"]
+            );
 
         return array_map(static fn(array $row): string => (string) $row['tid'], $rows);
     }
 
-    private function numeric(string $field, int|float $value, TraceDataFilterCompNumericTypeEnum $comp): TraceDataFilterItemParameters
-    {
+    private function numeric(
+        string $field,
+        int|float $value,
+        TraceDataFilterCompNumericTypeEnum $comp
+    ): TraceDataFilterItemParameters {
         return new TraceDataFilterItemParameters(
             field: $field,
             null: null,
             exists: null,
-            numeric: new TraceDataFilterNumericParameters(value: $value, comp: $comp),
+            numeric: new TraceDataFilterNumericParameters(
+                value: $value,
+                comp: $comp
+            ),
             string: null,
             boolean: null
         );
     }
 
-    private function string(string $field, string $value, TraceDataFilterCompStringTypeEnum $comp): TraceDataFilterItemParameters
-    {
+    private function string(
+        string $field,
+        string $value,
+        TraceDataFilterCompStringTypeEnum $comp
+    ): TraceDataFilterItemParameters {
         return new TraceDataFilterItemParameters(
             field: $field,
             null: null,
             exists: null,
             numeric: null,
-            string: new TraceDataFilterStringParameters(value: $value, comp: $comp),
+            string: new TraceDataFilterStringParameters(
+                value: $value,
+                comp: $comp
+            ),
             boolean: null
         );
     }
 
-    private function presence(string $field, ?bool $exists = null, ?bool $null = null): TraceDataFilterItemParameters
-    {
+    private function presence(
+        string $field,
+        ?bool $exists = null,
+        ?bool $null = null
+    ): TraceDataFilterItemParameters {
         return new TraceDataFilterItemParameters(
             field: $field,
             null: $null,
@@ -321,6 +494,8 @@ class ClickhouseTraceFilterIntegrationTest extends TestCase
 
     private function client(): ClickhouseClient
     {
-        return self::$client ?? throw new RuntimeException('ClickHouse is not set up');
+        return self::$client ?? throw new RuntimeException(
+            'ClickHouse is not set up',
+        );
     }
 }

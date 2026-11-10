@@ -23,14 +23,15 @@ class TraceAdminStoreRepository
     ): TraceAdminStoreObject {
         $createdAt = Carbon::now();
 
-        $result = TraceAdminStore::sconcur()->insertOne([
-            'title'         => $title,
-            'storeVersion'  => $storeVersion,
-            'storeDataHash' => $storeDataHash,
-            'storeData'     => $storeData,
-            'auto'          => $auto,
-            'createdAt'     => new UTCDateTime($createdAt),
-        ]);
+        $result = TraceAdminStore::sconcur()
+            ->insertOne([
+                'title'         => $title,
+                'storeVersion'  => $storeVersion,
+                'storeDataHash' => $storeDataHash,
+                'storeData'     => $storeData,
+                'auto'          => $auto,
+                'createdAt'     => new UTCDateTime($createdAt),
+            ]);
 
         return new TraceAdminStoreObject(
             id: (string) $result->insertedId,
@@ -63,12 +64,13 @@ class TraceAdminStoreRepository
 
         $total = TraceAdminStore::sconcur()->countDocuments($filter);
 
-        $cursor = TraceAdminStore::sconcur()->find(
-            filter: $filter,
-            sort: ['createdAt' => -1],
-            limit: $perPage,
-            skip: ($page - 1) * $perPage,
-        );
+        $cursor = TraceAdminStore::sconcur()
+            ->find(
+                filter: $filter,
+                sort: ['createdAt' => -1],
+                limit: $perPage,
+                skip: ($page - 1) * $perPage,
+            );
 
         $items = [];
 
@@ -81,8 +83,8 @@ class TraceAdminStoreRepository
             paginationInfo: new PaginationInfoObject(
                 total: $total,
                 perPage: $perPage,
-                currentPage: $page
-            )
+                currentPage: $page,
+            ),
         );
     }
 

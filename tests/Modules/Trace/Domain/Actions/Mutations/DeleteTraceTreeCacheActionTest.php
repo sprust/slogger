@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 
 namespace Tests\Modules\Trace\Domain\Actions\Mutations;
 
@@ -9,7 +9,7 @@ use App\Modules\Trace\Domain\Actions\Queries\IsShouldContinueBuildTraceTreeCache
 use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface as Dispatcher;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -26,43 +26,75 @@ class DeleteTraceTreeCacheActionTest extends TestCase
     {
         $events = $this->createMock(Dispatcher::class);
 
-        $events->expects($this->once())
-            ->method('dispatch')
+        $events
+            ->expects(
+                $this->once()
+            )
+            ->method('event')
             ->with(
                 $this->callback(
-                    static fn(TraceTreeCacheDeleteRequestedEvent $event): bool => $event->rootTraceId === 'root'
-                        && $event->buildVersion === 'v1'
+                    static fn(
+                        TraceTreeCacheDeleteRequestedEvent $event
+                    ): bool => $event->rootTraceId === 'root' && $event->buildVersion === 'v1'
                 )
             );
 
-        $this->action($events, deleted: 10000)->handle('root', 'v1');
+        $this
+            ->action(
+                events: $events,
+                deleted: 10000,
+            )
+            ->handle(
+                rootTraceId: 'root',
+                buildVersion: 'v1',
+            );
     }
 
     public function testTheLastChunkStartsTheBuildItWasClearingFor(): void
     {
         $events = $this->createMock(Dispatcher::class);
 
-        $events->expects($this->once())
-            ->method('dispatch')
+        $events
+            ->expects(
+                $this->once()
+            )
+            ->method('event')
             ->with(
                 $this->callback(
-                    static fn(TraceTreeCacheBuildRequestedEvent $event): bool => $event->rootTraceId === 'root'
-                        && $event->version === 'v1'
-                        && $event->depth === 0
-                        && $event->afterId === null
+                    static fn(
+                        TraceTreeCacheBuildRequestedEvent $event
+                    ): bool => $event->rootTraceId === 'root' && $event->version === 'v1' && $event->depth === 0
+                    && $event->afterId === null
                 )
             );
 
-        $this->action($events, deleted: 17)->handle('root', 'v1');
+        $this
+            ->action(
+                events: $events,
+                deleted: 17,
+            )
+            ->handle(
+                rootTraceId: 'root',
+                buildVersion: 'v1',
+            );
     }
 
     public function testADeleteOfItsOwnStartsNothing(): void
     {
         $events = $this->createMock(Dispatcher::class);
 
-        $events->expects($this->never())->method('dispatch');
+        $events->expects(
+            $this->never()
+        )->method('event');
 
-        $this->action($events, deleted: 0)->handle('root');
+        $this
+            ->action(
+                events: $events,
+                deleted: 0,
+            )
+            ->handle(
+                rootTraceId: 'root',
+            );
     }
 
     /**
@@ -72,15 +104,29 @@ class DeleteTraceTreeCacheActionTest extends TestCase
     public function testACanceledBuildDeletesNothing(): void
     {
         $events = $this->createMock(Dispatcher::class);
-        $events->expects($this->never())->method('dispatch');
+
+        $events->expects(
+            $this->never()
+        )->method('event');
 
         $cache = $this->createMock(TraceTreeCacheRepository::class);
-        $cache->expects($this->never())->method('deleteChunk');
+
+        $cache->expects(
+            $this->never()
+        )->method('deleteChunk');
 
         $shouldContinue = $this->createMock(IsShouldContinueBuildTraceTreeCacheAction::class);
+
         $shouldContinue->method('handle')->willReturn(false);
 
-        new DeleteTraceTreeCacheAction($cache, $shouldContinue, $events)->handle('root', 'v1');
+        (new DeleteTraceTreeCacheAction(
+            traceTreeCacheRepository: $cache,
+            isShouldContinueBuildTraceTreeCacheAction: $shouldContinue,
+            dispatcher: $events,
+        ))->handle(
+            rootTraceId: 'root',
+            buildVersion: 'v1',
+        );
     }
 
     /**
@@ -89,11 +135,17 @@ class DeleteTraceTreeCacheActionTest extends TestCase
     private function action(MockObject $events, int $deleted): DeleteTraceTreeCacheAction
     {
         $cache = $this->createMock(TraceTreeCacheRepository::class);
+
         $cache->method('deleteChunk')->willReturn($deleted);
 
         $shouldContinue = $this->createMock(IsShouldContinueBuildTraceTreeCacheAction::class);
+
         $shouldContinue->method('handle')->willReturn(true);
 
-        return new DeleteTraceTreeCacheAction($cache, $shouldContinue, $events);
+        return new DeleteTraceTreeCacheAction(
+            traceTreeCacheRepository: $cache,
+            isShouldContinueBuildTraceTreeCacheAction: $shouldContinue,
+            dispatcher: $events,
+        );
     }
 }

@@ -9,9 +9,8 @@ use App\Modules\Notification\Entities\ChannelTypeObject;
 
 readonly class FindChannelTypesAction
 {
-    public function __construct(
-        private NotificationChannelTypeRegistry $types
-    ) {
+    public function __construct(private NotificationChannelTypeRegistry $types)
+    {
     }
 
     /**

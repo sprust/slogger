@@ -13,24 +13,51 @@ class TraceMetricReaderTest extends TestCase
     public function testADocumentReadsAsItsThreeCounters(): void
     {
         $metrics = new TraceMetricReader()->read([
-            $this->document('http', '2026-09-11 12:05:00', logged: 3, buffered: 4, stored: 5),
+            $this->document(
+                'http',
+                '2026-09-11 12:05:00',
+                logged: 3,
+                buffered: 4,
+                stored: 5
+            ),
         ]);
 
-        $this->assertCount(1, $metrics);
-        $this->assertSame('http', $metrics[0]->type);
-        $this->assertSame('2026-09-11 12:05:00', $metrics[0]->timestamp->toDateTimeString());
-        $this->assertSame([3, 4, 5], [$metrics[0]->logged, $metrics[0]->buffered, $metrics[0]->stored]);
+        $this->assertCount(
+            1,
+            $metrics
+        );
+        $this->assertSame(
+            'http',
+            $metrics[0]->type
+        );
+        $this->assertSame(
+            '2026-09-11 12:05:00',
+            $metrics[0]->timestamp->toDateTimeString()
+        );
+        $this->assertSame(
+            [3, 4, 5],
+            [$metrics[0]->logged, $metrics[0]->buffered, $metrics[0]->stored]
+        );
     }
 
     public function testACounterNothingWasAddedToReadsAsZero(): void
     {
-        $document = $this->document('http', '2026-09-11 12:05:00', logged: 0, buffered: 0, stored: 2);
+        $document = $this->document(
+            'http',
+            '2026-09-11 12:05:00',
+            logged: 0,
+            buffered: 0,
+            stored: 2
+        );
 
         unset($document['lc'], $document['bc']);
 
         $metrics = new TraceMetricReader()->read([$document]);
 
-        $this->assertSame([0, 0, 2], [$metrics[0]->logged, $metrics[0]->buffered, $metrics[0]->stored]);
+        $this->assertSame(
+            [0, 0, 2],
+            [$metrics[0]->logged, $metrics[0]->buffered, $metrics[0]->stored]
+        );
     }
 
     public function testADocumentWithoutATypeOrASlotIsSkipped(): void
@@ -48,8 +75,14 @@ class TraceMetricReaderTest extends TestCase
             $this->document('job', '2026-09-11 12:10:00'),
         ]);
 
-        $this->assertCount(1, $metrics);
-        $this->assertSame('job', $metrics[0]->type);
+        $this->assertCount(
+            1,
+            $metrics
+        );
+        $this->assertSame(
+            'job',
+            $metrics[0]->type
+        );
     }
 
     public function testMetricsComeBackOldestFirstThenByType(): void
@@ -63,7 +96,9 @@ class TraceMetricReaderTest extends TestCase
         $this->assertSame(
             ['12:05 http', '12:05 job', '12:10 job'],
             array_map(
-                static fn(TraceMetricObject $metric): string => $metric->timestamp->format('H:i') . ' ' . $metric->type,
+                static fn(
+                    TraceMetricObject $metric
+                ): string => $metric->timestamp->format('H:i') . ' ' . $metric->type,
                 $metrics
             )
         );

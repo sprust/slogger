@@ -29,9 +29,15 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
         return new SlowTracesSettingsObject(
-            duration: ArrayValueGetter::floatNull($settings, 'duration') ?? 10,
-            windowMinutes: ArrayValueGetter::intNull($settings, 'window_minutes') ?? 5,
-            filter: $this->filterOf($settings)
+            duration: ArrayValueGetter::floatNull(
+                data: $settings,
+                key: 'duration',
+            ) ?? 10,
+            windowMinutes: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'window_minutes',
+            ) ?? 5,
+            filter: $this->filterOf($settings),
         );
     }
 
@@ -49,16 +55,16 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
                     title: 'Longer than, sec',
                     valueType: 'float',
                     default: new SlowTracesSettingsObject()->duration,
-                    min: 0
+                    min: 0,
                 ),
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
                     title: 'Over the last, min',
                     valueType: 'int',
                     default: new SlowTracesSettingsObject()->windowMinutes,
-                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
+                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES,
                 ),
-            ]
+            ],
         );
     }
 

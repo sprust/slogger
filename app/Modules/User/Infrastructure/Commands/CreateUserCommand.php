@@ -37,32 +37,46 @@ class CreateUserCommand extends Command
         CreateUserAction $createUserAction,
         FindUserByIdAction $findUserByIdAction
     ): int {
-        $firstName = $this->askAndCheck('First name *', true);
+        $firstName = $this->askAndCheck(
+            title: 'First name *',
+            required: true,
+        );
 
         if (!is_string($firstName) || !$firstName) {
             return self::FAILURE;
         }
 
-        $lastName = $this->askAndCheck('Last name', false);
+        $lastName = $this->askAndCheck(
+            title: 'Last name',
+            required: false,
+        );
 
         if (!is_string($lastName) && !is_null($lastName)) {
             return self::FAILURE;
         }
 
-        $email = $this->askAndCheck('Email *', true, [
-            'email',
-            'unique:users,email',
-        ]);
+        $email = $this->askAndCheck(
+            title: 'Email *',
+            required: true,
+            rules: [
+                'email',
+                'unique:users,email',
+            ],
+        );
 
         if (!is_string($email) || !$email) {
             return self::FAILURE;
         }
 
-        $password = $this->askAndCheck('Password [8-10] *', true, [
-            'string',
-            'min:8',
-            'max:10',
-        ]);
+        $password = $this->askAndCheck(
+            title: 'Password [8-10] *',
+            required: true,
+            rules: [
+                'string',
+                'min:8',
+                'max:10',
+            ],
+        );
 
         if (!is_string($password) || !$password) {
             return self::FAILURE;
@@ -74,11 +88,13 @@ class CreateUserCommand extends Command
                     firstName: $firstName,
                     lastName: $lastName,
                     email: $email,
-                    password: $password
+                    password: $password,
                 )
             );
         } catch (UserAlreadyExistsException $exception) {
-            $this->error($exception->getMessage());
+            $this->error(
+                $exception->getMessage()
+            );
 
             return self::FAILURE;
         }
@@ -135,7 +151,9 @@ class CreateUserCommand extends Command
             );
 
             if ($validator->fails()) {
-                $this->error(json_encode($validator->errors()->all(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+                $this->error(
+                    json_encode($validator->errors()->all(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
+                );
 
                 return false;
             }

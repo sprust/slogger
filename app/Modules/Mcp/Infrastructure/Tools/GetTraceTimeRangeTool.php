@@ -47,7 +47,7 @@ readonly class GetTraceTimeRangeTool implements McpToolInterface
             data: [
                 'first_hour' => $this->formatter->time($range->firstHour),
                 'last_hour'  => $this->formatter->time($range->lastHour),
-            ]
+            ],
         );
     }
 }

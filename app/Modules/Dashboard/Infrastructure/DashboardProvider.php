@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Infrastructure;
 
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Dashboard\Infrastructure\Exceptions\DashboardExceptionManager;
+use App\Modules\Dashboard\Infrastructure\Jobs\RefreshDatabaseStatCacheJob;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Dashboard\Domain\Actions\FindDatabaseStatCacheAction;
 use App\Modules\Dashboard\Domain\Actions\FindSconcurStatAction;
 use App\Modules\Dashboard\Domain\Actions\FindTraceMetricsAction;
@@ -14,9 +16,30 @@ use App\Modules\Dashboard\Repositories\DatabaseStatCacheRepository;
 use App\Modules\Dashboard\Repositories\DatabaseStatRepository;
 use App\Modules\Dashboard\Repositories\Services\TraceMetricReader;
 use App\Modules\Dashboard\Repositories\TraceMetricRepository;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
+use Illuminate\Console\Scheduling\Schedule;
 
 class DashboardProvider extends BaseServiceProvider
 {
+    public static function setSchedule(Schedule $schedule): void
+    {
+        $schedule
+            ->call(
+                callback: static function (DispatcherInterface $dispatcher): void {
+                    $dispatcher->dispatch(new RefreshDatabaseStatCacheJob());
+                },
+            )
+            ->name(RefreshDatabaseStatCacheJob::class)
+            ->everyFiveMinutes();
+    }
+
+    protected function getJobs(): array
+    {
+        return [
+            RefreshDatabaseStatCacheJob::class,
+        ];
+    }
+
     protected function getContracts(): array
     {
         return [
@@ -34,5 +57,20 @@ class DashboardProvider extends BaseServiceProvider
             FindSconcurStatAction::class,
             FindTraceMetricsAction::class,
         ];
+    }
+
+    protected function getExceptionManagerClass(): ?string
+    {
+        return DashboardExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
     }
 }

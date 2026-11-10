@@ -24,12 +24,22 @@ readonly class InvalidBufferGrownEventPayloadMapper implements WatcherEventPaylo
 
         /** @var array<string, mixed> $settings */
         /** @var array<string, mixed> $measured */
-        $settingsThreshold = ArrayValueGetter::intNull($settings, 'threshold');
+        $settingsThreshold = ArrayValueGetter::intNull(
+            data: $settings,
+            key: 'threshold',
+        );
 
-        $measuredInvalidCount = ArrayValueGetter::intNull($measured, 'invalid_count');
-        $measuredSince        = ArrayValueGetter::stringNull($measured, 'since');
+        $measuredInvalidCount = ArrayValueGetter::intNull(
+            data: $measured,
+            key: 'invalid_count',
+        );
+        $measuredSince        = ArrayValueGetter::stringNull(
+            data: $measured,
+            key: 'since',
+        );
 
-        if (is_null($settingsThreshold)
+        if (
+            is_null($settingsThreshold)
             || is_null($measuredInvalidCount)
             || is_null($measuredSince)
         ) {
@@ -38,19 +48,21 @@ readonly class InvalidBufferGrownEventPayloadMapper implements WatcherEventPaylo
 
         return new InvalidBufferGrownEventPayloadObject(
             settings: new InvalidBufferGrownEventSettingsObject(
-                threshold: $settingsThreshold
+                threshold: $settingsThreshold,
             ),
             measured: new InvalidBufferGrownEventMeasuredObject(
                 invalidCount: $measuredInvalidCount,
-                since: $measuredSince
-            )
+                since: $measuredSince,
+            ),
         );
     }
 
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof InvalidBufferGrownEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

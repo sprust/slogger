@@ -28,7 +28,7 @@ readonly class RegenerateMcpTokenAction
 
         $this->mcpRepository->updateToken(
             id: $id,
-            token: Str::random(50)
+            token: Str::random(50),
         );
     }
 }

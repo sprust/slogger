@@ -29,7 +29,7 @@ readonly class SettingDefinitionFinder
                 configKey: 'cleaner.lifetime_hours',
                 min: 1,
                 max: 8760,
-                description: 'How many hours traces are kept. It is also the longest period MCP tools may search.'
+                description: 'How many hours traces are kept. It is also the longest period MCP tools may search.',
             ),
             SettingKeyEnum::LogsNginxKeepDays => new SettingDefinitionObject(
                 key: $key,
@@ -37,7 +37,7 @@ readonly class SettingDefinitionFinder
                 configKey: 'module-logs.nginx_keep_days',
                 min: 1,
                 max: 3650,
-                description: 'How many days nginx access logs are kept.'
+                description: 'How many days nginx access logs are kept.',
             ),
         };
     }

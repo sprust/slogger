@@ -31,12 +31,16 @@ readonly class StreamLogFileAction
         $maxBytes = (int) config('module-logs.download.max_bytes');
 
         if ($file->sizeBytes > $maxBytes) {
-            throw new LogFileTooLargeException(name: $file->name, sizeBytes: $file->sizeBytes, maxBytes: $maxBytes);
+            throw new LogFileTooLargeException(
+                name: $file->name,
+                sizeBytes: $file->sizeBytes,
+                maxBytes: $maxBytes,
+            );
         }
 
         return new LogFileDownloadObject(
             file: $file,
-            chunks: $this->logFileRepository->readChunks($file->path)
+            chunks: $this->logFileRepository->readChunks($file->path),
         );
     }
 }

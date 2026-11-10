@@ -17,12 +17,19 @@ trait LogsTempDirTrait
         mkdir($this->tempDir . '/logs', 0755, true);
         mkdir($this->tempDir . '/index', 0755, true);
 
-        config()->set('module-logs.index.path', $this->tempDir . '/index');
+        config()->set(
+            'module-logs.index.path',
+            $this->tempDir . '/index'
+        );
     }
 
     protected function removeTempDir(): void
     {
-        Files::removeDirectory(path: $this->tempDir, recursive: true, missingOk: true);
+        Files::removeDirectory(
+            path: $this->tempDir,
+            recursive: true,
+            missingOk: true
+        );
     }
 
     protected function writeLogFile(

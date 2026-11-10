@@ -6,8 +6,7 @@ namespace App\Modules\Mcp\Infrastructure\Protocol;
 
 readonly class McpNotificationMessage
 {
-    public function __construct(
-        public string $method
-    ) {
+    public function __construct(public string $method)
+    {
     }
 }

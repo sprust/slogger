@@ -8,7 +8,7 @@ use App\Modules\Watcher\Domain\Events\WatcherIncidentChangedEvent;
 use App\Modules\Watcher\Domain\Exceptions\WatcherIncidentNotFoundException;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use App\Modules\Watcher\Repositories\WatcherIncidentRepository;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use Illuminate\Support\Carbon;
 
 /**
@@ -22,7 +22,7 @@ readonly class CloseIncidentAction
 {
     public function __construct(
         private WatcherIncidentRepository $incidentRepository,
-        private Dispatcher $events
+        private DispatcherInterface $dispatcher
     ) {
     }
 
@@ -47,13 +47,13 @@ readonly class CloseIncidentAction
             id: $incidentId,
             status: WatcherIncidentStatusEnum::Closed,
             closedAt: Carbon::now(),
-            closedByUserId: $closedByUserId
+            closedByUserId: $closedByUserId,
         );
 
         $changed = $this->incidentRepository->findById($incidentId);
 
         if (!is_null($changed)) {
-            $this->events->dispatch(new WatcherIncidentChangedEvent($changed));
+            $this->dispatcher->event(new WatcherIncidentChangedEvent($changed));
         }
     }
 }

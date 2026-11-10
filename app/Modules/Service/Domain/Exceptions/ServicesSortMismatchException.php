@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Service\Domain\Exceptions;
 
-use Exception;
-
-class ServicesSortMismatchException extends Exception
+class ServicesSortMismatchException extends AbstractServiceException
 {
     public function __construct()
     {

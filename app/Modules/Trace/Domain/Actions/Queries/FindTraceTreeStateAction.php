@@ -25,7 +25,7 @@ readonly class FindTraceTreeStateAction
     public function handle(string $traceId): ?TraceTreeStateObject
     {
         $rootTraceId = $this->traceTreeRepository->findParentTraceId(
-            traceId: $traceId
+            $traceId
         );
 
         if (!$rootTraceId) {
@@ -39,8 +39,8 @@ readonly class FindTraceTreeStateAction
         return new TraceTreeStateObject(
             rootTraceId: $rootTraceId,
             state: $this->traceTreeCacheStateRepository->findOneByRootTraceId(
-                rootTraceId: $rootTraceId
-            )
+                $rootTraceId
+            ),
         );
     }
 }

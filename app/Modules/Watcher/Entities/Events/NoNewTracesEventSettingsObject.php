@@ -7,8 +7,7 @@ namespace App\Modules\Watcher\Entities\Events;
 /** What the watcher was set to when it went off. */
 readonly class NoNewTracesEventSettingsObject
 {
-    public function __construct(
-        public int $periodMinutes
-    ) {
+    public function __construct(public int $periodMinutes)
+    {
     }
 }

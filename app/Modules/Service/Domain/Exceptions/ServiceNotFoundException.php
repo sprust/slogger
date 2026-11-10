@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Service\Domain\Exceptions;
 
-use Exception;
-
-class ServiceNotFoundException extends Exception
+class ServiceNotFoundException extends AbstractServiceException
 {
     public function __construct(int $serviceId)
     {

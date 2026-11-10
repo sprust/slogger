@@ -12,9 +12,8 @@ use Illuminate\Support\Str;
 
 readonly class UpdateServiceAction
 {
-    public function __construct(
-        private ServiceRepository $serviceRepository
-    ) {
+    public function __construct(private ServiceRepository $serviceRepository)
+    {
     }
 
     /**
@@ -29,14 +28,19 @@ readonly class UpdateServiceAction
 
         $uniqueKey = Str::slug($parameters->name);
 
-        if ($this->serviceRepository->isExistByUniqueKey($uniqueKey, exceptId: $parameters->id)) {
+        if (
+            $this->serviceRepository->isExistByUniqueKey(
+                uniqueKey: $uniqueKey,
+                exceptId: $parameters->id,
+            )
+        ) {
             throw new ServiceAlreadyExistsException($parameters->name);
         }
 
         $this->serviceRepository->update(
             id: $parameters->id,
             name: $parameters->name,
-            uniqueKey: $uniqueKey
+            uniqueKey: $uniqueKey,
         );
     }
 }

@@ -37,8 +37,10 @@ readonly class ManyTracesChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof ManyTracesSettingsObject) {
@@ -54,7 +56,11 @@ readonly class ManyTracesChecker implements WatcherCheckerInterface
         // that have to wait.
         $timeline = $this->timelineRepository->find($watcher->id);
 
-        $count = $this->analyzer->countIn($timeline, $from, $to);
+        $count = $this->analyzer->countIn(
+            timeline: $timeline,
+            from: $from,
+            to: $to,
+        );
 
         if ($count < $settings->threshold) {
             return null;
@@ -63,12 +69,16 @@ readonly class ManyTracesChecker implements WatcherCheckerInterface
         return new ManyTracesEventPayloadObject(
             settings: new ManyTracesEventSettingsObject(
                 windowMinutes: $settings->windowMinutes,
-                threshold: $settings->threshold
+                threshold: $settings->threshold,
             ),
             measured: new ManyTracesEventMeasuredObject(
-                windowCount: $count
+                windowCount: $count,
             ),
-            groups: $this->reportGroups($timeline, $from, $to)
+            groups: $this->reportGroups(
+                timeline: $timeline,
+                from: $from,
+                to: $to,
+            ),
         );
     }
 
@@ -80,24 +90,33 @@ readonly class ManyTracesChecker implements WatcherCheckerInterface
         Carbon $from,
         Carbon $to
     ): array {
-        $groups = $this->analyzer->groupsIn($timeline, $from, $to);
+        $groups = $this->analyzer->groupsIn(
+            timeline: $timeline,
+            from: $from,
+            to: $to,
+        );
 
         usort(
             $groups,
-            static fn(WatcherTimelineGroupObject $a, WatcherTimelineGroupObject $b): int => $b->count <=> $a->count
+            static fn(
+                WatcherTimelineGroupObject $a,
+                WatcherTimelineGroupObject $b
+            ): int => $b->count <=> $a->count
         );
 
         return array_map(
             // Nothing timed here: this watcher counts, and the line's durations belong to
             // the watcher that is about them.
-            static fn(WatcherTimelineGroupObject $group): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
+            static fn(
+                WatcherTimelineGroupObject $group
+            ): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
                 serviceId: $group->serviceId,
                 type: $group->type,
                 tags: $group->tags,
                 count: $group->count,
                 durationMax: null,
                 slowestTraceId: null,
-                slowestTraceLoggedAt: null
+                slowestTraceLoggedAt: null,
             ),
             array_slice($groups, 0, self::MAX_REPORTED_GROUPS)
         );

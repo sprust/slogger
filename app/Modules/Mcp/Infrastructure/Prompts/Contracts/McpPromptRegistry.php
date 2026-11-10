@@ -9,9 +9,8 @@ readonly class McpPromptRegistry
     /**
      * @param McpPromptInterface[] $prompts
      */
-    public function __construct(
-        private array $prompts
-    ) {
+    public function __construct(private array $prompts)
+    {
     }
 
     /**

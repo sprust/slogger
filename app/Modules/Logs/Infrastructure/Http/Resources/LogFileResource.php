@@ -30,6 +30,7 @@ class LogFileResource extends AbstractApiResource
         $this->type        = $resource->type->value;
         $this->size_bytes  = $resource->sizeBytes;
         $this->can_delete  = $resource->deletable;
-        $this->modified_at = Carbon::createFromTimestampMs($resource->modifiedAtMs)->toDateTimeString();
+        $this->modified_at = Carbon::createFromTimestampMs($resource->modifiedAtMs)
+            ->toDateTimeString();
     }
 }

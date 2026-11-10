@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cleaner\Infrastructure\Commands;
 
-use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
-use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
-use App\Modules\Setting\Enums\SettingKeyEnum;
+use App\Modules\Cleaner\Domain\UseCases\ClearTracesUseCase;
 use Illuminate\Console\Command;
 
 class ClearTracesCommand extends Command
@@ -28,11 +26,9 @@ class ClearTracesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ClearTracesAction $clearTracesAction, FindSettingValueAction $findSettingValueAction): int
+    public function handle(ClearTracesUseCase $clearTracesUseCase): int
     {
-        $clearTracesAction->handle(
-            $findSettingValueAction->handle(SettingKeyEnum::TracesLifetimeHours)
-        );
+        $clearTracesUseCase->handle();
 
         return self::SUCCESS;
     }

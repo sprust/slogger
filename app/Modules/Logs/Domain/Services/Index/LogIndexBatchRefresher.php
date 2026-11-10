@@ -14,9 +14,8 @@ use SConcur\WaitGroup;
 
 readonly class LogIndexBatchRefresher
 {
-    public function __construct(
-        private LogIndexer $logIndexer
-    ) {
+    public function __construct(private LogIndexer $logIndexer)
+    {
     }
 
     /**
@@ -30,7 +29,7 @@ readonly class LogIndexBatchRefresher
                 missingFileIds: [],
                 indexing: false,
                 indexedBytes: 0,
-                totalBytes: 0
+                totalBytes: 0,
             );
         }
 
@@ -38,7 +37,9 @@ readonly class LogIndexBatchRefresher
 
         $missingFileIds = [];
 
-        $waitGroup = WaitGroup::create(max(1, $concurrency));
+        $waitGroup = WaitGroup::create(
+            maxConcurrency: max(1, $concurrency),
+        );
 
         $keys = [];
 
@@ -49,7 +50,7 @@ readonly class LogIndexBatchRefresher
                         return $this->logIndexer->ensureFresh(
                             file: $file,
                             timeBudgetMs: $timeBudgetMs,
-                            waitForLockSec: $waitForLockSec
+                            waitForLockSec: $waitForLockSec,
                         );
                     } catch (LogFileNotFoundException) {
                         $missingFileIds[] = $file->id;
@@ -84,7 +85,10 @@ readonly class LogIndexBatchRefresher
                 continue;
             }
 
-            $indexed[] = new LogFileIndexObject(file: $file, meta: $meta);
+            $indexed[] = new LogFileIndexObject(
+                file: $file,
+                meta: $meta,
+            );
 
             $indexedBytes += min($meta->indexedBytes, $file->sizeBytes);
 
@@ -98,7 +102,7 @@ readonly class LogIndexBatchRefresher
             missingFileIds: $missingFileIds,
             indexing: $indexing,
             indexedBytes: $indexedBytes,
-            totalBytes: $totalBytes
+            totalBytes: $totalBytes,
         );
     }
 }

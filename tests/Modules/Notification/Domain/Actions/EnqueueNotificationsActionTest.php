@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Notification\Domain\Actions;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use App\Modules\Notification\Domain\Actions\Mutations\EnqueueNotificationsAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelAction;
 use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
@@ -17,7 +18,7 @@ use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface as Dispatcher;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use Tests\Modules\Notification\NotificationFactoryTrait;
@@ -25,9 +26,11 @@ use RuntimeException;
 
 class EnqueueNotificationsActionTest extends TestCase
 {
+    use \Tests\Modules\Notification\IncidentParametersFactoryTrait;
+
     use NotificationFactoryTrait;
 
-    private Dispatcher $events;
+    private Dispatcher&MockObject $events;
 
     protected function setUp(): void
     {
@@ -40,73 +43,219 @@ class EnqueueNotificationsActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method('create')
-            ->with(1, 7, '68be1f000000000000000009', NotificationKindEnum::Opened)
-            ->willReturn($this->notification());
+            ->with(
+                1,
+                7,
+                '68be1f000000000000000009',
+                NotificationKindEnum::Opened
+            )
+            ->willReturn(
+                $this->notification()
+            );
 
-        $this->action($repository, $this->channel())
-            ->handle($this->watcher(), $this->incident(), null);
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(),
+            )
+            ->handle(
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher()->type,
+                ),
+            );
     }
 
     public function testAFurtherEventIsARepeat(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method('create')
-            ->with(1, 7, '68be1f000000000000000009', NotificationKindEnum::Event)
-            ->willReturn($this->notification());
+            ->with(
+                1,
+                7,
+                '68be1f000000000000000009',
+                NotificationKindEnum::Event
+            )
+            ->willReturn(
+                $this->notification()
+            );
 
-        $this->action($repository, $this->channel())
-            ->handle($this->watcher(notifyOnEvent: true), $this->incident(eventsCount: 3), null);
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(),
+            )
+            ->handle(
+                watcher: $this->notificationWatcher(
+                    $this->watcher(
+                        notifyOnEvent: true,
+                    )
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident(
+                        eventsCount: 3,
+                    )
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher(
+                        notifyOnEvent: true,
+                    )->type,
+                ),
+            );
     }
 
     public function testAClosedIncidentIsAClosing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
+        $repository
+            ->expects(
+                $this->once()
+            )
             ->method('create')
-            ->with(1, 7, '68be1f000000000000000009', NotificationKindEnum::Closed)
-            ->willReturn($this->notification());
+            ->with(
+                1,
+                7,
+                '68be1f000000000000000009',
+                NotificationKindEnum::Closed
+            )
+            ->willReturn(
+                $this->notification()
+            );
 
-        $this->action($repository, $this->channel())
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(),
+            )
             ->handle(
-                $this->watcher(),
-                $this->incident(status: WatcherIncidentStatusEnum::Closed, eventsCount: 3),
-                null
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident(
+                        status: WatcherIncidentStatusEnum::Closed,
+                        eventsCount: 3,
+                    )
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher()->type,
+                ),
             );
     }
 
     public function testAWatcherThatDoesNotWantOpeningsSaysNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->expects($this->never())->method('create');
 
-        $this->action($repository, $this->channel())
-            ->handle($this->watcher(notifyOnOpened: false), $this->incident(), null);
+        $repository->expects(
+            $this->never()
+        )->method('create');
+
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(),
+            )
+            ->handle(
+                watcher: $this->notificationWatcher(
+                    $this->watcher(
+                        notifyOnOpened: false,
+                    )
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher(
+                        notifyOnOpened: false,
+                    )->type,
+                ),
+            );
     }
 
     public function testAWatcherThatDoesNotWantRepeatsSaysNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->expects($this->never())->method('create');
 
-        $this->action($repository, $this->channel())
-            ->handle($this->watcher(notifyOnEvent: false), $this->incident(eventsCount: 3), null);
+        $repository->expects(
+            $this->never()
+        )->method('create');
+
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(),
+            )
+            ->handle(
+                watcher: $this->notificationWatcher(
+                    $this->watcher(
+                        notifyOnEvent: false,
+                    )
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident(
+                        eventsCount: 3,
+                    )
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher(
+                        notifyOnEvent: false,
+                    )->type,
+                ),
+            );
     }
 
     public function testAWatcherThatDoesNotWantClosingsSaysNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->expects($this->never())->method('create');
 
-        $this->action($repository, $this->channel())
+        $repository->expects(
+            $this->never()
+        )->method('create');
+
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(),
+            )
             ->handle(
-                $this->watcher(notifyOnClosed: false),
-                $this->incident(status: WatcherIncidentStatusEnum::Closed),
-                null
+                watcher: $this->notificationWatcher(
+                    $this->watcher(
+                        notifyOnClosed: false,
+                    )
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident(
+                        status: WatcherIncidentStatusEnum::Closed,
+                    )
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher(
+                        notifyOnClosed: false,
+                    )->type,
+                ),
             );
     }
 
@@ -114,118 +263,258 @@ class EnqueueNotificationsActionTest extends TestCase
     public function testAWatcherThatNamesNoChannelSaysNothing(): void
     {
         $findChannelAction = $this->createMock(FindChannelAction::class);
-        $findChannelAction->expects($this->never())->method('handle');
+
+        $findChannelAction->expects(
+            $this->never()
+        )->method('handle');
 
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->expects($this->never())->method('create');
 
-        $this->events->expects($this->never())->method('dispatch');
+        $repository->expects(
+            $this->never()
+        )->method('create');
 
-        new EnqueueNotificationsAction(
+        $this->events->expects(
+            $this->never()
+        )->method('event');
+
+        (new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
             types: $this->channelTypes(),
             messageFactory: $this->createMock(IncidentMessageFactory::class),
             notificationRepository: $repository,
-            events: $this->events
-        )->handle($this->watcher(channelId: null), $this->incident(), null);
+            dispatcher: $this->events,
+        ))->handle(
+            watcher: $this->notificationWatcher(
+                $this->watcher(
+                    channelId: null,
+                )
+            ),
+            incident: $this->notificationIncident(
+                $this->incident()
+            ),
+            event: $this->notificationEvent(
+                event: null,
+                type: $this->watcher(
+                    channelId: null,
+                )->type,
+            ),
+        );
     }
 
     public function testTheChannelAskedForIsTheOneTheWatcherNames(): void
     {
         $findChannelAction = $this->createMock(FindChannelAction::class);
 
-        $findChannelAction->expects($this->once())
+        $findChannelAction
+            ->expects(
+                $this->once()
+            )
             ->method('handle')
             ->with(4)
-            ->willReturn($this->channel(id: 4));
+            ->willReturn(
+                $this->channel(
+                    id: 4,
+                )
+            );
 
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->method('create')->willReturn($this->notification());
+
+        $repository->method('create')->willReturn(
+            $this->notification()
+        );
 
         $messageFactory = $this->createMock(IncidentMessageFactory::class);
+
         $messageFactory->method('make')->willReturn('a watcher went off');
 
-        new EnqueueNotificationsAction(
+        (new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
             types: $this->channelTypes(),
             messageFactory: $messageFactory,
             notificationRepository: $repository,
-            events: $this->events
-        )->handle($this->watcher(channelId: 4), $this->incident(), null);
+            dispatcher: $this->events,
+        ))->handle(
+            watcher: $this->notificationWatcher(
+                $this->watcher(
+                    channelId: 4,
+                )
+            ),
+            incident: $this->notificationIncident(
+                $this->incident()
+            ),
+            event: $this->notificationEvent(
+                event: null,
+                type: $this->watcher(
+                    channelId: 4,
+                )->type,
+            ),
+        );
     }
 
     /** Quiet rather than a row SendNotificationAction would only mark failed. */
     public function testAChannelThatWasSwitchedOffGetsNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->expects($this->never())->method('create');
 
-        $this->action($repository, $this->channel(enabled: false))
-            ->handle($this->watcher(), $this->incident(), null);
+        $repository->expects(
+            $this->never()
+        )->method('create');
+
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(
+                    enabled: false,
+                ),
+            )
+            ->handle(
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher()->type,
+                ),
+            );
     }
 
     /** Removed since the watcher was pointed at it. */
     public function testAChannelThatIsGoneGetsNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->expects($this->never())->method('create');
 
-        $this->action($repository, null)
-            ->handle($this->watcher(), $this->incident(), null);
+        $repository->expects(
+            $this->never()
+        )->method('create');
+
+        $this
+            ->action(
+                repository: $repository,
+                channel: null,
+            )
+            ->handle(
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher()->type,
+                ),
+            );
     }
 
     public function testTheRowIsAnnouncedByItsOwnEvent(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $this->events->expects($this->once())
-            ->method('dispatch')
-            ->with(new NotificationEnqueuedEvent('68be1f000000000000000001'));
+        $this->events
+            ->expects(
+                $this->once()
+            )
+            ->method('event')
+            ->with(
+                new NotificationEnqueuedEvent('68be1f000000000000000001')
+            );
 
-        $this->action($repository, $this->channel())
-            ->handle($this->watcher(), $this->incident(), null);
+        $this
+            ->action(
+                repository: $repository,
+                channel: $this->channel(),
+            )
+            ->handle(
+                watcher: $this->notificationWatcher(
+                    $this->watcher()
+                ),
+                incident: $this->notificationIncident(
+                    $this->incident()
+                ),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher()->type,
+                ),
+            );
     }
 
     public function testTheRowIsWrittenBeforeAnythingIsQueued(): void
     {
-        $written = 0;
-
+        $written    = 0;
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->method('create')->willReturnCallback(function () use (&$written): NotificationObject {
-            $written++;
 
-            return $this->notification();
-        });
+        $repository
+            ->method('create')
+            ->willReturnCallback(
+                function () use (&$written): NotificationObject {
+                    $written++;
 
-        $this->events->method('dispatch')->willThrowException(new RuntimeException('broker is down'));
+                    return $this->notification();
+                }
+            );
+
+        $this->events
+            ->method('event')
+            ->willThrowException(
+                new RuntimeException(
+                    message: 'broker is down',
+                )
+            );
 
         try {
-            $this->action($repository, $this->channel())
-                ->handle($this->watcher(), $this->incident(), null);
+            $this
+                ->action(
+                    repository: $repository,
+                    channel: $this->channel(),
+                )
+                ->handle(
+                    watcher: $this->notificationWatcher(
+                        $this->watcher()
+                    ),
+                    incident: $this->notificationIncident(
+                        $this->incident()
+                    ),
+                    event: $this->notificationEvent(
+                        event: null,
+                        type: $this->watcher()->type,
+                    ),
+                );
         } catch (RuntimeException) {
         }
 
-        $this->assertSame(1, $written);
+        $this->assertSame(
+            1,
+            $written
+        );
     }
 
+    /** @param NotificationRepository&MockObject $repository */
     private function action(
         NotificationRepository $repository,
         ?ChannelObject $channel
     ): EnqueueNotificationsAction {
         $findChannelAction = $this->createMock(FindChannelAction::class);
+
         $findChannelAction->method('handle')->willReturn($channel);
 
         $messageFactory = $this->createMock(IncidentMessageFactory::class);
+
         $messageFactory->method('make')->willReturn('a watcher went off');
 
-        $repository->method('create')->willReturn($this->notification());
+        $repository->method('create')->willReturn(
+            $this->notification()
+        );
 
         return new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
             types: $this->channelTypes(),
             messageFactory: $messageFactory,
             notificationRepository: $repository,
-            events: $this->events
+            dispatcher: $this->events,
         );
     }
 
@@ -240,22 +529,29 @@ class EnqueueNotificationsActionTest extends TestCase
             text: 'a watcher went off',
             sentAt: null,
             error: null,
-            createdAt: Carbon::parse('2026-09-08 12:00:00')
+            createdAt: Carbon::parse(
+                time: '2026-09-08 12:00:00',
+            ),
         );
     }
 
     private function channel(int $id = 1, bool $enabled = true): ChannelObject
     {
-        $now = Carbon::parse('2026-09-08 12:00:00');
+        $now = Carbon::parse(
+            time: '2026-09-08 12:00:00',
+        );
 
         return new ChannelObject(
             id: $id,
             name: 'ops chat',
             type: NotificationChannelTypeEnum::Telegram,
             enabled: $enabled,
-            settings: new TelegramSettingsObject(botToken: '123:abc', chatId: '-100500'),
+            settings: new TelegramSettingsObject(
+                botToken: '123:abc',
+                chatId: '-100500',
+            ),
             createdAt: $now,
-            updatedAt: $now
+            updatedAt: $now,
         );
     }
 
@@ -265,7 +561,9 @@ class EnqueueNotificationsActionTest extends TestCase
         bool $notifyOnEvent = false,
         bool $notifyOnClosed = true
     ): WatcherObject {
-        $now = Carbon::parse('2026-09-08 19:00:00');
+        $now = Carbon::parse(
+            time: '2026-09-08 19:00:00',
+        );
 
         return new WatcherObject(
             id: 7,
@@ -283,7 +581,7 @@ class EnqueueNotificationsActionTest extends TestCase
             lastCheckedAt: $now,
             lastTriggeredAt: $now,
             createdAt: $now,
-            updatedAt: $now
+            updatedAt: $now,
         );
     }
 
@@ -295,13 +593,17 @@ class EnqueueNotificationsActionTest extends TestCase
             id: '68be1f000000000000000009',
             watcherId: 7,
             status: $status,
-            firstEventAt: Carbon::parse('2026-09-08 19:00:00'),
-            lastEventAt: Carbon::parse('2026-09-08 19:20:03'),
+            firstEventAt: Carbon::parse(
+                time: '2026-09-08 19:00:00',
+            ),
+            lastEventAt: Carbon::parse(
+                time: '2026-09-08 19:20:03',
+            ),
             eventsCount: $eventsCount,
-            closedAt: $status === WatcherIncidentStatusEnum::Closed
-                ? Carbon::parse('2026-09-08 20:00:00')
-                : null,
-            closedByUserId: null
+            closedAt: $status === WatcherIncidentStatusEnum::Closed ? Carbon::parse(
+                time: '2026-09-08 20:00:00',
+            ) : null,
+            closedByUserId: null,
         );
     }
 }

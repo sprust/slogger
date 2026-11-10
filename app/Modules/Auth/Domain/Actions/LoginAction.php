@@ -37,7 +37,7 @@ readonly class LoginAction
             email: $user->email,
             // A session of its own, so that signing in on a second device does not hand
             // out the first one's token and signing out of one does not end both.
-            apiToken: $this->createUserTokenAction->handle($user->id)
+            apiToken: $this->createUserTokenAction->handle($user->id),
         );
     }
 }

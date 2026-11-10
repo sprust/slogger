@@ -16,8 +16,7 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
  */
 readonly class TraceTreeCacheStateChangedEvent
 {
-    public function __construct(
-        public TraceTreeCacheStateObject $state,
-    ) {
+    public function __construct(public TraceTreeCacheStateObject $state)
+    {
     }
 }

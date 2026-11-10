@@ -19,6 +19,9 @@ readonly class FindNotificationsAction
      */
     public function handle(int $channelId, int $limit): array
     {
-        return $this->notificationRepository->findByChannelId($channelId, $limit);
+        return $this->notificationRepository->findByChannelId(
+            channelId: $channelId,
+            limit: $limit,
+        );
     }
 }

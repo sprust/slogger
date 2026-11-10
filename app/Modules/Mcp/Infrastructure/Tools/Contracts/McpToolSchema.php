@@ -9,8 +9,7 @@ readonly class McpToolSchema
     /**
      * @param McpToolProperty[] $properties
      */
-    public function __construct(
-        public array $properties = []
-    ) {
+    public function __construct(public array $properties = [])
+    {
     }
 }

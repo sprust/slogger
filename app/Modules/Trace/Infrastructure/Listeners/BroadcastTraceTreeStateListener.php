@@ -6,7 +6,7 @@ namespace App\Modules\Trace\Infrastructure\Listeners;
 
 use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
 use App\Modules\Trace\Infrastructure\Broadcasting\TraceTreeStateBroadcast;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 
 /**
  * Turns the domain fact into the frame the panel receives.
@@ -17,13 +17,12 @@ use Illuminate\Contracts\Events\Dispatcher;
  */
 readonly class BroadcastTraceTreeStateListener
 {
-    public function __construct(
-        private Dispatcher $events,
-    ) {
+    public function __construct(private DispatcherInterface $dispatcher)
+    {
     }
 
     public function handle(TraceTreeCacheStateChangedEvent $event): void
     {
-        $this->events->dispatch(new TraceTreeStateBroadcast($event->state));
+        $this->dispatcher->event(new TraceTreeStateBroadcast($event->state));
     }
 }

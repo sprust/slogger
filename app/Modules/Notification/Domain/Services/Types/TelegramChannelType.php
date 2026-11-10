@@ -15,21 +15,28 @@ use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 
 readonly class TelegramChannelType implements NotificationChannelTypeDefinitionInterface
 {
-    public function __construct(
-        private TelegramSender $sender
-    ) {
+    public function __construct(private TelegramSender $sender)
+    {
     }
 
     public function makeSettings(array $settings): ChannelSettingsInterface
     {
         return new TelegramSettingsObject(
-            botToken: ArrayValueGetter::stringNull($settings, 'bot_token') ?? '',
-            chatId: ArrayValueGetter::stringNull($settings, 'chat_id') ?? ''
+            botToken: ArrayValueGetter::stringNull(
+                data: $settings,
+                key: 'bot_token',
+            ) ?? '',
+            chatId: ArrayValueGetter::stringNull(
+                data: $settings,
+                key: 'chat_id',
+            ) ?? '',
         );
     }
 
-    public function makeUpdatedSettings(array $submitted, ChannelSettingsInterface $stored): ChannelSettingsInterface
-    {
+    public function makeUpdatedSettings(
+        array $submitted,
+        ChannelSettingsInterface $stored
+    ): ChannelSettingsInterface {
         $settings = $this->makeSettings($submitted);
 
         if (!$settings instanceof TelegramSettingsObject || !$stored instanceof TelegramSettingsObject) {
@@ -38,7 +45,7 @@ readonly class TelegramChannelType implements NotificationChannelTypeDefinitionI
 
         return new TelegramSettingsObject(
             botToken: $settings->botToken === '' ? $stored->botToken : $settings->botToken,
-            chatId: $settings->chatId
+            chatId: $settings->chatId,
         );
     }
 
@@ -54,16 +61,16 @@ readonly class TelegramChannelType implements NotificationChannelTypeDefinitionI
                     title: 'Bot token',
                     description: 'What BotFather gave you. Stored encrypted and never shown back.',
                     secret: true,
-                    maxLength: 255
+                    maxLength: 255,
                 ),
                 new ChannelTypeFieldObject(
                     key: 'chat_id',
                     title: 'Chat id',
                     description: 'A number for a chat, a negative one for a group, or @name for a public channel.',
                     secret: false,
-                    maxLength: 255
+                    maxLength: 255,
                 ),
-            ]
+            ],
         );
     }
 

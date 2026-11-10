@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Mcp\Domain\Services;
 
 use App\Modules\Mcp\Domain\Exceptions\McpTraceDataFilterInvalidException;
-use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
-use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
-use App\Modules\Trace\Parameters\Data\TraceDataFilterBooleanParameters;
-use App\Modules\Trace\Parameters\Data\TraceDataFilterItemParameters;
-use App\Modules\Trace\Parameters\Data\TraceDataFilterNumericParameters;
-use App\Modules\Trace\Parameters\Data\TraceDataFilterStringParameters;
+use App\Modules\Mcp\Enums\TraceDataFilterCompNumericTypeEnum;
+use App\Modules\Mcp\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\Mcp\Parameters\Data\TraceDataFilterBooleanParameters;
+use App\Modules\Mcp\Parameters\Data\TraceDataFilterItemParameters;
+use App\Modules\Mcp\Parameters\Data\TraceDataFilterNumericParameters;
+use App\Modules\Mcp\Parameters\Data\TraceDataFilterStringParameters;
 
 readonly class McpTraceDataFilterParser
 {
@@ -33,10 +33,7 @@ readonly class McpTraceDataFilterParser
      */
     public function parse(array $conditions): array
     {
-        return array_map(
-            fn(string $condition) => $this->parseCondition($condition),
-            $conditions
-        );
+        return array_map(fn(string $condition) => $this->parseCondition($condition), $conditions);
     }
 
     /**
@@ -46,7 +43,9 @@ readonly class McpTraceDataFilterParser
     {
         $value = trim($condition);
 
-        if (preg_match('/^' . self::KEY . '\s+(?<presence>exists|missing|is null|is not null)\z/', $value, $matches)) {
+        if (
+            preg_match('/^' . self::KEY . '\s+(?<presence>exists|missing|is null|is not null)\z/', $value, $matches)
+        ) {
             return new TraceDataFilterItemParameters(
                 field: $this->field($matches['key']),
                 null: match ($matches['presence']) {
@@ -61,7 +60,7 @@ readonly class McpTraceDataFilterParser
                 },
                 numeric: null,
                 string: null,
-                boolean: null
+                boolean: null,
             );
         }
 
@@ -70,11 +69,17 @@ readonly class McpTraceDataFilterParser
 
             return $this->item(
                 key: $matches['key'],
-                boolean: new TraceDataFilterBooleanParameters($matches['op'] === '=' ? $isTrue : !$isTrue)
+                boolean: new TraceDataFilterBooleanParameters(
+                    value: $matches['op'] === '='
+                        ? $isTrue
+                        : !$isTrue,
+                ),
             );
         }
 
-        if (preg_match('/^' . self::KEY . '\s*(?<op>>=|<=|!=|=|>|<)\s*(?<value>-?\d+(\.\d+)?)\z/', $value, $matches)) {
+        if (
+            preg_match('/^' . self::KEY . '\s*(?<op>>=|<=|!=|=|>|<)\s*(?<value>-?\d+(\.\d+)?)\z/', $value, $matches)
+        ) {
             $number = str_contains($matches['value'], '.') ? (float) $matches['value'] : (int) $matches['value'];
 
             // a number too long for a float reads as infinity, which no query takes
@@ -86,16 +91,14 @@ readonly class McpTraceDataFilterParser
                 key: $matches['key'],
                 numeric: new TraceDataFilterNumericParameters(
                     value: $number,
-                    comp: TraceDataFilterCompNumericTypeEnum::from($matches['op'])
-                )
+                    comp: TraceDataFilterCompNumericTypeEnum::from($matches['op']),
+                ),
             );
         }
 
-        if (preg_match(
-            '/^' . self::KEY . '\s*(?<op>!=|=|contains|starts|ends)\s*"(?<value>.*)"\z/',
-            $value,
-            $matches
-        )) {
+        if (
+            preg_match('/^' . self::KEY . '\s*(?<op>!=|=|contains|starts|ends)\s*"(?<value>.*)"\z/', $value, $matches)
+        ) {
             return $this->item(
                 key: $matches['key'],
                 string: new TraceDataFilterStringParameters(
@@ -106,8 +109,8 @@ readonly class McpTraceDataFilterParser
                         'contains' => TraceDataFilterCompStringTypeEnum::Con,
                         'starts'   => TraceDataFilterCompStringTypeEnum::Starts,
                         default    => TraceDataFilterCompStringTypeEnum::Ends,
-                    }
-                )
+                    },
+                ),
             );
         }
 
@@ -126,12 +129,12 @@ readonly class McpTraceDataFilterParser
             exists: null,
             numeric: $numeric,
             string: $string,
-            boolean: $boolean
+            boolean: $boolean,
         );
     }
 
     private function field(string $key): string
     {
-        return "dt.$key";
+        return "dt.{$key}";
     }
 }

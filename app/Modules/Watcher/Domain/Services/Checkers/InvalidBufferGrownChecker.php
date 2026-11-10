@@ -25,28 +25,38 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof InvalidBufferGrownSettingsObject) {
             return null;
         }
 
-        $since = $this->countWindow->start($watcher, $context->now);
+        $since = $this->countWindow->start(
+            watcher: $watcher,
+            now: $context->now,
+        );
 
-        $count = $this->countInvalidSinceAction->handle($since, $context->now);
+        $count = $this->countInvalidSinceAction->handle(
+            since: $since,
+            until: $context->now,
+        );
 
         if ($count < $settings->threshold) {
             return null;
         }
 
         return new InvalidBufferGrownEventPayloadObject(
-            settings: new InvalidBufferGrownEventSettingsObject(threshold: $settings->threshold),
+            settings: new InvalidBufferGrownEventSettingsObject(
+                threshold: $settings->threshold,
+            ),
             measured: new InvalidBufferGrownEventMeasuredObject(
                 invalidCount: $count,
-                since: $since->toDateTimeString()
-            )
+                since: $since->toDateTimeString(),
+            ),
         );
     }
 }

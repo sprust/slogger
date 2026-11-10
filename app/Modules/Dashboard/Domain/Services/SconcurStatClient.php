@@ -13,9 +13,8 @@ use Throwable;
 
 readonly class SconcurStatClient
 {
-    public function __construct(
-        private Client $client = new Client(),
-    ) {
+    public function __construct(private Client $client = new Client())
+    {
     }
 
     /**
@@ -33,17 +32,20 @@ readonly class SconcurStatClient
         }
 
         try {
-            $response = $this->client->get($url, [
-                'headers'         => [
-                    'Authorization' => 'Bearer ' . $token,
-                    // The panel content-negotiates: without this it answers in the
-                    // Prometheus text format, not JSON.
-                    'Accept'        => 'application/json',
-                ],
-                'timeout'         => 2,
-                'connect_timeout' => 1,
-                'http_errors'     => false,
-            ]);
+            $response = $this->client->get(
+                $url,
+                [
+                    'headers'         => [
+                        'Authorization' => 'Bearer ' . $token,
+                        // The panel content-negotiates: without this it answers in the
+                        // Prometheus text format, not JSON.
+                        'Accept'        => 'application/json',
+                    ],
+                    'timeout'         => 2,
+                    'connect_timeout' => 1,
+                    'http_errors'     => false,
+                ]
+            );
 
             if ($response->getStatusCode() !== 200) {
                 return $this->unavailable();
@@ -71,7 +73,10 @@ readonly class SconcurStatClient
 
         $groups = $this->orderByConfig(
             $this->withSilentGroups(
-                array_map($this->mapGroup(...), array_values((array) ($data['groups'] ?? []))),
+                array_map(
+                    $this->mapGroup(...),
+                    array_values((array) ($data['groups'] ?? []))
+                ),
             ),
         );
 
@@ -84,14 +89,20 @@ readonly class SconcurStatClient
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
             memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
-            work: $this->mapWork($totals['requests'] ?? null, $totals['consumers'] ?? null),
+            work: $this->mapWork(
+                requests: $totals['requests'] ?? null,
+                consumers: $totals['consumers'] ?? null,
+            ),
             masterCpuPercent: (float) ($master['cpuPercent'] ?? 0),
             masterMemoryRssBytes: (int) ($master['memory']['rssBytes'] ?? 0),
             masterMemoryPssBytes: (int) ($master['memory']['pssBytes'] ?? 0),
             groups: $groups,
             workers: $this->orderWorkers(
-                array_map($this->mapWorker(...), array_values((array) ($data['workers'] ?? []))),
-                $groups,
+                workers: array_map(
+                    $this->mapWorker(...),
+                    array_values((array) ($data['workers'] ?? []))
+                ),
+                groups: $groups,
             ),
         );
     }
@@ -154,7 +165,10 @@ readonly class SconcurStatClient
 
         usort(
             $groups,
-            static fn(SconcurGroupObject $a, SconcurGroupObject $b): int => ($order[$a->name] ?? PHP_INT_MAX)
+            static fn(
+                SconcurGroupObject $a,
+                SconcurGroupObject $b
+            ): int => ($order[$a->name] ?? PHP_INT_MAX)
                 <=> ($order[$b->name] ?? PHP_INT_MAX),
         );
 
@@ -172,7 +186,12 @@ readonly class SconcurStatClient
      */
     private function orderWorkers(array $workers, array $groups): array
     {
-        $order = array_flip(array_map(static fn(SconcurGroupObject $group): string => $group->name, $groups));
+        $order = array_flip(
+            array_map(
+                static fn(SconcurGroupObject $group): string => $group->name,
+                $groups
+            )
+        );
 
         usort(
             $workers,
@@ -223,7 +242,10 @@ readonly class SconcurStatClient
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
             memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
-            work: $this->mapWork($totals['requests'] ?? null, $totals['consumers'] ?? null),
+            work: $this->mapWork(
+                requests: $totals['requests'] ?? null,
+                consumers: $totals['consumers'] ?? null,
+            ),
         );
     }
 
@@ -241,7 +263,10 @@ readonly class SconcurStatClient
             memoryRssBytes: (int) ($worker['memory']['rssBytes'] ?? 0),
             memoryPssBytes: (int) ($worker['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($worker['runtimeTasks'] ?? 0),
-            work: $this->mapWork($worker['requests'] ?? null, $worker['consumers'] ?? null),
+            work: $this->mapWork(
+                requests: $worker['requests'] ?? null,
+                consumers: $worker['consumers'] ?? null,
+            ),
         );
     }
 

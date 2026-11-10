@@ -10,8 +10,9 @@ use Illuminate\Support\Carbon;
 
 readonly class MakeTraceTimestampsAction
 {
-    public function __construct(private TraceTimestampMetricsFactory $traceTimestampMetricsFactory)
-    {
+    public function __construct(
+        private TraceTimestampMetricsFactory $traceTimestampMetricsFactory
+    ) {
     }
 
     /**
@@ -20,7 +21,7 @@ readonly class MakeTraceTimestampsAction
     public function handle(Carbon $date): array
     {
         return $this->traceTimestampMetricsFactory->makeMetricsByDate(
-            date: $date->clone()
+            $date->clone()
         );
     }
 }

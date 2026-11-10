@@ -24,7 +24,7 @@ readonly class FindTraceTreeCacheStatesAction
     ): array {
         return $this->traceTreeCacheStateRepository->findMany(
             limit: $limit,
-            excludeStatus: $excludeStatus
+            excludeStatus: $excludeStatus,
         );
     }
 }

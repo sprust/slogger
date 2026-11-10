@@ -12,16 +12,21 @@ use PHPUnit\Framework\TestCase;
 class HttpSendResultReaderTest extends TestCase
 {
     #[DataProvider('deliveredProvider')]
-    public function testAnyTwoHundredIsADelivery(int $status): void
-    {
+    public function testAnyTwoHundredIsADelivery(
+        int $status
+    ): void {
         $result = new HttpSendResultReader()->read(new Response($status), 'Slack');
 
-        self::assertTrue($result->delivered);
-        self::assertNull($result->error);
+        self::assertTrue(
+            $result->delivered
+        );
+        self::assertNull(
+            $result->error
+        );
     }
 
     /**
-     * @return array<string, array{int}>
+     * @return array<int|string, array{int}>
      */
     public static function deliveredProvider(): array
     {
@@ -35,47 +40,87 @@ class HttpSendResultReaderTest extends TestCase
     public function testTooManyRequestsWaitsAsLongAsAsked(): void
     {
         $result = new HttpSendResultReader()->read(
-            new Response(429, ['Retry-After' => '37'], 'rate_limited'),
+            new Response(
+                429,
+                ['Retry-After' => '37'],
+                'rate_limited'
+            ),
             'Slack'
         );
 
-        self::assertFalse($result->delivered);
-        self::assertFalse($result->permanent);
-        self::assertSame(37, $result->retryAfterSeconds);
+        self::assertFalse(
+            $result->delivered
+        );
+        self::assertFalse(
+            $result->permanent
+        );
+        self::assertSame(
+            37,
+            $result->retryAfterSeconds
+        );
     }
 
     public function testTooManyRequestsWithoutANumberFallsBackToADefault(): void
     {
         $result = new HttpSendResultReader()->read(new Response(429), 'Slack');
 
-        self::assertSame(60, $result->retryAfterSeconds);
+        self::assertSame(
+            60,
+            $result->retryAfterSeconds
+        );
     }
 
     public function testAClientErrorIsRefusedForGood(): void
     {
-        $result = new HttpSendResultReader()->read(new Response(404, body: 'channel_not_found'), 'Slack');
+        $result = new HttpSendResultReader()->read(
+            new Response(
+                404,
+                body: 'channel_not_found'
+            ),
+            'Slack'
+        );
 
-        self::assertTrue($result->permanent);
-        self::assertSame('Slack answered 404: channel_not_found', $result->error);
+        self::assertTrue(
+            $result->permanent
+        );
+        self::assertSame(
+            'Slack answered 404: channel_not_found',
+            $result->error
+        );
     }
 
     public function testAServerErrorIsWorthAnotherGo(): void
     {
         $result = new HttpSendResultReader()->read(new Response(503), 'Webhook');
 
-        self::assertFalse($result->delivered);
-        self::assertFalse($result->permanent);
-        self::assertSame('Webhook answered 503', $result->error);
+        self::assertFalse(
+            $result->delivered
+        );
+        self::assertFalse(
+            $result->permanent
+        );
+        self::assertSame(
+            'Webhook answered 503',
+            $result->error
+        );
     }
 
     public function testAnErrorCarriesOnlyTheHeadOfALongBody(): void
     {
         $result = new HttpSendResultReader()->read(
-            new Response(400, body: str_repeat('a', 5000)),
+            new Response(
+                400,
+                body: str_repeat('a', 5000)
+            ),
             'Webhook'
         );
 
-        self::assertNotNull($result->error);
-        self::assertLessThan(300, mb_strlen($result->error));
+        self::assertNotNull(
+            $result->error
+        );
+        self::assertLessThan(
+            300,
+            mb_strlen($result->error)
+        );
     }
 }

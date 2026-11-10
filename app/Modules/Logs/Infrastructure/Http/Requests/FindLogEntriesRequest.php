@@ -65,13 +65,14 @@ class FindLogEntriesRequest extends FormRequest
                 'string',
                 'min:1',
                 'max:16',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(LogCursorDirectionEnum $direction): string => $direction->value,
-                        LogCursorDirectionEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(
+                            fn(LogCursorDirectionEnum $direction): string => $direction->value,
+                            LogCursorDirectionEnum::cases()
+                        )
+                    ),
             ],
             'per_page'     => [
                 'sometimes',

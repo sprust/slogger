@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Domain\Exceptions;
 
-use Exception;
-
-class WatcherNotFoundException extends Exception
+class WatcherNotFoundException extends AbstractWatcherException
 {
     public function __construct(int $watcherId)
     {

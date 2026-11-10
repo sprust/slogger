@@ -12,16 +12,19 @@ use Illuminate\Support\Str;
 
 readonly class CreateServiceAction
 {
-    public function __construct(
-        private ServiceRepository $serviceRepository
-    ) {
+    public function __construct(private ServiceRepository $serviceRepository)
+    {
     }
 
     public function handle(ServiceCreateParameters $parameters): ServiceObject
     {
         $uniqueKey = Str::slug($parameters->name);
 
-        if ($this->serviceRepository->isExistByUniqueKey($uniqueKey)) {
+        if (
+            $this->serviceRepository->isExistByUniqueKey(
+                uniqueKey: $uniqueKey,
+            )
+        ) {
             throw new ServiceAlreadyExistsException($parameters->name);
         }
 

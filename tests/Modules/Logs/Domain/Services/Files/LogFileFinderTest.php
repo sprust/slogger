@@ -20,12 +20,35 @@ class LogFileFinderTest extends TestCase
 
         mkdir($this->tempDir . '/logs/nginx');
 
-        config()->set('module-logs.sources', [
-            ['name' => 'Laravel', 'folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel],
-            ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'access*.log', 'type' => LogTypeEnum::NginxAccess],
-            ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'error*.log', 'type' => 'nginx_error'],
-            ['name' => 'Missing', 'folder' => $this->tempDir . '/missing', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel],
-        ]);
+        config()->set(
+            'module-logs.sources',
+            [
+                [
+                    'name'    => 'Laravel',
+                    'folder'  => $this->tempDir . '/logs',
+                    'pattern' => '*.log',
+                    'type'    => LogTypeEnum::Laravel,
+                ],
+                [
+                    'name'    => 'Nginx',
+                    'folder'  => $this->tempDir . '/logs/nginx',
+                    'pattern' => 'access*.log',
+                    'type'    => LogTypeEnum::NginxAccess,
+                ],
+                [
+                    'name'    => 'Nginx',
+                    'folder'  => $this->tempDir . '/logs/nginx',
+                    'pattern' => 'error*.log',
+                    'type'    => 'nginx_error',
+                ],
+                [
+                    'name'    => 'Missing',
+                    'folder'  => $this->tempDir . '/missing',
+                    'pattern' => '*.log',
+                    'type'    => LogTypeEnum::Laravel,
+                ],
+            ]
+        );
     }
 
     protected function tearDown(): void
@@ -51,12 +74,20 @@ class LogFileFinderTest extends TestCase
                 ['error.log', 'Nginx', LogTypeEnum::NginxError, 1],
             ],
             array_map(
-                static fn(LogFileObject $file): array => [$file->name, $file->source, $file->type, $file->sizeBytes],
+                static fn(
+                    LogFileObject $file
+                ): array => [$file->name, $file->source, $file->type, $file->sizeBytes],
                 $files
             )
         );
-        $this->assertSame(sha1($this->tempDir . '/logs/nginx/error.log'), $files[2]->id);
-        $this->assertSame($this->tempDir . '/logs/nginx', $files[2]->folder);
+        $this->assertSame(
+            sha1($this->tempDir . '/logs/nginx/error.log'),
+            $files[2]->id
+        );
+        $this->assertSame(
+            $this->tempDir . '/logs/nginx',
+            $files[2]->folder
+        );
     }
 
     public function testAFileIsFoundByIdOnlyAmongTheSources(): void
@@ -65,7 +96,16 @@ class LogFileFinderTest extends TestCase
 
         $finder = $this->app->make(LogFileFinder::class);
 
-        $this->assertSame('laravel.log', $finder->findById(sha1($this->tempDir . '/logs/laravel.log'))?->name);
-        $this->assertNull($finder->findById(sha1('/etc/passwd')));
+        $this->assertSame(
+            'laravel.log',
+            $finder->findById(
+                sha1($this->tempDir . '/logs/laravel.log')
+            )?->name
+        );
+        $this->assertNull(
+            $finder->findById(
+                sha1('/etc/passwd')
+            )
+        );
     }
 }

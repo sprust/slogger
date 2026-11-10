@@ -36,25 +36,27 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
     {
         return sprintf(
             'Keys of the data of the latest %d traces of a type over a period, with an example value each. '
-            . 'For data_fields of search_traces use a key as listed. For data_filter drop the index of an '
-            . 'array element: items.0.price becomes items.price (any element matches), tags.0 becomes tags; '
-            . 'only keys of letters, digits and _ can be filtered on.',
+                . 'For data_fields of search_traces use a key as listed. For data_filter drop the index of an '
+                . 'array element: items.0.price becomes items.price (any element matches), tags.0 becomes tags; '
+                . 'only keys of letters, digits and _ can be filtered on.',
             FindMcpTraceDataFieldsAction::TRACES_COUNT
         );
     }
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            ...$this->scopeReader->properties(),
-            new McpToolProperty(
-                name: 'type',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Trace type.',
-                required: true,
-                max: 255
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                ...$this->scopeReader->properties(),
+                new McpToolProperty(
+                    name: 'type',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Trace type.',
+                    required: true,
+                    max: 255,
+                ),
+            ],
+        );
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
@@ -71,7 +73,7 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
             new FindMcpTraceDataFieldsParameters(
                 serviceIds: $scope->serviceIds,
                 period: $scope->period,
-                type: $type
+                type: $type,
             )
         );
 
@@ -87,7 +89,7 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
                     ],
                     $result->fields
                 ),
-            ]
+            ],
         );
     }
 }

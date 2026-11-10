@@ -32,7 +32,7 @@ readonly class FindTraceMetricsAction
 
         return $this->traceMetricRepository->find(
             serviceId: $serviceId,
-            from: $currentSlot->subMinutes((self::SLOTS - 1) * self::SLOT_MINUTES)
+            from: $currentSlot->subMinutes((self::SLOTS - 1) * self::SLOT_MINUTES),
         );
     }
 }

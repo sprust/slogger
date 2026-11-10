@@ -33,7 +33,7 @@ readonly class WatcherMatchFactory
             serviceIds: $filter->serviceIds,
             types: $filter->types,
             tags: $filter->tags,
-            statuses: $filter->statuses
+            statuses: $filter->statuses,
         );
     }
 

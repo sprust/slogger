@@ -49,15 +49,19 @@ class ListEndpointsWrapTheirDataTest extends TestCase
                     'array',
                     $type->getName(),
                     "$controller->name::$method->name() answers with a plain array, which "
-                    . 'reaches the panel without the `data` the schema promises. Return a '
-                    . 'resource collection — Resource::collection(...) — instead.'
+                        . 'reaches the panel without the `data` the schema promises. Return a '
+                        . 'resource collection — Resource::collection(...) — instead.'
                 );
             }
         }
 
         // Otherwise a change to where controllers live would leave this test passing on
         // nothing at all.
-        $this->assertGreaterThan(5, $checked, 'No list endpoints were found to check');
+        $this->assertGreaterThan(
+            5,
+            $checked,
+            'No list endpoints were found to check'
+        );
     }
 
     /**
@@ -113,6 +117,11 @@ class ListEndpointsWrapTheirDataTest extends TestCase
         $relative = str_replace($this->projectRoot() . '/app/', '', $file->getPathname());
 
         /** @var class-string */
-        return 'App\\' . str_replace(['/', '.php'], ['\\', ''], $relative);
+        return 'App\\'
+            . str_replace(
+                ['/', '.php'],
+                ['\\', ''],
+                $relative
+            );
     }
 }

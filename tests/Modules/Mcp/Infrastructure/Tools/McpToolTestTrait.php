@@ -44,7 +44,9 @@ trait McpToolTestTrait
             notifyOnEvent: false,
             notifyOnClosed: true,
             settings: new BufferOverflowSettingsObject(),
-            match: count($serviceIds) > 0 ? new WatcherMatchObject(serviceIds: $serviceIds) : null,
+            match: count($serviceIds) > 0 ? new WatcherMatchObject(
+                serviceIds: $serviceIds
+            ) : null,
             collectSince: null,
             lastCheckedAt: null,
             lastTriggeredAt: null,

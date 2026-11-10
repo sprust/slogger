@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Entities\Bridges;
 
-use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
+use App\Modules\Mcp\Enums\TraceTreeCacheStateStatusEnum;
 
 readonly class McpTraceTreeObject
 {

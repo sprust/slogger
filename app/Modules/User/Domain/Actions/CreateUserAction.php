@@ -10,9 +10,8 @@ use App\Modules\User\Repositories\UserRepository;
 
 readonly class CreateUserAction
 {
-    public function __construct(
-        private UserRepository $userRepository
-    ) {
+    public function __construct(private UserRepository $userRepository)
+    {
     }
 
     /**

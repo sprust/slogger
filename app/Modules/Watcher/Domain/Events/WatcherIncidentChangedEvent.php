@@ -14,8 +14,7 @@ use App\Modules\Watcher\Entities\WatcherIncidentObject;
  */
 readonly class WatcherIncidentChangedEvent
 {
-    public function __construct(
-        public WatcherIncidentObject $incident
-    ) {
+    public function __construct(public WatcherIncidentObject $incident)
+    {
     }
 }

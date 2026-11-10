@@ -17,8 +17,18 @@ class LogCursorCodecTest extends TestCase
         $cursor = new LogCursorObject(
             direction: LogCursorDirectionEnum::Newer,
             positions: [
-                new LogCursorPositionObject(fileId: sha1('a'), position: -1, headLength: 0, headHash: md5('')),
-                new LogCursorPositionObject(fileId: sha1('b'), position: 5_000_000, headLength: 1024, headHash: md5('head')),
+                new LogCursorPositionObject(
+                    fileId: sha1('a'),
+                    position: -1,
+                    headLength: 0,
+                    headHash: md5('')
+                ),
+                new LogCursorPositionObject(
+                    fileId: sha1('b'),
+                    position: 5_000_000,
+                    headLength: 1024,
+                    headHash: md5('head')
+                ),
             ]
         );
 
@@ -26,8 +36,17 @@ class LogCursorCodecTest extends TestCase
 
         $encoded = $codec->encode($cursor);
 
-        $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]+$/', $encoded);
-        $this->assertEquals($cursor, $codec->decode($encoded, [sha1('a'), sha1('b'), sha1('c')]));
+        $this->assertMatchesRegularExpression(
+            '/^[A-Za-z0-9_-]+$/',
+            $encoded
+        );
+        $this->assertEquals(
+            $cursor,
+            $codec->decode(
+                $encoded,
+                [sha1('a'), sha1('b'), sha1('c')]
+            )
+        );
     }
 
     /**
@@ -41,24 +60,94 @@ class LogCursorCodecTest extends TestCase
         return [
             'not base64'         => ['%%%'],
             'not json'           => [self::encode('nope')],
-            'no version'         => [self::encode(json_encode(['d' => 'older', 'f' => []]))],
-            'another version'    => [self::encode(json_encode(['v' => 2, 'd' => 'older', 'f' => []]))],
-            'unknown direction'  => [self::encode(json_encode(['v' => 1, 'd' => 'up', 'f' => []]))],
-            'no files'           => [self::encode(json_encode(['v' => 1, 'd' => 'older']))],
-            'file not asked for' => [self::encode(json_encode(['v' => 1, 'd' => 'older', 'f' => [sha1('x') => [0, 0, $hash]]]))],
-            'position too low'   => [self::encode(json_encode(['v' => 1, 'd' => 'older', 'f' => [$file => [-2, 0, $hash]]]))],
-            'position a string'  => [self::encode(json_encode(['v' => 1, 'd' => 'older', 'f' => [$file => ['1', 0, $hash]]]))],
-            'bad hash'           => [self::encode(json_encode(['v' => 1, 'd' => 'older', 'f' => [$file => [1, 0, 'zz']]]))],
-            'missing part'       => [self::encode(json_encode(['v' => 1, 'd' => 'older', 'f' => [$file => [1, 0]]]))],
+            'no version'         => [
+                self::encode(
+                    json_encode(['d' => 'older', 'f' => []])
+                ),
+            ],
+            'another version'    => [
+                self::encode(
+                    json_encode(['v' => 2, 'd' => 'older', 'f' => []])
+                ),
+            ],
+            'unknown direction'  => [
+                self::encode(
+                    json_encode(['v' => 1, 'd' => 'up', 'f' => []])
+                ),
+            ],
+            'no files'           => [
+                self::encode(
+                    json_encode(['v' => 1, 'd' => 'older'])
+                ),
+            ],
+            'file not asked for' => [
+                self::encode(
+                    json_encode([
+                        'v' => 1,
+                        'd' => 'older',
+                        'f' => [
+                            sha1('x') => [0, 0, $hash],
+                        ],
+                    ])
+                ),
+            ],
+            'position too low'   => [
+                self::encode(
+                    json_encode([
+                        'v' => 1,
+                        'd' => 'older',
+                        'f' => [
+                            $file => [-2, 0, $hash],
+                        ],
+                    ])
+                ),
+            ],
+            'position a string'  => [
+                self::encode(
+                    json_encode([
+                        'v' => 1,
+                        'd' => 'older',
+                        'f' => [
+                            $file => ['1', 0, $hash],
+                        ],
+                    ])
+                ),
+            ],
+            'bad hash'           => [
+                self::encode(
+                    json_encode([
+                        'v' => 1,
+                        'd' => 'older',
+                        'f' => [
+                            $file => [1, 0, 'zz'],
+                        ],
+                    ])
+                ),
+            ],
+            'missing part'       => [
+                self::encode(
+                    json_encode([
+                        'v' => 1,
+                        'd' => 'older',
+                        'f' => [
+                            $file => [1, 0],
+                        ],
+                    ])
+                ),
+            ],
         ];
     }
 
     #[DataProvider('malformedCursors')]
-    public function testAMalformedCursorIsRefused(string $cursor): void
-    {
+    public function testAMalformedCursorIsRefused(
+        string $cursor
+    ): void {
         $this->expectException(LogCursorInvalidException::class);
 
-        new LogCursorCodec()->decode($cursor, [sha1('a')]);
+        new LogCursorCodec()->decode(
+            $cursor,
+            [sha1('a')]
+        );
     }
 
     private static function encode(string|false $json): string

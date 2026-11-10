@@ -62,9 +62,11 @@ class TraceTreeCacheRepository
         $cursor = TraceTreeCache::sconcur()
             ->find(
                 filter: ['rootTraceId' => $rootTraceId],
-                projection: ['_id' => 1],
+                projection: [
+                    '_id' => 1,
+                ],
                 limit: $limit,
-                batchSize: $limit
+                batchSize: $limit,
             );
 
         $ids = [];
@@ -77,7 +79,10 @@ class TraceTreeCacheRepository
             return 0;
         }
 
-        TraceTreeCache::sconcur()->deleteMany(['_id' => ['$in' => $ids]]);
+        TraceTreeCache::sconcur()
+            ->deleteMany([
+                '_id' => ['$in' => $ids],
+            ]);
 
         return count($ids);
     }
@@ -128,13 +133,16 @@ class TraceTreeCacheRepository
 
     public function existsByDepth(string $rootTraceId, int $depth): bool
     {
-        return TraceTreeCache::sconcur()->findOne(
-            filter: [
-                'rootTraceId' => $rootTraceId,
-                'depth'       => $depth,
-            ],
-            projection: ['_id' => 1]
-        ) !== null;
+        return TraceTreeCache::sconcur()
+            ->findOne(
+                filter: [
+                    'rootTraceId' => $rootTraceId,
+                    'depth'       => $depth,
+                ],
+                projection: [
+                    '_id' => 1,
+                ],
+            ) !== null;
     }
 
     public function findTraceIdsPage(
@@ -165,7 +173,7 @@ class TraceTreeCacheRepository
                 ],
                 sort: ['_id' => 1],
                 limit: $limit,
-                batchSize: $limit
+                batchSize: $limit,
             );
 
         $traceIds = [];
@@ -180,16 +188,19 @@ class TraceTreeCacheRepository
 
         return new TraceTreeCachePageDto(
             traceIds: $traceIds,
-            lastId: $lastId
+            lastId: $lastId,
         );
     }
 
     public function existsByRootTraceId(string $rootTraceId): bool
     {
-        return TraceTreeCache::sconcur()->findOne(
-            filter: ['rootTraceId' => $rootTraceId],
-            projection: ['_id' => 1]
-        ) !== null;
+        return TraceTreeCache::sconcur()
+            ->findOne(
+                filter: ['rootTraceId' => $rootTraceId],
+                projection: [
+                    '_id' => 1,
+                ],
+            ) !== null;
     }
 
     /**
@@ -198,7 +209,9 @@ class TraceTreeCacheRepository
     public function findTraceIds(string $rootTraceId, int $batchCount): iterable
     {
         if ($batchCount <= 0) {
-            throw new InvalidArgumentException('Batch count must be greater than 0');
+            throw new InvalidArgumentException(
+                'Batch count must be greater than 0',
+            );
         }
 
         $cursor = TraceTreeCache::sconcur()
@@ -211,7 +224,7 @@ class TraceTreeCacheRepository
                     '_id'     => 0,
                     'traceId' => 1,
                 ],
-                batchSize: $batchCount
+                batchSize: $batchCount,
             );
 
         $traceIds = [];
@@ -239,20 +252,18 @@ class TraceTreeCacheRepository
             ->aggregate(
                 pipeline: [
                     [
-                        '$match' => [
-                            'rootTraceId' => $rootTraceId,
-                        ],
+                        '$match' => ['rootTraceId' => $rootTraceId],
                     ],
                     [
                         '$project' => ['_id' => 0] + self::NODE_PROJECTION,
                     ],
                 ],
-                batchSize: self::DUMP_BATCH_SIZE
+                batchSize: self::DUMP_BATCH_SIZE,
             );
 
         return new TraceTreeRawIterator(
             transport: static fn(array $item): TraceTreeRawObject => self::makeRawObject($item),
-            iterator: $cursor
+            iterator: $cursor,
         );
     }
 
@@ -273,7 +284,7 @@ class TraceTreeCacheRepository
                     'rootTraceId' => $rootTraceId,
                     'depth'       => ['$gte' => self::ANCESTOR_DEPTH, '$lte' => self::ROOT_DEPTH],
                 ],
-                projection: ['_id' => 0] + self::NODE_PROJECTION
+                projection: ['_id' => 0] + self::NODE_PROJECTION,
             );
 
         /** @var array<string, array<string, mixed>> $items */
@@ -322,8 +333,13 @@ class TraceTreeCacheRepository
             $loggedAt = new UTCDateTime($after->loggedAtMs);
 
             $filter['$or'] = [
-                ['loggedAt' => ['$gt' => $loggedAt]],
-                ['loggedAt' => $loggedAt, '_id' => ['$gt' => new ObjectId($after->id)]],
+                [
+                    'loggedAt' => ['$gt' => $loggedAt],
+                ],
+                [
+                    'loggedAt' => $loggedAt,
+                    '_id'      => ['$gt' => new ObjectId($after->id)],
+                ],
             ];
         }
 
@@ -334,7 +350,7 @@ class TraceTreeCacheRepository
                 projection: ['_id' => 1] + self::NODE_PROJECTION,
                 sort: ['loggedAt' => 1, '_id' => 1],
                 limit: $limit + 1,
-                batchSize: $limit + 1
+                batchSize: $limit + 1,
             );
 
         $items = [];
@@ -407,15 +423,16 @@ class TraceTreeCacheRepository
      *
      * @return TraceTreeRawObject[]
      */
-    public function findFiltered(string $rootTraceId, TraceTreeFilterParameters $parameters, int $limit): array
-    {
+    public function findFiltered(
+        string $rootTraceId,
+        TraceTreeFilterParameters $parameters,
+        int $limit
+    ): array {
         if ($limit <= 0) {
             throw new InvalidArgumentException('Limit must be greater than 0');
         }
 
-        $filter = [
-            'rootTraceId' => $rootTraceId,
-        ];
+        $filter = ['rootTraceId' => $rootTraceId];
 
         if ($parameters->serviceIds !== []) {
             $filter['serviceId'] = ['$in' => $parameters->serviceIds];
@@ -440,7 +457,7 @@ class TraceTreeCacheRepository
                 sort: ['depth' => 1, '_id' => 1],
                 limit: $limit,
                 batchSize: min($limit, self::DUMP_BATCH_SIZE),
-                hint: ['rootTraceId' => 1, 'depth' => 1, '_id' => 1]
+                hint: ['rootTraceId' => 1, 'depth' => 1, '_id' => 1],
             );
 
         $items = [];
@@ -471,7 +488,7 @@ class TraceTreeCacheRepository
                     'traceId'     => ['$in' => $traceIds],
                 ],
                 projection: ['_id' => 0] + self::NODE_PROJECTION,
-                batchSize: min(count($traceIds), self::DUMP_BATCH_SIZE)
+                batchSize: min(count($traceIds), self::DUMP_BATCH_SIZE),
             );
 
         $items = [];
@@ -492,9 +509,7 @@ class TraceTreeCacheRepository
         $results = TraceTreeCache::sconcur()
             ->aggregate([
                 [
-                    '$match' => [
-                        'rootTraceId' => $rootTraceId,
-                    ],
+                    '$match' => ['rootTraceId' => $rootTraceId],
                 ],
                 [
                     '$group' => [
@@ -529,9 +544,7 @@ class TraceTreeCacheRepository
         $results = TraceTreeCache::sconcur()
             ->aggregate([
                 [
-                    '$match' => [
-                        'rootTraceId' => $rootTraceId,
-                    ],
+                    '$match' => ['rootTraceId' => $rootTraceId],
                 ],
                 [
                     '$group' => [
@@ -566,9 +579,7 @@ class TraceTreeCacheRepository
         $results = TraceTreeCache::sconcur()
             ->aggregate([
                 [
-                    '$match' => [
-                        'rootTraceId' => $rootTraceId,
-                    ],
+                    '$match' => ['rootTraceId' => $rootTraceId],
                 ],
                 [
                     '$unwind' => '$tags',
@@ -606,9 +617,7 @@ class TraceTreeCacheRepository
         $results = TraceTreeCache::sconcur()
             ->aggregate([
                 [
-                    '$match' => [
-                        'rootTraceId' => $rootTraceId,
-                    ],
+                    '$match' => ['rootTraceId' => $rootTraceId],
                 ],
                 [
                     '$group' => [
@@ -638,9 +647,7 @@ class TraceTreeCacheRepository
     public function findCount(string $rootTraceId): int
     {
         return TraceTreeCache::sconcur()
-            ->countDocuments([
-                'rootTraceId' => $rootTraceId,
-            ]);
+            ->countDocuments(['rootTraceId' => $rootTraceId]);
     }
 
     /**

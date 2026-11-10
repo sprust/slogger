@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeCacheStatesAction;
+use App\Modules\Trace\Domain\UseCases\CancelTraceTreeCacheStateByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\DeleteTraceTreeCacheStateByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTraceTreeCacheStatesByAdminUseCase;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeRootTraceStateRequest;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeStateResource;
@@ -17,9 +17,9 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class TraceTreeStateController
 {
     public function __construct(
-        private FindTraceTreeCacheStatesAction $findTraceTreeCacheStatesAction,
-        private CancelTraceTreeCacheStateAction $cancelTraceTreeCacheStateAction,
-        private DeleteTraceTreeCacheStateAction $deleteTraceTreeCacheStateAction,
+        private FindTraceTreeCacheStatesByAdminUseCase $findTraceTreeCacheStatesByAdminUseCase,
+        private CancelTraceTreeCacheStateByAdminUseCase $cancelTraceTreeCacheStateByAdminUseCase,
+        private DeleteTraceTreeCacheStateByAdminUseCase $deleteTraceTreeCacheStateByAdminUseCase
     ) {
     }
 
@@ -27,9 +27,9 @@ readonly class TraceTreeStateController
     public function processes(): AnonymousResourceCollection
     {
         return TraceTreeStateResource::collection(
-            $this->findTraceTreeCacheStatesAction->handle(
+            $this->findTraceTreeCacheStatesByAdminUseCase->handle(
                 limit: 50,
-                excludeStatus: TraceTreeCacheStateStatusEnum::Finished
+                excludeStatus: TraceTreeCacheStateStatusEnum::Finished,
             )
         );
     }
@@ -38,13 +38,12 @@ readonly class TraceTreeStateController
     {
         $validated = $request->validated();
 
-        $state = $this->cancelTraceTreeCacheStateAction->handle(
-            ArrayValueGetter::string($validated, 'root_trace_id')
+        $state = $this->cancelTraceTreeCacheStateByAdminUseCase->handle(
+            ArrayValueGetter::string(
+                data: $validated,
+                key: 'root_trace_id',
+            )
         );
-
-        if ($state === null) {
-            abort(404, 'State not found');
-        }
 
         return new TraceTreeStateResource($state);
     }
@@ -53,8 +52,11 @@ readonly class TraceTreeStateController
     {
         $validated = $request->validated();
 
-        $this->deleteTraceTreeCacheStateAction->handle(
-            rootTraceId: ArrayValueGetter::string($validated, 'root_trace_id'),
+        $this->deleteTraceTreeCacheStateByAdminUseCase->handle(
+            ArrayValueGetter::string(
+                data: $validated,
+                key: 'root_trace_id',
+            ),
         );
     }
 }

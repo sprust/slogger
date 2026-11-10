@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Entities\Bridges;
 
-use App\Modules\Trace\Entities\Trace\TraceServiceObject;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
+use App\Modules\Mcp\Entities\Trace\TraceServiceObject;
+use App\Modules\Mcp\Entities\Trace\Tree\TraceTreeRawObject;
 
 readonly class McpTraceTreeNodeObject
 {

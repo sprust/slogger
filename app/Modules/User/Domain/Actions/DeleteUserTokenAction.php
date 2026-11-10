@@ -12,9 +12,8 @@ use App\Modules\User\Repositories\UserTokenRepository;
  */
 readonly class DeleteUserTokenAction
 {
-    public function __construct(
-        private UserTokenRepository $userTokenRepository,
-    ) {
+    public function __construct(private UserTokenRepository $userTokenRepository)
+    {
     }
 
     public function handle(string $token): bool

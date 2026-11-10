@@ -22,14 +22,26 @@ class FindTraceTreeStateActionTest extends TestCase
         $states = $this->createMock(TraceTreeCacheStateRepository::class);
 
         $tree->method('findParentTraceId')->with('child')->willReturn('root');
-        $traces->method('findOneDetailByTraceId')->with('root')->willReturn($this->trace());
-        $states->method('findOneByRootTraceId')->with('root')->willReturn($this->state());
-        $states->expects($this->never())->method('reset');
+        $traces->method('findOneDetailByTraceId')->with('root')->willReturn(
+            $this->trace()
+        );
+        $states->method('findOneByRootTraceId')->with('root')->willReturn(
+            $this->state()
+        );
+        $states->expects(
+            $this->never()
+        )->method('reset');
 
         $result = new FindTraceTreeStateAction($traces, $tree, $states)->handle('child');
 
-        $this->assertSame('root', $result?->rootTraceId);
-        $this->assertSame(TraceTreeCacheStateStatusEnum::Finished, $result->state?->status);
+        $this->assertSame(
+            'root',
+            $result?->rootTraceId
+        );
+        $this->assertSame(
+            TraceTreeCacheStateStatusEnum::Finished,
+            $result->state?->status
+        );
     }
 
     public function testNoStateYet(): void
@@ -39,14 +51,23 @@ class FindTraceTreeStateActionTest extends TestCase
         $states = $this->createMock(TraceTreeCacheStateRepository::class);
 
         $tree->method('findParentTraceId')->willReturn('root');
-        $traces->method('findOneDetailByTraceId')->willReturn($this->trace());
+        $traces->method('findOneDetailByTraceId')->willReturn(
+            $this->trace()
+        );
         $states->method('findOneByRootTraceId')->willReturn(null);
-        $states->expects($this->never())->method('reset');
+        $states->expects(
+            $this->never()
+        )->method('reset');
 
         $result = new FindTraceTreeStateAction($traces, $tree, $states)->handle('root');
 
-        $this->assertSame('root', $result?->rootTraceId);
-        $this->assertNull($result->state);
+        $this->assertSame(
+            'root',
+            $result?->rootTraceId
+        );
+        $this->assertNull(
+            $result->state
+        );
     }
 
     public function testUnknownTrace(): void
@@ -93,7 +114,13 @@ class FindTraceTreeStateActionTest extends TestCase
             type: 'http',
             status: 'success',
             tags: [],
-            data: new TraceDataObject(key: '', value: null, children: null, filterKey: '', canBeFiltered: false),
+            data: new TraceDataObject(
+                key: '',
+                value: null,
+                children: null,
+                filterKey: '',
+                canBeFiltered: false
+            ),
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,

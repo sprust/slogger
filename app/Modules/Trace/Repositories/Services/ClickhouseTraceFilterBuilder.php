@@ -39,9 +39,8 @@ readonly class ClickhouseTraceFilterBuilder
     // the top-level key the JSON column skips (`SKIP REGEXP '^cache\\.'`)
     private const string CACHE_SEGMENT = 'cache';
 
-    public function __construct(
-        private TraceDataPathResolver $pathResolver,
-    ) {
+    public function __construct(private TraceDataPathResolver $pathResolver)
+    {
     }
 
     /**
@@ -75,45 +74,102 @@ readonly class ClickhouseTraceFilterBuilder
         $conditions = [];
 
         if ($serviceIds) {
-            $conditions[] = sprintf('sid IN %s', $this->param($params, array_values($serviceIds), 'Array(UInt32)'));
+            $conditions[] = sprintf(
+                'sid IN %s',
+                $this->param(
+                    params: $params,
+                    value: array_values($serviceIds),
+                    type: 'Array(UInt32)',
+                )
+            );
         }
 
         if ($traceIds) {
-            $conditions[] = sprintf('tid IN %s', $this->param($params, array_values($traceIds), 'Array(String)'));
+            $conditions[] = sprintf(
+                'tid IN %s',
+                $this->param(
+                    params: $params,
+                    value: array_values($traceIds),
+                    type: 'Array(String)',
+                )
+            );
         }
 
         if ($loggedAtFrom) {
-            $conditions[] = sprintf('lat >= %s', $this->param($params, $loggedAtFrom, "DateTime64(6, 'UTC')"));
+            $conditions[] = sprintf('lat >= %s', $this->param(
+                params: $params,
+                value: $loggedAtFrom,
+                type: "DateTime64(6, 'UTC')",
+            ));
         }
 
         if ($loggedAtTo) {
-            $conditions[] = sprintf('lat <= %s', $this->param($params, $loggedAtTo, "DateTime64(6, 'UTC')"));
+            $conditions[] = sprintf('lat <= %s', $this->param(
+                params: $params,
+                value: $loggedAtTo,
+                type: "DateTime64(6, 'UTC')",
+            ));
         }
 
         if ($types) {
-            $conditions[] = sprintf('tp IN %s', $this->param($params, array_values($types), 'Array(String)'));
+            $conditions[] = sprintf('tp IN %s', $this->param(
+                params: $params,
+                value: array_values($types),
+                type: 'Array(String)',
+            ));
         }
 
         if ($tags) {
-            $conditions[] = sprintf('hasAll(tgs, %s)', $this->param($params, array_values($tags), 'Array(String)'));
+            $conditions[] = sprintf(
+                'hasAll(tgs, %s)',
+                $this->param(
+                    params: $params,
+                    value: array_values($tags),
+                    type: 'Array(String)',
+                )
+            );
         }
 
         if ($statuses) {
-            $conditions[] = sprintf('st IN %s', $this->param($params, array_values($statuses), 'Array(String)'));
+            $conditions[] = sprintf(
+                'st IN %s',
+                $this->param(
+                    params: $params,
+                    value: array_values($statuses),
+                    type: 'Array(String)',
+                )
+            );
         }
 
-        foreach (['dur' => [$durationFrom, $durationTo], 'mem' => [$memoryFrom, $memoryTo], 'cpu' => [$cpuFrom, $cpuTo]] as $column => [$from, $to]) {
+        $ranges = [
+            'dur' => [$durationFrom, $durationTo],
+            'mem' => [$memoryFrom, $memoryTo],
+            'cpu' => [$cpuFrom, $cpuTo],
+        ];
+
+        foreach ($ranges as $column => [$from, $to]) {
             if (!is_null($from)) {
-                $conditions[] = sprintf('%s >= %s', $column, $this->param($params, $from, 'Float64'));
+                $conditions[] = sprintf('%s >= %s', $column, $this->param(
+                    params: $params,
+                    value: $from,
+                    type: 'Float64',
+                ));
             }
 
             if (!is_null($to)) {
-                $conditions[] = sprintf('%s <= %s', $column, $this->param($params, $to, 'Float64'));
+                $conditions[] = sprintf('%s <= %s', $column, $this->param(
+                    params: $params,
+                    value: $to,
+                    type: 'Float64',
+                ));
             }
         }
 
         foreach ($data === null ? [] : $data->filter as $filterItem) {
-            $condition = $this->makeDataCondition($filterItem, $params);
+            $condition = $this->makeDataCondition(
+                filterItem: $filterItem,
+                params: $params,
+            );
 
             if (!is_null($condition)) {
                 $conditions[] = $condition;
@@ -122,7 +178,7 @@ readonly class ClickhouseTraceFilterBuilder
 
         return new TraceSqlConditionDto(
             sql: $conditions === [] ? '1' : implode(' AND ', $conditions),
-            params: $params
+            params: $params,
         );
     }
 
@@ -131,8 +187,10 @@ readonly class ClickhouseTraceFilterBuilder
      *
      * @throws InvalidArgumentException
      */
-    private function makeDataCondition(TraceDataFilterItemParameters $filterItem, array &$params): ?string
-    {
+    private function makeDataCondition(
+        TraceDataFilterItemParameters $filterItem,
+        array &$params
+    ): ?string {
         $path = $this->pathResolver->resolveField($filterItem->field);
 
         if ($this->isEmpty($filterItem)) {
@@ -159,11 +217,19 @@ readonly class ClickhouseTraceFilterBuilder
         }
 
         if (!is_null($filterItem->numeric)) {
-            $value = $this->param($params, (float) $filterItem->numeric->value, 'Float64');
+            $value = $this->param(
+                params: $params,
+                value: (float) $filterItem->numeric->value,
+                type: 'Float64',
+            );
 
             if ($filterItem->numeric->comp === TraceDataFilterCompNumericTypeEnum::Neq) {
                 return $this->onObject(
-                    'NOT ' . $this->anyValue($path, fn(string $v) => sprintf('%s = %s', $this->number($v), $value))
+                    'NOT '
+                        . $this->anyValue(
+                            path: $path,
+                            condition: fn(string $v) => sprintf('%s = %s', $this->number($v), $value),
+                        )
                 );
             }
 
@@ -175,46 +241,59 @@ readonly class ClickhouseTraceFilterBuilder
                 TraceDataFilterCompNumericTypeEnum::Lte => '<=',
             };
 
-            return $this->anyValue($path, fn(string $v) => sprintf('%s %s %s', $this->number($v), $operator, $value));
+            return $this->anyValue(
+                path: $path,
+                condition: fn(string $v) => sprintf('%s %s %s', $this->number($v), $operator, $value),
+            );
         }
 
         if (!is_null($filterItem->string)) {
-            $value = $this->param($params, $filterItem->string->value ?? '', 'String');
+            $value = $this->param(
+                params: $params,
+                value: $filterItem->string->value ?? '',
+                type: 'String',
+            );
 
             $equals = fn(string $v) => sprintf('%s = %s', $this->string($v), $value);
 
             return match ($filterItem->string->comp) {
-                TraceDataFilterCompStringTypeEnum::Eq     => $this->anyValue($path, $equals),
+                TraceDataFilterCompStringTypeEnum::Eq     => $this->anyValue(
+                    path: $path,
+                    condition: $equals,
+                ),
                 TraceDataFilterCompStringTypeEnum::Con    => $this->anyValue(
                     path: $path,
-                    condition: fn(string $v) => sprintf('position(%s, %s) > 0', $this->string($v), $value)
+                    condition: fn(string $v) => sprintf('position(%s, %s) > 0', $this->string($v), $value),
                 ),
                 TraceDataFilterCompStringTypeEnum::Starts => $this->anyValue(
                     path: $path,
-                    condition: fn(string $v) => sprintf('startsWith(%s, %s)', $this->string($v), $value)
+                    condition: fn(string $v) => sprintf('startsWith(%s, %s)', $this->string($v), $value),
                 ),
                 TraceDataFilterCompStringTypeEnum::Ends   => $this->anyValue(
                     path: $path,
-                    condition: fn(string $v) => sprintf('endsWith(%s, %s)', $this->string($v), $value)
+                    condition: fn(string $v) => sprintf('endsWith(%s, %s)', $this->string($v), $value),
                 ),
                 // A trace carrying no such key is not an answer to "not equal" — asking
                 // for that is what "does not exist" is for.
                 TraceDataFilterCompStringTypeEnum::Neq    => $this->onObject(
-                    sprintf(
-                        '%s AND NOT %s',
-                        $this->makeExists($path),
-                        $this->anyValue($path, $equals)
-                    )
+                    sprintf('%s AND NOT %s', $this->makeExists($path), $this->anyValue(
+                        path: $path,
+                        condition: $equals,
+                    ))
                 ),
             };
         }
 
         if (!is_null($filterItem->boolean)) {
-            $value = $this->param($params, $filterItem->boolean->value, 'Bool');
+            $value = $this->param(
+                params: $params,
+                value: $filterItem->boolean->value,
+                type: 'Bool',
+            );
 
             return $this->anyValue(
                 path: $path,
-                condition: static fn(string $v) => sprintf("dynamicElement(%s, 'Bool') = %s", $v, $value)
+                condition: static fn(string $v) => sprintf("dynamicElement(%s, 'Bool') = %s", $v, $value),
             );
         }
 
@@ -264,7 +343,9 @@ readonly class ClickhouseTraceFilterBuilder
             );
         }
 
-        return '(' . implode(' OR ', $conditions) . ')';
+        return '('
+            . implode(' OR ', $conditions)
+            . ')';
     }
 
     /**
@@ -296,7 +377,10 @@ readonly class ClickhouseTraceFilterBuilder
     {
         return $this->rawValue(
             path: $path,
-            condition: static fn(string $json, string $keys): string => sprintf('JSONHas(%s, %s)', $json, $keys)
+            condition: static fn(
+                string $json,
+                string $keys
+            ): string => sprintf('JSONHas(%s, %s)', $json, $keys),
         );
     }
 
@@ -310,7 +394,7 @@ readonly class ClickhouseTraceFilterBuilder
                 $keys,
                 $json,
                 $keys
-            )
+            ),
         );
     }
 
@@ -324,7 +408,7 @@ readonly class ClickhouseTraceFilterBuilder
                 $keys,
                 $json,
                 $keys
-            )
+            ),
         );
     }
 
@@ -359,13 +443,7 @@ readonly class ClickhouseTraceFilterBuilder
      */
     private function rawKeys(array $segments): string
     {
-        return implode(
-            ', ',
-            array_map(
-                static fn(string $segment): string => "'$segment'",
-                $segments
-            )
-        );
+        return implode(', ', array_map(static fn(string $segment): string => "'$segment'", $segments));
     }
 
     private function number(string $value): string

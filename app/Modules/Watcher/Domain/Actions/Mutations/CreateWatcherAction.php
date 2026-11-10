@@ -40,8 +40,12 @@ readonly class CreateWatcherAction
                 notifyOnEvent: $parameters->notifyOnEvent,
                 notifyOnClosed: $parameters->notifyOnClosed,
                 settings: $settings->toArray(),
-                traceMatch: $this->matchFactory->toArray($this->matchFactory->make($settings)),
-                collectSince: $this->collectionStart->afterNextReload(Carbon::now())
+                traceMatch: $this->matchFactory->toArray(
+                    $this->matchFactory->make($settings)
+                ),
+                collectSince: $this->collectionStart->afterNextReload(
+                    Carbon::now()
+                ),
             )
         );
 

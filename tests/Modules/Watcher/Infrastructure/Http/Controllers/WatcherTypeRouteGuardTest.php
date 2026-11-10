@@ -11,7 +11,7 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\SlowTracesWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Requests\SlowTracesWatcherRequest;
 use Illuminate\Support\Carbon;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Modules\Watcher\Domain\Exceptions\WatcherNotFoundException;
 use Tests\TestCase;
 
 class WatcherTypeRouteGuardTest extends TestCase
@@ -19,61 +19,117 @@ class WatcherTypeRouteGuardTest extends TestCase
     public function testEditingAWatcherOfAnotherTypeIsNotFound(): void
     {
         $updateAction = $this->createMock(UpdateWatcherAction::class);
-        $updateAction->expects($this->never())->method('handle');
+
+        $updateAction->expects(
+            $this->never()
+        )->method('handle');
 
         $controller = new SlowTracesWatcherController(
-            createWatcherAction: $this->createMock(CreateWatcherAction::class),
-            updateWatcherAction: $updateAction,
-            findWatcherAction: $this->findWatcherAction(WatcherTypeEnum::ManyTraces)
+            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase(
+                $this->createMock(CreateWatcherAction::class)
+            ),
+            updateWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\UpdateWatcherByAdminUseCase(
+                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::ManyTraces)
+                ),
+                updateWatcherAction: $updateAction,
+            ),
+            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(
+                new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::ManyTraces)
+                )
+            ),
         );
 
-        $this->expectException(NotFoundHttpException::class);
+        $this->expectException(WatcherNotFoundException::class);
 
-        $controller->update(5, $this->request());
+        $controller->update(
+            id: 5,
+            request: $this->request(),
+        );
     }
 
     public function testEditingAWatcherOfTheRouteTypeGoesThrough(): void
     {
         $updateAction = $this->createMock(UpdateWatcherAction::class);
-        $updateAction->expects($this->once())->method('handle');
+
+        $updateAction->expects(
+            $this->once()
+        )->method('handle');
 
         $controller = new SlowTracesWatcherController(
-            createWatcherAction: $this->createMock(CreateWatcherAction::class),
-            updateWatcherAction: $updateAction,
-            findWatcherAction: $this->findWatcherAction(WatcherTypeEnum::SlowTraces)
+            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase(
+                $this->createMock(CreateWatcherAction::class)
+            ),
+            updateWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\UpdateWatcherByAdminUseCase(
+                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::SlowTraces)
+                ),
+                updateWatcherAction: $updateAction,
+            ),
+            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(
+                new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(WatcherTypeEnum::SlowTraces)
+                )
+            ),
         );
 
-        $controller->update(5, $this->request());
+        $controller->update(
+            id: 5,
+            request: $this->request(),
+        );
     }
 
     public function testEditingAWatcherThatIsNotThereIsNotFound(): void
     {
         $controller = new SlowTracesWatcherController(
-            createWatcherAction: $this->createMock(CreateWatcherAction::class),
-            updateWatcherAction: $this->createMock(UpdateWatcherAction::class),
-            findWatcherAction: $this->findWatcherAction(null)
+            createWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase(
+                $this->createMock(CreateWatcherAction::class)
+            ),
+            updateWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\UpdateWatcherByAdminUseCase(
+                findTypedWatcherAction: new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(null)
+                ),
+                updateWatcherAction: $this->createMock(UpdateWatcherAction::class),
+            ),
+            findWatcherByAdminUseCase: new \App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase(
+                new \App\Modules\Watcher\Domain\Actions\Queries\FindTypedWatcherAction(
+                    $this->findWatcherAction(null)
+                )
+            ),
         );
 
-        $this->expectException(NotFoundHttpException::class);
+        $this->expectException(WatcherNotFoundException::class);
 
-        $controller->update(5, $this->request());
+        $controller->update(
+            id: 5,
+            request: $this->request(),
+        );
     }
 
     private function request(): SlowTracesWatcherRequest
     {
-        $request = SlowTracesWatcherRequest::create('/', 'PATCH', [
-            'name'             => 'x',
-            'enabled'          => true,
-            'cooldown_seconds' => 300,
-            // The rules ask for the key even when it is null.
-            'notification_channel_id' => null,
-            'notify_on_opened'        => true,
-            'notify_on_event'         => false,
-            'notify_on_closed'        => true,
-            'settings'                => ['duration' => 10, 'window_minutes' => 5],
-        ]);
+        $request = SlowTracesWatcherRequest::create(
+            uri: '/',
+            method: 'PATCH',
+            parameters: [
+                'name'             => 'x',
+                'enabled'          => true,
+                'cooldown_seconds' => 300,
+                // The rules ask for the key even when it is null.
+                'notification_channel_id' => null,
+                'notify_on_opened'        => true,
+                'notify_on_event'         => false,
+                'notify_on_closed'        => true,
+                'settings'                => [
+                    'duration'       => 10,
+                    'window_minutes' => 5,
+                ],
+            ],
+        );
 
         $request->setContainer($this->app);
+
         $request->validateResolved();
 
         return $request;
@@ -83,16 +139,20 @@ class WatcherTypeRouteGuardTest extends TestCase
     {
         $action = $this->createMock(FindWatcherAction::class);
 
-        $action->method('handle')->willReturn(
-            is_null($storedType) ? null : $this->watcher($storedType)
-        );
+        $action
+            ->method('handle')
+            ->willReturn(
+                is_null($storedType) ? null : $this->watcher($storedType)
+            );
 
         return $action;
     }
 
     private function watcher(WatcherTypeEnum $type): WatcherObject
     {
-        $now = Carbon::parse('2026-09-08 19:00:00');
+        $now = Carbon::parse(
+            time: '2026-09-08 19:00:00',
+        );
 
         return new WatcherObject(
             id: 5,
@@ -110,7 +170,7 @@ class WatcherTypeRouteGuardTest extends TestCase
             lastCheckedAt: $now,
             lastTriggeredAt: $now,
             createdAt: $now,
-            updatedAt: $now
+            updatedAt: $now,
         );
     }
 }

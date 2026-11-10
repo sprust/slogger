@@ -13,7 +13,14 @@ use Throwable;
  */
 class FakeClickhouseClient extends ClickhouseClient
 {
-    /** @var list<array{sql: string, params: array<string, mixed>, queryIdPrefix: string, settings: array<string, int|string>}> */
+    /**
+     * @var list<array{
+     *     sql: string,
+     *     params: array<string, mixed>,
+     *     queryIdPrefix: string,
+     *     settings: array<string, int|string>
+     * }>
+     */
     public array $selects = [];
 
     /** @var list<array{sql: string, params: array<string, mixed>}> */
@@ -27,8 +34,12 @@ class FakeClickhouseClient extends ClickhouseClient
     ) {
     }
 
-    public function select(string $sql, array $params = [], string $queryIdPrefix = 'query', array $settings = []): array
-    {
+    public function select(
+        string $sql,
+        array $params = [],
+        string $queryIdPrefix = 'query',
+        array $settings = []
+    ): array {
         $this->selects[] = [
             'sql'           => $sql,
             'params'        => $params,
@@ -45,8 +56,11 @@ class FakeClickhouseClient extends ClickhouseClient
         return $answer;
     }
 
-    public function command(string $sql, array $params = [], string $queryIdPrefix = 'command'): void
-    {
+    public function command(
+        string $sql,
+        array $params = [],
+        string $queryIdPrefix = 'command'
+    ): void {
         $this->commands[] = [
             'sql'    => $sql,
             'params' => $params,

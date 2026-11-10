@@ -538,4 +538,38 @@ The `sconcur.so` extension is baked into the image from `composer.lock`, so `ven
 storage/api/json-schemes/admin-api-openapi-scheme.json    # web-panel API (search, tree, charts, dashboards)
 ```
 
-Traces are received over the socket only, so the traces API schema (`traces-api-openapi-scheme.json`) has no paths.
+Run `make oa-generate` to build the private/public admin API schemas and regenerate
+`frontend/src/api-schema/admin-api-schema.ts`. The generator is the local
+`packages/ifksco/openapi-generator` package; sources and disks are configured in
+`config/oa-generator.php`. Individual commands are `php artisan oa:generate private`
+and `php artisan oa:generate public`. The Go receiver is outside this generator.
+
+### Backend tests
+
+```bash
+make test-prepare                    # start isolated services and recreate test schemas
+make test                           # full suite
+make test c="--filter=DatabaseTest"   # repository-backed integration scenarios
+make test-art c="migrate:status"     # Artisan using the guarded test environment
+make test-down                      # stop test storage; prepare again before the next run
+```
+
+The committed `.env.testing` contains public test values. Do not copy `.env` into it.
+`tests/bootstrap.php` loads it before Laravel, uses separate configuration/route cache
+paths and rejects non-test storage addresses before providers boot. PHPUnit and
+`tests/console.php` share this bootstrap.
+
+The Compose `testing` profile runs separate MySQL, MongoDB and ClickHouse on tmpfs,
+plus Redis without persistence for lock concurrency tests. It publishes no host ports
+and uses no application data volumes. `test-prepare` starts the PHP CLI container with
+`--no-deps`; working databases, workers and RabbitMQ are unnecessary. Test data is lost
+when the storage containers stop, so run `test-prepare` again after restarting them.
+The PHP container is left running by `test-down`.
+
+Integration tests extend `Tests\Modules\BaseModuleTestCase` and resolve dependencies
+with `appMake`. Readonly factories in `tests/Factories/Entities` seed real repositories;
+TraceFactory writes through ClickhouseClient because ingestion belongs to Go.
+Each case creates fresh parent entities and unique keys; no transaction rollback or
+schema reset happens between cases. Repeated runs use the same prepared databases.
+Laravel HTTP stray requests are forbidden and events are faked by default; listener
+tests explicitly set `$fakeEvents = false`. See [.ai/skills/tests.md](.ai/skills/tests.md).

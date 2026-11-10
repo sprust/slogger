@@ -30,7 +30,10 @@ class TraceTimestampMetricsFactoryTest extends TestCase
             timestamp: $timestamp
         );
 
-        self::assertSame($expectedEnd, $end->format('Y-m-d H:i:s.u'));
+        self::assertSame(
+            $expectedEnd,
+            $end->format('Y-m-d H:i:s.u')
+        );
     }
 
     /**
@@ -75,7 +78,10 @@ class TraceTimestampMetricsFactoryTest extends TestCase
             timestamp: $timestamp
         );
 
-        self::assertSame($expectedEnd, $end->format('Y-m-d H:i:s.u'));
+        self::assertSame(
+            $expectedEnd,
+            $end->format('Y-m-d H:i:s.u')
+        );
     }
 
     /**
@@ -116,9 +122,15 @@ class TraceTimestampMetricsFactoryTest extends TestCase
 
         $date = new Carbon('2026-08-31 06:41:57.123456', 'UTC');
 
-        $factory->makeNextTimestamp(date: $date, timestamp: TraceTimestampEnum::S5);
+        $factory->makeNextTimestamp(
+            date: $date,
+            timestamp: TraceTimestampEnum::S5
+        );
 
-        self::assertSame('2026-08-31 06:41:57.123456', $date->format('Y-m-d H:i:s.u'));
+        self::assertSame(
+            '2026-08-31 06:41:57.123456',
+            $date->format('Y-m-d H:i:s.u')
+        );
     }
 
     /**
@@ -134,6 +146,9 @@ class TraceTimestampMetricsFactoryTest extends TestCase
             timestamp: TraceTimestampEnum::S5
         );
 
-        self::assertSame('2026-08-31 06:41:55.000000', $start->format('Y-m-d H:i:s.u'));
+        self::assertSame(
+            '2026-08-31 06:41:55.000000',
+            $start->format('Y-m-d H:i:s.u')
+        );
     }
 }

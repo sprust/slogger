@@ -35,7 +35,9 @@ class SearchSloggerLogsToolTest extends TestCase
             'limit'  => 5,
         ]);
 
-        $this->assertFalse($result->isError);
+        $this->assertFalse(
+            $result->isError
+        );
         $this->assertSame(
             [
                 'total'   => 1,
@@ -50,52 +52,105 @@ class SearchSloggerLogsToolTest extends TestCase
             ],
             $result->data
         );
-        $this->assertSame(['f-laravel'], $this->captured?->fileIds);
-        $this->assertSame(['laravel.ERROR', 'laravel.CRITICAL'], $this->captured->levelKeys);
-        $this->assertSame(1790622000, $this->captured->fromTime);
-        $this->assertSame('refused', $this->captured->searchQuery);
-        $this->assertSame(LogCursorDirectionEnum::Older, $this->captured->direction);
-        $this->assertSame(5, $this->captured->perPage);
-        $this->assertNull($this->captured->cursor);
+        $this->assertSame(
+            ['f-laravel'],
+            $this->captured?->fileIds
+        );
+        $this->assertSame(
+            ['laravel.ERROR', 'laravel.CRITICAL'],
+            $this->captured->levelKeys
+        );
+        $this->assertSame(
+            1790622000,
+            $this->captured->fromTime
+        );
+        $this->assertSame(
+            'refused',
+            $this->captured->searchQuery
+        );
+        $this->assertSame(
+            LogCursorDirectionEnum::Older,
+            $this->captured->direction
+        );
+        $this->assertSame(
+            5,
+            $this->captured->perPage
+        );
+        $this->assertNull(
+            $this->captured->cursor
+        );
     }
 
     public function testWithoutLevelsNoLevelFilter(): void
     {
         $this->callTool(['source' => 'Laravel']);
+        self::assertNotNull($this->captured);
 
-        $this->assertNull($this->captured?->levelKeys);
-        $this->assertSame(20, $this->captured->perPage);
+        $this->assertNull(
+            $this->captured->levelKeys
+        );
+        $this->assertSame(
+            20,
+            $this->captured->perPage
+        );
     }
 
     public function testUnknownSource(): void
     {
         $result = $this->callTool(['source' => 'Mongo']);
 
-        $this->assertTrue($result->isError);
-        $this->assertSame('source_not_found', $result->data['error']);
-        $this->assertStringContainsString('Laravel, Nginx', $result->data['hint']);
-        $this->assertNull($this->captured);
+        $this->assertTrue(
+            $result->isError
+        );
+        $this->assertSame(
+            'source_not_found',
+            $result->data['error']
+        );
+        $this->assertStringContainsString(
+            'Laravel, Nginx',
+            $result->data['hint']
+        );
+        $this->assertNull(
+            $this->captured
+        );
     }
 
     public function testUnknownLevel(): void
     {
         $result = $this->callTool(['source' => 'Laravel', 'levels' => ['fatal']]);
 
-        $this->assertSame('level_not_found', $result->data['error']);
-        $this->assertStringContainsString('EMERGENCY', $result->data['hint']);
+        $this->assertSame(
+            'level_not_found',
+            $result->data['error']
+        );
+        $this->assertStringContainsString(
+            'EMERGENCY',
+            $result->data['hint']
+        );
     }
 
     public function testInvalidTime(): void
     {
-        $this->assertSame('invalid_time', $this->callTool(['source' => 'Laravel', 'from' => 'today'])->data['error']);
+        $this->assertSame(
+            'invalid_time',
+            $this->callTool(['source' => 'Laravel', 'from' => 'today'])->data['error']
+        );
     }
 
     public function testIndexing(): void
     {
-        $result = $this->callTool(['source' => 'Laravel'], indexing: true);
+        $result = $this->callTool(
+            ['source' => 'Laravel'],
+            indexing: true
+        );
 
-        $this->assertFalse($result->isError);
-        $this->assertSame('indexing', $result->data['status']);
+        $this->assertFalse(
+            $result->isError
+        );
+        $this->assertSame(
+            'indexing',
+            $result->data['status']
+        );
     }
 
     /**
@@ -104,50 +159,80 @@ class SearchSloggerLogsToolTest extends TestCase
     private function callTool(array $arguments, bool $indexing = false): McpToolResult
     {
         $files = $this->createMock(FindLogFilesAction::class);
-        $files->method('handle')->willReturn([
-            $this->file('f-laravel', 'laravel.log', 'Laravel', LogTypeEnum::Laravel),
-            $this->file('f-access', 'access.log', 'Nginx', LogTypeEnum::NginxAccess),
-        ]);
+        $files
+            ->method('handle')
+            ->willReturn([
+                $this->file(
+                    'f-laravel',
+                    'laravel.log',
+                    'Laravel',
+                    LogTypeEnum::Laravel
+                ),
+                $this->file(
+                    'f-access',
+                    'access.log',
+                    'Nginx',
+                    LogTypeEnum::NginxAccess
+                ),
+            ]);
 
         $entries = $this->createMock(FindLogEntriesAction::class);
-        $entries->method('handle')->willReturnCallback(function (FindLogEntriesParameters $parameters) use ($indexing) {
-            $this->captured = $parameters;
+        $entries
+            ->method('handle')
+            ->willReturnCallback(
+                function (FindLogEntriesParameters $parameters) use ($indexing) {
+                    $this->captured = $parameters;
 
-            return new LogEntriesPageObject(
-                items: $indexing ? [] : [
-                    new LogEntryViewObject(
-                        fileId: 'f-laravel',
-                        type: LogTypeEnum::Laravel,
-                        entryNo: 3,
-                        loggedAt: 1790624326,
-                        levelKey: 'laravel.ERROR',
-                        details: new LogEntryDetailsObject(message: 'connect', context: null, fields: []),
-                        text: 'connect: IO error: Connection refused',
-                        truncated: false
-                    ),
-                ],
-                levelCounts: [],
-                total: $indexing ? 0 : 1,
-                scanned: 1,
-                indexing: $indexing,
-                indexedBytes: 0,
-                totalBytes: 0,
-                restartedFileIds: [],
-                missingFileIds: [],
-                olderCursor: null,
-                newerCursor: null
+                    return new LogEntriesPageObject(
+                        items: $indexing ? [] : [
+                            new LogEntryViewObject(
+                                fileId: 'f-laravel',
+                                type: LogTypeEnum::Laravel,
+                                entryNo: 3,
+                                loggedAt: 1790624326,
+                                levelKey: 'laravel.ERROR',
+                                details: new LogEntryDetailsObject(
+                                    message: 'connect',
+                                    context: null,
+                                    fields: []
+                                ),
+                                text: 'connect: IO error: Connection refused',
+                                truncated: false
+                            ),
+                        ],
+                        levelCounts: [],
+                        total: $indexing ? 0 : 1,
+                        scanned: 1,
+                        indexing: $indexing,
+                        indexedBytes: 0,
+                        totalBytes: 0,
+                        restartedFileIds: [],
+                        missingFileIds: [],
+                        olderCursor: null,
+                        newerCursor: null
+                    );
+                }
             );
-        });
 
         return new SearchSloggerLogsTool(
-            new FindMcpLogEntriesAction($files, $entries, $this->app->make(LogFormatRegistry::class)),
+            new FindMcpLogEntriesAction(
+                $files,
+                $entries,
+                $this->app->make(LogFormatRegistry::class)
+            ),
             new McpToolTimeParser(),
             new McpToolFormatter()
-        )->call(new McpToolArguments($arguments));
+        )->call(
+            new McpToolArguments($arguments)
+        );
     }
 
-    private function file(string $id, string $name, string $source, LogTypeEnum $type): LogFileObject
-    {
+    private function file(
+        string $id,
+        string $name,
+        string $source,
+        LogTypeEnum $type
+    ): LogFileObject {
         return new LogFileObject(
             id: $id,
             path: "/logs/$name",

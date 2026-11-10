@@ -37,6 +37,8 @@ class UserResource extends AbstractApiResource
 
         $visibleLength = mb_strlen($local) > 2 ? 2 : 1;
 
-        return mb_substr($local, 0, $visibleLength) . '****' . $domain;
+        return mb_substr($local, 0, $visibleLength)
+            . '****'
+            . $domain;
     }
 }

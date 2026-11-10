@@ -28,14 +28,15 @@ readonly class WatcherIncidentEventRepository
             return [];
         }
 
-        $cursor = WatcherIncidentEvent::sconcur()->find(
-            filter: ['incidentId' => $objectId],
-            // Newest first, and the id carries the moment it was written — an event is
-            // never edited, so nothing else can order them.
-            sort: ['_id' => -1],
-            limit: $perPage,
-            skip: ($page - 1) * $perPage,
-        );
+        $cursor = WatcherIncidentEvent::sconcur()
+            ->find(
+                filter: ['incidentId' => $objectId],
+                // Newest first, and the id carries the moment it was written — an event is
+                // never edited, so nothing else can order them.
+                sort: ['_id' => -1],
+                limit: $perPage,
+                skip: ($page - 1) * $perPage,
+            );
 
         $events = [];
 
@@ -57,11 +58,12 @@ readonly class WatcherIncidentEventRepository
             return;
         }
 
-        WatcherIncidentEvent::sconcur()->insertOne([
-            'incidentId' => $objectId,
-            'occurredAt' => new UTCDateTime($occurredAt),
-            'payload'    => $payload,
-        ]);
+        WatcherIncidentEvent::sconcur()
+            ->insertOne([
+                'incidentId' => $objectId,
+                'occurredAt' => new UTCDateTime($occurredAt),
+                'payload'    => $payload,
+            ]);
     }
 
     /**
@@ -95,7 +97,7 @@ readonly class WatcherIncidentEventRepository
             payload: $payload,
             occurredAt: $occurredAt instanceof UTCDateTime
                 ? Carbon::parse($occurredAt->toDateTime())
-                : Carbon::now()
+                : Carbon::now(),
         );
     }
 }

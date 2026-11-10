@@ -15,20 +15,24 @@ use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 
 readonly class SlackChannelType implements NotificationChannelTypeDefinitionInterface
 {
-    public function __construct(
-        private SlackSender $sender
-    ) {
+    public function __construct(private SlackSender $sender)
+    {
     }
 
     public function makeSettings(array $settings): ChannelSettingsInterface
     {
         return new SlackSettingsObject(
-            webhookUrl: ArrayValueGetter::stringNull($settings, 'webhook_url') ?? ''
+            webhookUrl: ArrayValueGetter::stringNull(
+                data: $settings,
+                key: 'webhook_url',
+            ) ?? '',
         );
     }
 
-    public function makeUpdatedSettings(array $submitted, ChannelSettingsInterface $stored): ChannelSettingsInterface
-    {
+    public function makeUpdatedSettings(
+        array $submitted,
+        ChannelSettingsInterface $stored
+    ): ChannelSettingsInterface {
         $settings = $this->makeSettings($submitted);
 
         if (!$settings instanceof SlackSettingsObject || !$stored instanceof SlackSettingsObject) {
@@ -36,7 +40,7 @@ readonly class SlackChannelType implements NotificationChannelTypeDefinitionInte
         }
 
         return new SlackSettingsObject(
-            webhookUrl: $settings->webhookUrl === '' ? $stored->webhookUrl : $settings->webhookUrl
+            webhookUrl: $settings->webhookUrl === '' ? $stored->webhookUrl : $settings->webhookUrl,
         );
     }
 
@@ -53,9 +57,9 @@ readonly class SlackChannelType implements NotificationChannelTypeDefinitionInte
                     description: 'The hooks.slack.com address of the incoming webhook. '
                         . 'It is the credential: stored encrypted and never shown back.',
                     secret: true,
-                    maxLength: 500
+                    maxLength: 500,
                 ),
-            ]
+            ],
         );
     }
 

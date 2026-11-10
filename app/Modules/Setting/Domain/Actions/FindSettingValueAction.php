@@ -22,7 +22,10 @@ readonly class FindSettingValueAction
     {
         $definition = $this->settingDefinitionFinder->find($key);
 
-        return $this->settingValueResolver->findStored($definition, $this->settingRepository->findOne($key))
+        return $this->settingValueResolver->findStored(
+            definition: $definition,
+            stored: $this->settingRepository->findOne($key),
+        )
             ?? $this->settingValueResolver->findDefault($definition);
     }
 }

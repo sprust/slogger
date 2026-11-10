@@ -19,9 +19,17 @@ readonly class SettingValueResolver
         return (int) config($definition->configKey);
     }
 
-    public function findStored(SettingDefinitionObject $definition, ?SettingValueObject $stored): ?int
-    {
-        if (is_null($stored) || !$this->isValid($definition, $stored->value)) {
+    public function findStored(
+        SettingDefinitionObject $definition,
+        ?SettingValueObject $stored
+    ): ?int {
+        if (
+            is_null($stored)
+            || !$this->isValid(
+                definition: $definition,
+                value: $stored->value,
+            )
+        ) {
             return null;
         }
 

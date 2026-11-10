@@ -9,9 +9,8 @@ use App\Modules\Logs\Entities\File\LogFileObject;
 
 readonly class FindLogFilesAction
 {
-    public function __construct(
-        private LogFileFinder $logFileFinder
-    ) {
+    public function __construct(private LogFileFinder $logFileFinder)
+    {
     }
 
     /**
@@ -29,7 +28,10 @@ readonly class FindLogFilesAction
 
         usort(
             $files,
-            static fn(LogFileObject $left, LogFileObject $right): int => [$sourceOrder[$left->source], $right->modifiedAtMs, $left->name]
+            static fn(
+                LogFileObject $left,
+                LogFileObject $right
+            ): int => [$sourceOrder[$left->source], $right->modifiedAtMs, $left->name]
                 <=> [$sourceOrder[$right->source], $left->modifiedAtMs, $right->name]
         );
 

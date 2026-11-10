@@ -13,9 +13,8 @@ use LogicException;
 
 readonly class SlowTracesEventPayloadMapper implements WatcherEventPayloadMapperInterface
 {
-    public function __construct(
-        private WatcherEventGroupMapper $groups
-    ) {
+    public function __construct(private WatcherEventGroupMapper $groups)
+    {
     }
 
     public function read(array $payload): ?WatcherEventPayloadInterface
@@ -29,12 +28,22 @@ readonly class SlowTracesEventPayloadMapper implements WatcherEventPayloadMapper
 
         /** @var array<string, mixed> $settings */
         /** @var array<string, mixed> $measured */
-        $settingsDuration      = ArrayValueGetter::floatNull($settings, 'duration');
-        $settingsWindowMinutes = ArrayValueGetter::intNull($settings, 'window_minutes');
+        $settingsDuration      = ArrayValueGetter::floatNull(
+            data: $settings,
+            key: 'duration',
+        );
+        $settingsWindowMinutes = ArrayValueGetter::intNull(
+            data: $settings,
+            key: 'window_minutes',
+        );
 
-        $measuredSlowest = ArrayValueGetter::floatNull($measured, 'slowest');
+        $measuredSlowest = ArrayValueGetter::floatNull(
+            data: $measured,
+            key: 'slowest',
+        );
 
-        if (is_null($settingsDuration)
+        if (
+            is_null($settingsDuration)
             || is_null($settingsWindowMinutes)
             || is_null($measuredSlowest)
         ) {
@@ -44,19 +53,21 @@ readonly class SlowTracesEventPayloadMapper implements WatcherEventPayloadMapper
         return new SlowTracesEventPayloadObject(
             settings: new SlowTracesEventSettingsObject(
                 duration: $settingsDuration,
-                windowMinutes: $settingsWindowMinutes
+                windowMinutes: $settingsWindowMinutes,
             ),
             measured: new SlowTracesEventMeasuredObject(
-                slowest: $measuredSlowest
+                slowest: $measuredSlowest,
             ),
-            groups: $this->groups->read($payload['groups'] ?? null)
+            groups: $this->groups->read($payload['groups'] ?? null),
         );
     }
 
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof SlowTracesEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Protocol;
 
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use App\Modules\Mcp\Entities\McpSettingsObject;
 use App\Modules\Mcp\Infrastructure\Prompts\Contracts\McpPromptArgument;
@@ -23,6 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class McpServer
 {
     public function __construct(
+        private DispatcherInterface $dispatcher,
         private FindMcpSettingsAction $findMcpSettingsAction,
         private McpToolRegistry $toolRegistry,
         private McpPromptRegistry $promptRegistry,
@@ -40,6 +43,7 @@ readonly class McpServer
      * @return array<string, mixed>
      *
      * @throws McpProtocolException
+     * @throws McpServerNameInvalidException
      */
     public function handle(McpRequestMessage $message): array
     {
@@ -48,14 +52,20 @@ readonly class McpServer
         return match ($message->method) {
             'server/discover' => $this->discover($settings),
             'tools/list'      => $this->listTools($settings),
-            'tools/call'      => $this->callTool($settings, $message),
-            'prompts/list'    => $this->listPrompts($settings),
-            'prompts/get'     => $this->getPrompt($settings, $message),
-            default           => throw new McpProtocolException(
+            'tools/call'      => $this->callTool(
+                settings: $settings,
+                message: $message,
+            ),
+            'prompts/list' => $this->listPrompts($settings),
+            'prompts/get'  => $this->getPrompt(
+                settings: $settings,
+                message: $message,
+            ),
+            default => throw new McpProtocolException(
                 errorCode: McpErrorCodeEnum::MethodNotFound,
-                message: "Method not found: $message->method",
+                message: "Method not found: {$message->method}",
                 httpStatus: Response::HTTP_NOT_FOUND,
-                requestId: $message->id
+                requestId: $message->id,
             ),
         };
     }
@@ -66,15 +76,15 @@ readonly class McpServer
     private function discover(McpSettingsObject $settings): array
     {
         return $this->resultFactory->cacheable(
-            $settings,
-            [
+            settings: $settings,
+            result: [
                 'supportedVersions' => [McpVersionValidator::SUPPORTED_VERSION],
                 'capabilities'      => [
                     'tools'   => new stdClass(),
                     'prompts' => new stdClass(),
                 ],
-                'instructions'      => $this->instructionsBuilder->build($settings),
-            ]
+                'instructions' => $this->instructionsBuilder->build($settings),
+            ],
         );
     }
 
@@ -84,21 +94,23 @@ readonly class McpServer
     private function listTools(McpSettingsObject $settings): array
     {
         return $this->resultFactory->cacheable(
-            $settings,
-            [
+            settings: $settings,
+            result: [
                 'tools' => array_map(
                     fn(McpToolInterface $tool) => [
                         'name'        => $tool->name(),
                         'title'       => $tool->title(),
                         'description' => $tool->description(),
-                        'inputSchema' => $this->schemaCompiler->toJsonSchema($tool->schema()),
+                        'inputSchema' => $this->schemaCompiler->toJsonSchema(
+                            $tool->schema()
+                        ),
                         'annotations' => [
                             'readOnlyHint' => true,
                         ],
                     ],
                     $this->toolRegistry->all()
                 ),
-            ]
+            ],
         );
     }
 
@@ -112,24 +124,37 @@ readonly class McpServer
         $name = $message->params['name'] ?? null;
 
         if (!is_string($name)) {
-            throw $this->invalidParams($message, 'Invalid params: "name" must be a string');
+            throw $this->invalidParams(
+                message: $message,
+                text: 'Invalid params: "name" must be a string',
+            );
         }
 
         $tool = $this->toolRegistry->find($name);
 
         if (is_null($tool)) {
-            throw $this->invalidParams($message, "Invalid params: unknown tool [$name]");
+            throw $this->invalidParams(
+                message: $message,
+                text: "Invalid params: unknown tool [{$name}]",
+            );
         }
 
-        $arguments = $this->validateArguments($message, $tool, $message->params['arguments'] ?? []);
+        $arguments = $this->validateArguments(
+            message: $message,
+            tool: $tool,
+            arguments: $message->params['arguments'] ?? [],
+        );
 
         try {
             $result = $tool->call($arguments);
         } catch (McpToolArgumentsException $exception) {
-            throw $this->invalidParams($message, 'Invalid params: ' . $exception->getMessage());
+            throw $this->invalidParams(
+                message: $message,
+                text: 'Invalid params: ' . $exception->getMessage(),
+            );
         } catch (ClickhouseQueryException $exception) {
             // the model can retry with a narrower query, so it is told so rather than given -32603
-            report($exception);
+            $this->dispatcher->report($exception);
 
             $result = $this->toolFormatter->queryFailed();
         }
@@ -140,13 +165,16 @@ readonly class McpServer
         ];
 
         if ($result->truncate) {
-            $data = $this->stringTruncator->truncate($data, $settings->maxStringLength);
+            $data = $this->stringTruncator->truncate(
+                data: $data,
+                maxLength: $settings->maxStringLength,
+            );
         }
 
         return $this->resultFactory->complete(
-            $settings,
-            [
-                'content'           => [
+            settings: $settings,
+            result: [
+                'content' => [
                     [
                         'type' => 'text',
                         'text' => $this->jsonEncoder->encode($data),
@@ -154,7 +182,7 @@ readonly class McpServer
                 ],
                 'structuredContent' => $data,
                 'isError'           => $result->isError,
-            ]
+            ],
         );
     }
 
@@ -166,36 +194,43 @@ readonly class McpServer
         McpToolInterface $tool,
         mixed $arguments
     ): McpToolArguments {
-        if (!is_array($arguments) || (count($arguments) > 0 && array_is_list($arguments))) {
-            throw $this->invalidParams($message, 'Invalid params: "arguments" must be an object');
+        if (!is_array($arguments) || count($arguments) > 0 && array_is_list($arguments)) {
+            throw $this->invalidParams(
+                message: $message,
+                text: 'Invalid params: "arguments" must be an object',
+            );
         }
 
-        $known = array_map(
-            static fn($property) => $property->name,
-            $tool->schema()->properties
-        );
+        $known = array_map(static fn($property) => $property->name, $tool->schema()->properties);
 
         foreach (array_keys($arguments) as $key) {
             if (!in_array($key, $known, true)) {
-                throw $this->invalidParams($message, "Invalid params: unknown argument [$key]");
+                throw $this->invalidParams(
+                    message: $message,
+                    text: "Invalid params: unknown argument [{$key}]",
+                );
             }
         }
 
         $validator = $this->validationFactory->make(
-            $arguments,
-            $this->schemaCompiler->toRules($tool->schema())
+            data: $arguments,
+            rules: $this->schemaCompiler->toRules(
+                $tool->schema()
+            ),
         );
 
         if ($validator->fails()) {
             $field = (string) $validator->errors()->keys()[0];
 
             throw $this->invalidParams(
-                $message,
-                sprintf(
+                message: $message,
+                text: sprintf(
                     'Invalid params: argument [%s] is invalid: %s',
                     $field,
-                    $validator->errors()->first($field)
-                )
+                    $validator
+                        ->errors()
+                        ->first($field)
+                ),
             );
         }
 
@@ -208,8 +243,8 @@ readonly class McpServer
     private function listPrompts(McpSettingsObject $settings): array
     {
         return $this->resultFactory->cacheable(
-            $settings,
-            [
+            settings: $settings,
+            result: [
                 'prompts' => array_map(
                     static fn(McpPromptInterface $prompt) => [
                         'name'        => $prompt->name(),
@@ -226,7 +261,7 @@ readonly class McpServer
                     ],
                     $this->promptRegistry->all()
                 ),
-            ]
+            ],
         );
     }
 
@@ -241,13 +276,19 @@ readonly class McpServer
         $prompt = is_string($name) ? $this->promptRegistry->find($name) : null;
 
         if (is_null($prompt)) {
-            throw $this->invalidParams($message, sprintf('Invalid params: unknown prompt [%s]', (string) $name));
+            throw $this->invalidParams(
+                message: $message,
+                text: sprintf('Invalid params: unknown prompt [%s]', (string) $name),
+            );
         }
 
         $arguments = $message->params['arguments'] ?? [];
 
         if (!is_array($arguments)) {
-            throw $this->invalidParams($message, 'Invalid params: "arguments" must be an object');
+            throw $this->invalidParams(
+                message: $message,
+                text: 'Invalid params: "arguments" must be an object',
+            );
         }
 
         $values = [];
@@ -256,7 +297,10 @@ readonly class McpServer
             $value = $arguments[$argument->name] ?? null;
 
             if (is_null($value) && $argument->required) {
-                throw $this->invalidParams($message, "Invalid params: argument [$argument->name] is required");
+                throw $this->invalidParams(
+                    message: $message,
+                    text: "Invalid params: argument [{$argument->name}] is required",
+                );
             }
 
             if (!is_null($value)) {
@@ -265,8 +309,8 @@ readonly class McpServer
         }
 
         return $this->resultFactory->complete(
-            $settings,
-            [
+            settings: $settings,
+            result: [
                 'description' => $prompt->description(),
                 'messages'    => [
                     [
@@ -277,7 +321,7 @@ readonly class McpServer
                         ],
                     ],
                 ],
-            ]
+            ],
         );
     }
 
@@ -286,7 +330,7 @@ readonly class McpServer
         return new McpProtocolException(
             errorCode: McpErrorCodeEnum::InvalidParams,
             message: $text,
-            requestId: $message->id
+            requestId: $message->id,
         );
     }
 }

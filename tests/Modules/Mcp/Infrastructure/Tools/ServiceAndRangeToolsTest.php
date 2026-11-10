@@ -2,6 +2,8 @@
 
 namespace Tests\Modules\Mcp\Infrastructure\Tools;
 
+use App\Modules\Mcp\Transports\TraceObjectTransport;
+use App\Modules\Mcp\Transports\McpServiceObjectTransport;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpDataRangeAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
@@ -19,37 +21,80 @@ class ServiceAndRangeToolsTest extends TestCase
 {
     public function testListsAllServices(): void
     {
-        $result = $this->servicesTool()->call(new McpToolArguments([]));
+        $result = $this->servicesTool()->call(
+            new McpToolArguments([])
+        );
 
         $this->assertSame(
-            [['id' => 1, 'name' => 'billing'], ['id' => 2, 'name' => 'auth']],
+            [
+                [
+                    'id'   => 1,
+                    'name' => 'billing',
+                ],
+                [
+                    'id'   => 2,
+                    'name' => 'auth',
+                ],
+            ],
             $result->data['services']
         );
     }
 
     public function testSearchesServicesIgnoringCase(): void
     {
-        $result = $this->servicesTool()->call(new McpToolArguments(['query' => 'BILL']));
+        $result = $this
+            ->servicesTool()
+            ->call(
+                new McpToolArguments([
+                    'query' => 'BILL',
+                ])
+            );
 
-        $this->assertSame([['id' => 1, 'name' => 'billing']], $result->data['services']);
+        $this->assertSame(
+            [
+                [
+                    'id'   => 1,
+                    'name' => 'billing',
+                ],
+            ],
+            $result->data['services']
+        );
     }
 
     public function testDataRange(): void
     {
         $action = $this->createMock(FindTraceDataRangeAction::class);
 
-        $action->method('handle')->willReturn(
-            new TraceDataRangeObject(
-                firstHour: Carbon::parse('2026-09-25 10:00:00', 'UTC'),
-                lastHour: Carbon::parse('2026-09-28 14:00:00', 'UTC')
-            )
+        $action
+            ->method('handle')
+            ->willReturn(
+                new TraceDataRangeObject(
+                    firstHour: Carbon::parse(
+                        time: '2026-09-25 10:00:00',
+                        timezone: 'UTC',
+                    ),
+                    lastHour: Carbon::parse(
+                        time: '2026-09-28 14:00:00',
+                        timezone: 'UTC',
+                    ),
+                )
+            );
+
+        $result = (new GetTraceTimeRangeTool(
+            findMcpDataRangeAction: new FindMcpDataRangeAction(
+                findTraceDataRangeAction: $action,
+                traceObjectTransport: new TraceObjectTransport(),
+            ),
+            formatter: new McpToolFormatter(),
+        ))->call(
+            new McpToolArguments([])
         );
 
-        $result = new GetTraceTimeRangeTool(new FindMcpDataRangeAction($action), new McpToolFormatter())
-            ->call(new McpToolArguments([]));
-
         $this->assertSame(
-            ['first_hour' => '2026-09-25T10:00:00Z', 'last_hour' => '2026-09-28T14:00:00Z'],
+            [
+                'first_hour' => '2026-09-25T10:00:00Z',
+                'last_hour'  => '2026-09-28T14:00:00Z',
+            ],
             $result->data
         );
     }
@@ -58,23 +103,64 @@ class ServiceAndRangeToolsTest extends TestCase
     {
         $action = $this->createMock(FindTraceDataRangeAction::class);
 
-        $action->method('handle')->willReturn(new TraceDataRangeObject(firstHour: null, lastHour: null));
+        $action
+            ->method('handle')
+            ->willReturn(
+                new TraceDataRangeObject(
+                    firstHour: null,
+                    lastHour: null,
+                )
+            );
 
-        $result = new GetTraceTimeRangeTool(new FindMcpDataRangeAction($action), new McpToolFormatter())
-            ->call(new McpToolArguments([]));
+        $result = (new GetTraceTimeRangeTool(
+            findMcpDataRangeAction: new FindMcpDataRangeAction(
+                findTraceDataRangeAction: $action,
+                traceObjectTransport: new TraceObjectTransport(),
+            ),
+            formatter: new McpToolFormatter(),
+        ))->call(
+            new McpToolArguments([])
+        );
 
-        $this->assertSame(['first_hour' => null, 'last_hour' => null], $result->data);
+        $this->assertSame(
+            [
+                'first_hour' => null,
+                'last_hour'  => null,
+            ],
+            $result->data
+        );
     }
 
     private function servicesTool(): GetServicesTool
     {
         $action = $this->createMock(FindServicesAction::class);
 
-        $action->method('handle')->willReturn([
-            new ServiceObject(id: 1, name: 'billing', uniqueKey: 'billing', apiToken: 'a', position: 1, createdAt: Carbon::now()),
-            new ServiceObject(id: 2, name: 'auth', uniqueKey: 'auth', apiToken: 'b', position: 2, createdAt: Carbon::now()),
-        ]);
+        $action
+            ->method('handle')
+            ->willReturn([
+                new ServiceObject(
+                    id: 1,
+                    name: 'billing',
+                    uniqueKey: 'billing',
+                    apiToken: 'a',
+                    position: 1,
+                    createdAt: Carbon::now(),
+                ),
+                new ServiceObject(
+                    id: 2,
+                    name: 'auth',
+                    uniqueKey: 'auth',
+                    apiToken: 'b',
+                    position: 2,
+                    createdAt: Carbon::now(),
+                ),
+            ]);
 
-        return new GetServicesTool(new FindMcpServicesAction($action));
+        return new GetServicesTool(
+            new FindMcpServicesAction(
+                findServicesAction: $action,
+                mcpServiceObjectTransport: new McpServiceObjectTransport(),
+            )
+        );
     }
 }

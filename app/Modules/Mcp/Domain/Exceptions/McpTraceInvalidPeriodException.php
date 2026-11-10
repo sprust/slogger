@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Exceptions;
 
-use Exception;
-
-class McpTraceInvalidPeriodException extends Exception
+class McpTraceInvalidPeriodException extends AbstractMcpException
 {
 }

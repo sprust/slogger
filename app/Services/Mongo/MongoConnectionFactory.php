@@ -28,8 +28,10 @@ class MongoConnectionFactory
     /**
      * @param array<string, int|string> $uriOptions
      */
-    public function client(string $connectionName, array $uriOptions = self::DEFAULT_URI_OPTIONS): Client
-    {
+    public function client(
+        string $connectionName,
+        array $uriOptions = self::DEFAULT_URI_OPTIONS
+    ): Client {
         $config = $this->config($connectionName);
 
         $username = $config['username'];
@@ -43,16 +45,27 @@ class MongoConnectionFactory
             $uri .= '/?' . http_build_query($uriOptions);
         }
 
-        return new Client($uri, timeoutMs: $config['options']['socketTimeoutMS'] ?? null);
+        return new Client(
+            $uri,
+            timeoutMs: $config['options']['socketTimeoutMS'] ?? null,
+        );
     }
 
     /**
      * @param array<string, int|string> $uriOptions
      */
-    public function database(string $connectionName, array $uriOptions = self::DEFAULT_URI_OPTIONS): Database
-    {
-        return $this->client($connectionName, $uriOptions)
-            ->selectDatabase($this->databaseName($connectionName));
+    public function database(
+        string $connectionName,
+        array $uriOptions = self::DEFAULT_URI_OPTIONS
+    ): Database {
+        return $this
+            ->client(
+                connectionName: $connectionName,
+                uriOptions: $uriOptions,
+            )
+            ->selectDatabase(
+                $this->databaseName($connectionName)
+            );
     }
 
     public function databaseName(string $connectionName): string

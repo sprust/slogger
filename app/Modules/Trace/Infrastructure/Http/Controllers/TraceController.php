@@ -5,21 +5,20 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
+use App\Modules\Trace\Domain\UseCases\FindTraceDetailByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTracesByAdminUseCase;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceIndexRequest;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceDetailResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceItemsResource;
 use App\Modules\Trace\Parameters\PeriodParameters;
 use App\Modules\Trace\Parameters\TraceFindParameters;
-use Symfony\Component\HttpFoundation\Response;
 use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceController
 {
     public function __construct(
-        private FindTracesAction $findTracesAction,
-        private FindTraceDetailAction $findTraceDetailAction,
+        private FindTracesByAdminUseCase $findTracesByAdminUseCase,
+        private FindTraceDetailByAdminUseCase $findTraceDetailByAdminUseCase,
         private DataFilterParameterTransport $dataFilterParameterTransport
     ) {
     }
@@ -29,31 +28,80 @@ readonly class TraceController
      */
     public function index(TraceIndexRequest $request): TraceItemsResource
     {
-        $validated = $request->validated();
-
+        $validated     = $request->validated();
         $loggingPeriod = PeriodParameters::fromStringValues(
-            fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
-            from: ArrayValueGetter::stringNull($validated, 'logging_from'),
-            to: ArrayValueGetter::stringNull($validated, 'logging_to'),
+            fromPreset: ArrayValueGetter::stringNull(
+                data: $validated,
+                key: 'logging_from_preset',
+            ),
+            from: ArrayValueGetter::stringNull(
+                data: $validated,
+                key: 'logging_from',
+            ),
+            to: ArrayValueGetter::stringNull(
+                data: $validated,
+                key: 'logging_to',
+            ),
         );
-
-        $traces = $this->findTracesAction->handle(
+        $traces = $this->findTracesByAdminUseCase->handle(
             new TraceFindParameters(
-                page: ArrayValueGetter::intNull($validated, 'page') ?? 1,
-                perPage: ArrayValueGetter::intNull($validated, 'per_page') ?? null,
-                serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
-                traceId: ArrayValueGetter::stringNull($validated, 'trace_id'),
-                allTracesInTree: ArrayValueGetter::boolNull($validated, 'all_traces_in_tree') ?? false,
+                page: ArrayValueGetter::intNull(
+                    data: $validated,
+                    key: 'page',
+                ) ?? 1,
+                perPage: ArrayValueGetter::intNull(
+                    data: $validated,
+                    key: 'per_page',
+                ) ?? null,
+                serviceIds: ArrayValueGetter::arrayIntNull(
+                    data: $validated,
+                    key: 'service_ids',
+                ) ?? [],
+                traceId: ArrayValueGetter::stringNull(
+                    data: $validated,
+                    key: 'trace_id',
+                ),
+                allTracesInTree: ArrayValueGetter::boolNull(
+                    data: $validated,
+                    key: 'all_traces_in_tree',
+                ) ?? false,
                 loggingPeriod: $loggingPeriod,
-                types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
-                tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
-                statuses: ArrayValueGetter::arrayStringNull($validated, 'statuses') ?? [],
-                durationFrom: ArrayValueGetter::floatNull($validated, 'duration_from'),
-                durationTo: ArrayValueGetter::floatNull($validated, 'duration_to'),
-                memoryFrom: ArrayValueGetter::floatNull($validated, 'memory_from'),
-                memoryTo: ArrayValueGetter::floatNull($validated, 'memory_to'),
-                cpuFrom: ArrayValueGetter::floatNull($validated, 'cpu_from'),
-                cpuTo: ArrayValueGetter::floatNull($validated, 'cpu_to'),
+                types: ArrayValueGetter::arrayStringNull(
+                    data: $validated,
+                    key: 'types',
+                ) ?? [],
+                tags: ArrayValueGetter::arrayStringNull(
+                    data: $validated,
+                    key: 'tags',
+                ) ?? [],
+                statuses: ArrayValueGetter::arrayStringNull(
+                    data: $validated,
+                    key: 'statuses',
+                ) ?? [],
+                durationFrom: ArrayValueGetter::floatNull(
+                    data: $validated,
+                    key: 'duration_from',
+                ),
+                durationTo: ArrayValueGetter::floatNull(
+                    data: $validated,
+                    key: 'duration_to',
+                ),
+                memoryFrom: ArrayValueGetter::floatNull(
+                    data: $validated,
+                    key: 'memory_from',
+                ),
+                memoryTo: ArrayValueGetter::floatNull(
+                    data: $validated,
+                    key: 'memory_to',
+                ),
+                cpuFrom: ArrayValueGetter::floatNull(
+                    data: $validated,
+                    key: 'cpu_from',
+                ),
+                cpuTo: ArrayValueGetter::floatNull(
+                    data: $validated,
+                    key: 'cpu_to',
+                ),
                 data: $this->dataFilterParameterTransport->make($validated),
             )
         );
@@ -63,11 +111,7 @@ readonly class TraceController
 
     public function show(string $traceId): TraceDetailResource
     {
-        $traceObject = $this->findTraceDetailAction->handle($traceId);
-
-        if ($traceObject === null) {
-            abort(Response::HTTP_NOT_FOUND);
-        }
+        $traceObject = $this->findTraceDetailByAdminUseCase->handle($traceId);
 
         return new TraceDetailResource($traceObject);
     }

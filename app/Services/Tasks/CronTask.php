@@ -37,15 +37,6 @@ class CronTask implements TaskInterface
         $this->previousMinute = $this->currentMinute();
     }
 
-    /**
-     * Carbon rather than date(), so the clock can be frozen: a test that has to catch the
-     * constructor and the first tick inside one minute cannot race the real one.
-     */
-    private function currentMinute(): int
-    {
-        return Carbon::now()->minute;
-    }
-
     public function name(): string
     {
         return self::NAME;
@@ -73,11 +64,25 @@ class CronTask implements TaskInterface
         // having.
         $output = new BufferedOutput();
 
-        Artisan::call('schedule:run', outputBuffer: $output);
+        Artisan::call(
+            'schedule:run',
+            outputBuffer: $output,
+        );
 
-        $this->report($output->fetch());
+        $this->report(
+            $output->fetch()
+        );
 
         return TickResultEnum::Worked;
+    }
+
+    /**
+     * Carbon rather than date(), so the clock can be frozen: a test that has to catch the
+     * constructor and the first tick inside one minute cannot race the real one.
+     */
+    private function currentMinute(): int
+    {
+        return Carbon::now()->minute;
     }
 
     private function report(string $output): void

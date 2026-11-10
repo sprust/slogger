@@ -40,14 +40,18 @@ class UserRepository
 
     public function findOneById(int $id): ?UserObject
     {
-        $user = User::query()->where('id', $id)->first();
+        $user = User::query()
+            ->where('id', $id)
+            ->first();
 
         return $user ? $this->makeObjectByModel($user) : null;
     }
 
     public function isExistByEmail(string $email): bool
     {
-        return User::query()->where('email', $email)->exists();
+        return User::query()
+            ->where('email', $email)
+            ->exists();
     }
 
     public function updateName(int $id, string $firstName, ?string $lastName): void
@@ -63,14 +67,18 @@ class UserRepository
     public function findById(int $id): ?UserDetailObject
     {
         return $this->makeUserFullObjectByUserOrNull(
-            User::query()->where('id', $id)->first()
+            User::query()
+                ->where('id', $id)
+                ->first()
         );
     }
 
     public function findByEmail(string $email): ?UserDetailObject
     {
         return $this->makeUserFullObjectByUserOrNull(
-            User::query()->where('email', $email)->first()
+            User::query()
+                ->where('email', $email)
+                ->first()
         );
     }
 

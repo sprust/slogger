@@ -4,29 +4,31 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Infrastructure\Http\Controllers;
 
-use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
+use App\Modules\Auth\Domain\Exceptions\AuthenticationFailedException;
+use App\Modules\Auth\Parameters\TokenParameters;
+use App\Modules\Auth\Domain\UseCases\FindUserByTokenByAdminUseCase;
 use App\Modules\Auth\Infrastructure\Http\Resources\LoggedUserResource;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
 readonly class MeController
 {
     public function __construct(
-        private FindUserByTokenAction $findMeByTokenAction
+        private FindUserByTokenByAdminUseCase $findUserByTokenByAdminUseCase
     ) {
     }
 
+    /**
+     * @throws AuthenticationFailedException
+     */
     public function __invoke(Request $request): LoggedUserResource
     {
         $bearerToken = $request->bearerToken();
 
-        $me = $bearerToken
-            ? $this->findMeByTokenAction->handle($bearerToken)
-            : null;
-
-        if ($me === null) {
-            abort(ResponseFoundation::HTTP_UNAUTHORIZED);
-        }
+        $me = $this->findUserByTokenByAdminUseCase->handle(
+            new TokenParameters(
+                token: $bearerToken ?? '',
+            )
+        );
 
         return new LoggedUserResource($me);
     }

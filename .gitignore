@@ -8,6 +8,7 @@
 .env
 .env.*
 !.env.example
+!.env.testing
 .env.backup
 .env.production
 .phpunit.result.cache
@@ -24,8 +25,4 @@ yarn-error.log
 
 app/Console/Commands/Local
 
-.deptrac.cache
-
 storage/slogger
-
-.php-cs-fixer.cache

@@ -268,7 +268,7 @@ upsert MongoDB:
   `trace-timestamps-…`), чтобы на этапе 7 находить его в `system.query_log`.
 
 `config/database.php` — секция `clickhouse` (host, port, database, username, password,
-timeout). Проверить в `code-analyse/deptrac-layers.yaml`, что `app/Services` разрешён для
+timeout). Проверить в `code-analyse/deptrac/deptrac-layers.yaml`, что `app/Services` разрешён для
 `Repositories`.
 
 ## Этап 6. Чтение трейсов из ClickHouse за флагом

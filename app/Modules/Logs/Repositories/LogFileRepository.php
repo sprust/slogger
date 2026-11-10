@@ -21,7 +21,7 @@ readonly class LogFileRepository
             $entries = Files::list(
                 path: $source->folder,
                 pattern: $source->pattern,
-                withMetadata: true
+                withMetadata: true,
             );
         } catch (FileNotFoundException) {
             return [];
@@ -44,7 +44,7 @@ readonly class LogFileRepository
                 sizeBytes: $entry->sizeBytes ?? 0,
                 modifiedAtMs: $entry->modifiedAtMs ?? 0,
                 keepDays: $source->keepDays,
-                deletable: $source->deletable
+                deletable: $source->deletable,
             );
         }
 
@@ -53,12 +53,14 @@ readonly class LogFileRepository
 
     public function stat(string $path): LogFileStatObject
     {
-        $stat = Files::stat(path: $path);
+        $stat = Files::stat(
+            path: $path,
+        );
 
         return new LogFileStatObject(
             exists: $stat->exists && $stat->isFile,
             sizeBytes: $stat->sizeBytes,
-            modifiedAtMs: $stat->modifiedAtMs
+            modifiedAtMs: $stat->modifiedAtMs,
         );
     }
 
@@ -72,13 +74,16 @@ readonly class LogFileRepository
             path: $path,
             offsetBytes: $offset,
             lengthBytes: $length,
-            maxReadBytes: 0
+            maxReadBytes: 0,
         );
     }
 
     public function delete(string $path): bool
     {
-        return Files::delete(path: $path, missingOk: true);
+        return Files::delete(
+            path: $path,
+            missingOk: true,
+        );
     }
 
     /**
@@ -86,6 +91,9 @@ readonly class LogFileRepository
      */
     public function readChunks(string $path): iterable
     {
-        yield from Files::readChunks(path: $path, bufferSizeBytes: 256 * 1024);
+        yield from Files::readChunks(
+            path: $path,
+            bufferSizeBytes: 256 * 1024,
+        );
     }
 }

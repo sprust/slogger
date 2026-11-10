@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
+use App\Modules\Mcp\Domain\Exceptions\McpServerNameInvalidException;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceFacetsAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use App\Modules\Mcp\Entities\Bridges\McpTraceFacetListObject;
@@ -14,7 +15,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpTraceFacetsParameters;
-use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
+use App\Modules\Mcp\Entities\Trace\TraceStringFieldObject;
 
 readonly class GetTraceFacetsTool implements McpToolInterface
 {
@@ -23,7 +24,7 @@ readonly class GetTraceFacetsTool implements McpToolInterface
     public function __construct(
         private FindMcpTraceFacetsAction $findMcpTraceFacetsAction,
         private FindMcpSettingsAction $findMcpSettingsAction,
-        private McpToolTraceScopeReader $scopeReader,
+        private McpToolTraceScopeReader $scopeReader
     ) {
     }
 
@@ -46,23 +47,28 @@ readonly class GetTraceFacetsTool implements McpToolInterface
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            ...$this->scopeReader->properties(),
-            new McpToolProperty(
-                name: 'types',
-                type: McpToolPropertyTypeEnum::StringList,
-                description: 'Trace types.',
-                max: self::MAX_FILTER_VALUES
-            ),
-            new McpToolProperty(
-                name: 'statuses',
-                type: McpToolPropertyTypeEnum::StringList,
-                description: 'Trace statuses, for example failed.',
-                max: self::MAX_FILTER_VALUES
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                ...$this->scopeReader->properties(),
+                new McpToolProperty(
+                    name: 'types',
+                    type: McpToolPropertyTypeEnum::StringList,
+                    description: 'Trace types.',
+                    max: self::MAX_FILTER_VALUES,
+                ),
+                new McpToolProperty(
+                    name: 'statuses',
+                    type: McpToolPropertyTypeEnum::StringList,
+                    description: 'Trace statuses, for example failed.',
+                    max: self::MAX_FILTER_VALUES,
+                ),
+            ],
+        );
     }
 
+    /**
+     * @throws McpServerNameInvalidException
+     */
     public function call(McpToolArguments $arguments): McpToolResult
     {
         $scope = $this->scopeReader->read($arguments);
@@ -77,7 +83,7 @@ readonly class GetTraceFacetsTool implements McpToolInterface
                 period: $scope->period,
                 types: $arguments->stringList('types'),
                 statuses: $arguments->stringList('statuses'),
-                limit: $this->findMcpSettingsAction->handle()->facetsLimit
+                limit: $this->findMcpSettingsAction->handle()->facetsLimit,
             )
         );
 
@@ -92,7 +98,7 @@ readonly class GetTraceFacetsTool implements McpToolInterface
                     'statuses' => $facets->statuses->truncated,
                     'tags'     => $facets->tags->truncated,
                 ],
-            ]
+            ],
         );
     }
 

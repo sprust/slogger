@@ -6,13 +6,15 @@ namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
 use App\Modules\Mcp\Domain\Exceptions\McpTraceDataFilterInvalidException;
 use App\Modules\Mcp\Domain\Services\McpTraceDataFilterParser;
-use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
+use App\Modules\Mcp\Transports\McpTracePeriodTransport;
 use App\Modules\Mcp\Parameters\FindMcpTracesParameters;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
-use App\Modules\Trace\Entities\Trace\TraceItemObjects;
+use App\Modules\Mcp\Entities\Trace\TraceItemObjects;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use App\Services\Clickhouse\ClickhouseQueryException;
+use App\Modules\Mcp\Transports\TraceObjectTransport;
+use App\Modules\Mcp\Transports\TraceParametersTransport;
 
 readonly class FindMcpTracesAction
 {
@@ -21,7 +23,9 @@ readonly class FindMcpTracesAction
     public function __construct(
         private FindTracesAction $findTracesAction,
         private McpTraceDataFilterParser $dataFilterParser,
-        private McpTracePeriodMapper $periodMapper
+        private McpTracePeriodTransport $mcpTracePeriodTransport,
+        private TraceObjectTransport $traceObjectTransport,
+        private TraceParametersTransport $traceParametersTransport
     ) {
     }
 
@@ -31,28 +35,30 @@ readonly class FindMcpTracesAction
      */
     public function handle(FindMcpTracesParameters $parameters): TraceItemObjects
     {
-        $filter = $this->dataFilterParser->parse($parameters->dataFilter);
-
-        $data = (count($filter) > 0 || count($parameters->dataFields) > 0)
+        $filter = $this->traceParametersTransport->toTraceDataFilters(
+            $this->dataFilterParser->parse($parameters->dataFilter)
+        );
+        $data   = count($filter) > 0 || count($parameters->dataFields) > 0
             ? new TraceDataFilterParameters(
                 filter: $filter,
-                fields: $parameters->dataFields
+                fields: $parameters->dataFields,
             )
             : null;
-
-        return $this->findTracesAction->handle(
+        $result = $this->findTracesAction->handle(
             new TraceFindParameters(
                 page: $parameters->page,
                 perPage: self::PER_PAGE,
                 serviceIds: $parameters->serviceIds,
-                loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
+                loggingPeriod: $this->mcpTracePeriodTransport->toLoggingPeriod($parameters->period),
                 types: $parameters->types,
                 tags: $parameters->tags,
                 statuses: $parameters->statuses,
                 durationFrom: $parameters->durationFrom,
                 durationTo: $parameters->durationTo,
-                data: $data
+                data: $data,
             )
         );
+
+        return $this->traceObjectTransport->fromTraceItemObjects($result);
     }
 }

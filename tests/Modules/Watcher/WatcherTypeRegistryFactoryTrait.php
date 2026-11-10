@@ -42,7 +42,9 @@ trait WatcherTypeRegistryFactoryTrait
         ?LogErrorsChecker $logErrors = null,
         ?ReceiverErrorsChecker $receiverErrors = null
     ): WatcherTypeRegistry {
-        $groups = new WatcherEventGroupMapper(new NullLogger());
+        $groups = new WatcherEventGroupMapper(
+            new NullLogger()
+        );
 
         return new WatcherTypeRegistry(
             new BufferOverflowWatcherType(

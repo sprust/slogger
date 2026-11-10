@@ -24,29 +24,39 @@ readonly class LogErrorsChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
-    {
+    public function check(
+        WatcherObject $watcher,
+        WatcherCheckContextObject $context
+    ): ?WatcherEventPayloadInterface {
         $settings = $watcher->settings;
 
         if (!$settings instanceof LogErrorsSettingsObject) {
             return null;
         }
 
-        $since = $this->countWindow->start($watcher, $context->now);
+        $since = $this->countWindow->start(
+            watcher: $watcher,
+            now: $context->now,
+        );
 
-        $stat = $this->findLogErrorStatAction->handle($since, $context->now);
+        $stat = $this->findLogErrorStatAction->handle(
+            since: $since,
+            until: $context->now,
+        );
 
         if ($stat->count < $settings->threshold) {
             return null;
         }
 
         return new LogErrorsEventPayloadObject(
-            settings: new LogErrorsEventSettingsObject(threshold: $settings->threshold),
+            settings: new LogErrorsEventSettingsObject(
+                threshold: $settings->threshold,
+            ),
             measured: new LogErrorsEventMeasuredObject(
                 errorCount: $stat->count,
                 since: $since->toDateTimeString(),
-                lastMessage: mb_strimwidth($stat->lastMessage ?? '', 0, self::MAX_MESSAGE_LENGTH, '…')
-            )
+                lastMessage: mb_strimwidth($stat->lastMessage ?? '', 0, self::MAX_MESSAGE_LENGTH, '…'),
+            ),
         );
     }
 }

@@ -21,6 +21,8 @@ class ManyTracesWatcherSettingsResource extends AbstractApiResource
         $this->id             = $id;
         $this->window_minutes = $resource->windowMinutes;
         $this->threshold      = $resource->threshold;
-        $this->filter         = new WatcherTraceFilterResource($resource->traceFilter());
+        $this->filter         = new WatcherTraceFilterResource(
+            $resource->traceFilter()
+        );
     }
 }

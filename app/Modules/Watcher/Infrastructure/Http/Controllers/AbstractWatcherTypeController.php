@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Watcher\Domain\Actions\Mutations\CreateWatcherAction;
-use App\Modules\Watcher\Domain\Actions\Mutations\UpdateWatcherAction;
-use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
-use App\Modules\Watcher\Domain\Exceptions\WatcherNotFoundException;
+use App\Modules\Watcher\Domain\UseCases\CreateWatcherByAdminUseCase;
+use App\Modules\Watcher\Domain\UseCases\UpdateWatcherByAdminUseCase;
+use App\Modules\Watcher\Domain\UseCases\FindWatcherByAdminUseCase;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
-use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherResource;
 use App\Modules\Watcher\Parameters\CreateWatcherParameters;
 use App\Modules\Watcher\Parameters\UpdateWatcherParameters;
-use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
 /**
  * What every watcher type's controller does with a body that has already been validated
@@ -30,9 +27,9 @@ use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 abstract readonly class AbstractWatcherTypeController
 {
     public function __construct(
-        private CreateWatcherAction $createWatcherAction,
-        private UpdateWatcherAction $updateWatcherAction,
-        private FindWatcherAction $findWatcherAction
+        private CreateWatcherByAdminUseCase $createWatcherByAdminUseCase,
+        private UpdateWatcherByAdminUseCase $updateWatcherByAdminUseCase,
+        private FindWatcherByAdminUseCase $findWatcherByAdminUseCase
     ) {
     }
 
@@ -44,7 +41,10 @@ abstract readonly class AbstractWatcherTypeController
      */
     protected function watcherSettings(WatcherTypeEnum $type, int $id): WatcherSettingsInterface
     {
-        return $this->findWatcher($type, $id)->settings;
+        return $this->findWatcherByAdminUseCase->handle(
+            id: $id,
+            type: $type,
+        )->settings;
     }
 
     /**
@@ -53,17 +53,38 @@ abstract readonly class AbstractWatcherTypeController
     protected function createWatcher(WatcherTypeEnum $type, array $validated): WatcherResource
     {
         return new WatcherResource(
-            $this->createWatcherAction->handle(
+            $this->createWatcherByAdminUseCase->handle(
                 new CreateWatcherParameters(
-                    name: ArrayValueGetter::string($validated, 'name'),
+                    name: ArrayValueGetter::string(
+                        data: $validated,
+                        key: 'name',
+                    ),
                     type: $type,
-                    enabled: ArrayValueGetter::bool($validated, 'enabled'),
-                    cooldownSeconds: ArrayValueGetter::int($validated, 'cooldown_seconds'),
-                    notificationChannelId: ArrayValueGetter::intNull($validated, 'notification_channel_id'),
-                    notifyOnOpened: ArrayValueGetter::bool($validated, 'notify_on_opened'),
-                    notifyOnEvent: ArrayValueGetter::bool($validated, 'notify_on_event'),
-                    notifyOnClosed: ArrayValueGetter::bool($validated, 'notify_on_closed'),
-                    settings: $this->settingsOf($validated)
+                    enabled: ArrayValueGetter::bool(
+                        data: $validated,
+                        key: 'enabled',
+                    ),
+                    cooldownSeconds: ArrayValueGetter::int(
+                        data: $validated,
+                        key: 'cooldown_seconds',
+                    ),
+                    notificationChannelId: ArrayValueGetter::intNull(
+                        data: $validated,
+                        key: 'notification_channel_id',
+                    ),
+                    notifyOnOpened: ArrayValueGetter::bool(
+                        data: $validated,
+                        key: 'notify_on_opened',
+                    ),
+                    notifyOnEvent: ArrayValueGetter::bool(
+                        data: $validated,
+                        key: 'notify_on_event',
+                    ),
+                    notifyOnClosed: ArrayValueGetter::bool(
+                        data: $validated,
+                        key: 'notify_on_closed',
+                    ),
+                    settings: $this->settingsOf($validated),
                 )
             )
         );
@@ -74,36 +95,41 @@ abstract readonly class AbstractWatcherTypeController
      */
     protected function updateWatcher(WatcherTypeEnum $type, int $id, array $validated): void
     {
-        $this->findWatcher($type, $id);
-
-        try {
-            $this->updateWatcherAction->handle(
-                new UpdateWatcherParameters(
-                    id: $id,
-                    name: ArrayValueGetter::string($validated, 'name'),
-                    enabled: ArrayValueGetter::bool($validated, 'enabled'),
-                    cooldownSeconds: ArrayValueGetter::int($validated, 'cooldown_seconds'),
-                    notificationChannelId: ArrayValueGetter::intNull($validated, 'notification_channel_id'),
-                    notifyOnOpened: ArrayValueGetter::bool($validated, 'notify_on_opened'),
-                    notifyOnEvent: ArrayValueGetter::bool($validated, 'notify_on_event'),
-                    notifyOnClosed: ArrayValueGetter::bool($validated, 'notify_on_closed'),
-                    settings: $this->settingsOf($validated)
-                )
-            );
-        } catch (WatcherNotFoundException $exception) {
-            abort(ResponseFoundation::HTTP_NOT_FOUND, $exception->getMessage());
-        }
-    }
-
-    private function findWatcher(WatcherTypeEnum $type, int $id): WatcherObject
-    {
-        $watcher = $this->findWatcherAction->handle($id);
-
-        if (is_null($watcher) || $watcher->type !== $type) {
-            abort(ResponseFoundation::HTTP_NOT_FOUND, "Watcher [$id] not found");
-        }
-
-        return $watcher;
+        $this->updateWatcherByAdminUseCase->handle(
+            parameters: new UpdateWatcherParameters(
+                id: $id,
+                name: ArrayValueGetter::string(
+                    data: $validated,
+                    key: 'name',
+                ),
+                enabled: ArrayValueGetter::bool(
+                    data: $validated,
+                    key: 'enabled',
+                ),
+                cooldownSeconds: ArrayValueGetter::int(
+                    data: $validated,
+                    key: 'cooldown_seconds',
+                ),
+                notificationChannelId: ArrayValueGetter::intNull(
+                    data: $validated,
+                    key: 'notification_channel_id',
+                ),
+                notifyOnOpened: ArrayValueGetter::bool(
+                    data: $validated,
+                    key: 'notify_on_opened',
+                ),
+                notifyOnEvent: ArrayValueGetter::bool(
+                    data: $validated,
+                    key: 'notify_on_event',
+                ),
+                notifyOnClosed: ArrayValueGetter::bool(
+                    data: $validated,
+                    key: 'notify_on_closed',
+                ),
+                settings: $this->settingsOf($validated),
+            ),
+            type: $type,
+        );
     }
 
     /**

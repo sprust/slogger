@@ -13,10 +13,16 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class ReceiverErrorsIncidentEventController extends AbstractIncidentEventController
 {
     #[OaListItemTypeAttribute(LogErrorsIncidentEventResource::class)]
-    public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
-    {
+    public function index(
+        string $id,
+        IndexIncidentEventsRequest $request
+    ): AnonymousResourceCollection {
         return LogErrorsIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::ReceiverErrors, $id, $request->validated())
+            $this->incidentEvents(
+                type: WatcherTypeEnum::ReceiverErrors,
+                incidentId: $id,
+                validated: $request->validated(),
+            )
         );
     }
 }

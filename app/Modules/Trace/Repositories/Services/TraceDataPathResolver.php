@@ -20,9 +20,8 @@ readonly class TraceDataPathResolver
     // a filter field names the path with the `dt.` of the stored trace in front
     private const string FIELD_PREFIX = 'dt.';
 
-    public function __construct(
-        private ClickhouseDataPathTypes $pathTypes,
-    ) {
+    public function __construct(private ClickhouseDataPathTypes $pathTypes)
+    {
     }
 
     /**
@@ -52,7 +51,7 @@ readonly class TraceDataPathResolver
                     $this->join($arraySegments),
                     $this->join(array_slice($segments, count($arraySegments)))
                 ),
-            arraySegments: $arraySegments
+            arraySegments: $arraySegments,
         );
     }
 
@@ -69,9 +68,7 @@ readonly class TraceDataPathResolver
             );
         }
 
-        return $this->resolve(
-            substr($field, strlen(self::FIELD_PREFIX))
-        );
+        return $this->resolve(substr($field, strlen(self::FIELD_PREFIX)));
     }
 
     /**
@@ -106,12 +103,6 @@ readonly class TraceDataPathResolver
      */
     private function join(array $segments): string
     {
-        return implode(
-            '.',
-            array_map(
-                static fn(string $segment): string => "`$segment`",
-                $segments
-            )
-        );
+        return implode('.', array_map(static fn(string $segment): string => "`$segment`", $segments));
     }
 }

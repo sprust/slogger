@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
+use App\Modules\Logs\Domain\Exceptions\LogCursorInvalidException;
 use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
 use App\Modules\Logs\Domain\Actions\FindLogFilesAction;
 use App\Modules\Logs\Domain\Services\Formats\LogFormatRegistry;
@@ -32,6 +33,7 @@ readonly class FindMcpLogEntriesAction
     /**
      * @throws McpLogSourceNotFoundException
      * @throws McpLogLevelNotFoundException
+     * @throws LogCursorInvalidException
      */
     public function handle(FindMcpLogEntriesParameters $parameters): McpLogEntriesObject
     {
@@ -46,20 +48,25 @@ readonly class FindMcpLogEntriesAction
 
         if (count($files) === 0) {
             throw new McpLogSourceNotFoundException(
-                array_values(array_unique(array_map(static fn(LogFileObject $file) => $file->source, $allFiles)))
+                array_values(
+                    array_unique(array_map(static fn(LogFileObject $file) => $file->source, $allFiles))
+                )
             );
         }
 
         $page = $this->findLogEntriesAction->handle(
             new FindLogEntriesParameters(
                 fileIds: array_map(static fn(LogFileObject $file) => $file->id, $files),
-                levelKeys: count($parameters->levels) > 0 ? $this->levelKeys($files, $parameters->levels) : null,
+                levelKeys: count($parameters->levels) > 0 ? $this->levelKeys(
+                    files: $files,
+                    levels: $parameters->levels,
+                ) : null,
                 fromTime: $parameters->from?->getTimestamp(),
                 toTime: $parameters->to?->getTimestamp(),
                 searchQuery: $parameters->query,
                 cursor: null,
                 direction: LogCursorDirectionEnum::Older,
-                perPage: max(1, min($parameters->limit, self::MAX_LIMIT))
+                perPage: max(1, min($parameters->limit, self::MAX_LIMIT)),
             )
         );
 
@@ -70,11 +77,14 @@ readonly class FindMcpLogEntriesAction
                 fn(LogEntryViewObject $entry) => new McpLogEntryObject(
                     time: Carbon::createFromTimestampUTC($entry->loggedAt),
                     level: $this->levelName($entry->levelKey),
-                    file: $this->fileName($files, $entry->fileId),
-                    text: $entry->text
+                    file: $this->fileName(
+                        files: $files,
+                        fileId: $entry->fileId,
+                    ),
+                    text: $entry->text,
                 ),
                 $page->items
-            )
+            ),
         );
     }
 
@@ -112,7 +122,10 @@ readonly class FindMcpLogEntriesAction
             }
 
             if (!$found) {
-                throw new McpLogLevelNotFoundException($level, array_values(array_unique($known)));
+                throw new McpLogLevelNotFoundException(
+                    level: $level,
+                    levels: array_values(array_unique($known)),
+                );
             }
         }
 

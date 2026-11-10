@@ -24,13 +24,26 @@ readonly class LogErrorsEventPayloadMapper implements WatcherEventPayloadMapperI
 
         /** @var array<string, mixed> $settings */
         /** @var array<string, mixed> $measured */
-        $settingsThreshold = ArrayValueGetter::intNull($settings, 'threshold');
+        $settingsThreshold = ArrayValueGetter::intNull(
+            data: $settings,
+            key: 'threshold',
+        );
 
-        $measuredErrorCount  = ArrayValueGetter::intNull($measured, 'error_count');
-        $measuredSince       = ArrayValueGetter::stringNull($measured, 'since');
-        $measuredLastMessage = ArrayValueGetter::stringNull($measured, 'last_message');
+        $measuredErrorCount  = ArrayValueGetter::intNull(
+            data: $measured,
+            key: 'error_count',
+        );
+        $measuredSince       = ArrayValueGetter::stringNull(
+            data: $measured,
+            key: 'since',
+        );
+        $measuredLastMessage = ArrayValueGetter::stringNull(
+            data: $measured,
+            key: 'last_message',
+        );
 
-        if (is_null($settingsThreshold)
+        if (
+            is_null($settingsThreshold)
             || is_null($measuredErrorCount)
             || is_null($measuredSince)
             || is_null($measuredLastMessage)
@@ -40,20 +53,22 @@ readonly class LogErrorsEventPayloadMapper implements WatcherEventPayloadMapperI
 
         return new LogErrorsEventPayloadObject(
             settings: new LogErrorsEventSettingsObject(
-                threshold: $settingsThreshold
+                threshold: $settingsThreshold,
             ),
             measured: new LogErrorsEventMeasuredObject(
                 errorCount: $measuredErrorCount,
                 since: $measuredSince,
-                lastMessage: $measuredLastMessage
-            )
+                lastMessage: $measuredLastMessage,
+            ),
         );
     }
 
     public function toDocument(WatcherEventPayloadInterface $payload): array
     {
         if (!$payload instanceof LogErrorsEventPayloadObject) {
-            throw new LogicException('A payload of another watcher type reached this mapper');
+            throw new LogicException(
+                'A payload of another watcher type reached this mapper',
+            );
         }
 
         return [

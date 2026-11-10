@@ -26,7 +26,10 @@ readonly class BufferOverflowWatcherType implements WatcherTypeDefinitionInterfa
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
         return new BufferOverflowSettingsObject(
-            threshold: ArrayValueGetter::intNull($settings, 'threshold') ?? 1000
+            threshold: ArrayValueGetter::intNull(
+                data: $settings,
+                key: 'threshold',
+            ) ?? 1000,
         );
     }
 
@@ -35,7 +38,8 @@ readonly class BufferOverflowWatcherType implements WatcherTypeDefinitionInterfa
         return new WatcherTypeObject(
             type: WatcherTypeEnum::BufferOverflow,
             title: 'Buffer overflow',
-            description: 'Traces are piling up in the intake buffer: the receiver takes them in faster than they are saved.',
+            description: ('Traces are piling up in the intake buffer: the receiver takes '
+                . 'them in faster than they are saved.'),
             defaultCooldownSeconds: WatcherTypeEnum::BufferOverflow->defaultCooldownSeconds(),
             hasTraceFilter: false,
             fields: [
@@ -43,9 +47,9 @@ readonly class BufferOverflowWatcherType implements WatcherTypeDefinitionInterfa
                     key: 'threshold',
                     title: 'Traces in the buffer',
                     valueType: 'int',
-                    default: new BufferOverflowSettingsObject()->threshold
+                    default: new BufferOverflowSettingsObject()->threshold,
                 ),
-            ]
+            ],
         );
     }
 

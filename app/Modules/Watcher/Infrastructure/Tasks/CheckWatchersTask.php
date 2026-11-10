@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Infrastructure\Tasks;
 
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
+use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherBufferCountAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CheckWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
+use App\Modules\Watcher\Parameters\CheckWatcherParameters;
 use Illuminate\Support\Carbon;
 use SConcur\Laravel\Tasks\TaskInterface;
 use SConcur\Laravel\Tasks\TaskPoolLogger;
@@ -45,7 +46,7 @@ class CheckWatchersTask implements TaskInterface
 
     public function __construct(
         private readonly FindWatchersAction $findWatchersAction,
-        private readonly FindTraceBufferCountAction $findBufferCountAction,
+        private readonly FindWatcherBufferCountAction $findWatcherBufferCountAction,
         private readonly CheckWatcherAction $checkWatcherAction,
         private readonly TaskPoolLogger $logger
     ) {
@@ -67,8 +68,7 @@ class CheckWatchersTask implements TaskInterface
         // Marked as done only once the pass has been made. A throw on the way in — the
         // list of watchers could not be read — would otherwise burn the minute, and with
         // a window of one minute the stretch it covered is never looked at by anything.
-        $result = $this->pass($now);
-
+        $result               = $this->pass($now);
         $this->previousMinute = $now->minute;
 
         return $result;
@@ -76,7 +76,9 @@ class CheckWatchersTask implements TaskInterface
 
     private function pass(Carbon $now): TickResultEnum
     {
-        $enabled = $this->findWatchersAction->handle(enabled: true);
+        $enabled = $this->findWatchersAction->handle(
+            enabled: true,
+        );
 
         if (!count($enabled)) {
             return TickResultEnum::Idle;
@@ -84,16 +86,22 @@ class CheckWatchersTask implements TaskInterface
 
         $context = new WatcherCheckContextObject(
             now: $now,
-            bufferCount: $this->bufferCount()
+            bufferCount: $this->bufferCount(),
         );
-
         // A coroutine each. One watcher's turn is a read of its own line and, rarely, a
         // write; they share nothing, so waiting for them in turn would only add up
         // latencies.
         $waitGroup = WaitGroup::create();
 
         foreach ($enabled as $watcher) {
-            $waitGroup->add(fn() => $this->checkWatcherAction->handle($watcher, $context));
+            $waitGroup->add(
+                callback: fn() => $this->checkWatcherAction->handle(
+                    new CheckWatcherParameters(
+                        watcher: $watcher,
+                        context: $context,
+                    )
+                ),
+            );
         }
 
         $waitGroup->waitAll();
@@ -111,9 +119,12 @@ class CheckWatchersTask implements TaskInterface
     private function bufferCount(): ?int
     {
         try {
-            return $this->findBufferCountAction->handle();
+            return $this->findWatcherBufferCountAction->handle();
         } catch (Throwable $exception) {
-            $this->logger->log(self::NAME, 'failed to read the buffer size: ' . $exception->getMessage());
+            $this->logger->log(
+                scope: self::NAME,
+                message: 'failed to read the buffer size: ' . $exception->getMessage(),
+            );
 
             return null;
         }

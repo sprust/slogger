@@ -13,51 +13,127 @@ class McpPromptsTest extends TestCase
 {
     public function testArguments(): void
     {
-        $this->assertSame([['service', true], ['period', true]], $this->arguments(new InvestigateErrorsPrompt()));
         $this->assertSame(
-            [['service', true], ['period', true], ['type', false]],
-            $this->arguments(new InvestigateLatencyPrompt())
+            [
+                ['service', true],
+                ['period', true],
+            ],
+            $this->arguments(
+                new InvestigateErrorsPrompt()
+            )
         );
-        $this->assertSame([['incident_id', true]], $this->arguments(new ExplainIncidentPrompt()));
-        $this->assertSame([['trace_id', true]], $this->arguments(new ExplainTracePrompt()));
+        $this->assertSame(
+            [
+                ['service', true],
+                ['period', true],
+                ['type', false],
+            ],
+            $this->arguments(
+                new InvestigateLatencyPrompt()
+            )
+        );
+        $this->assertSame(
+            [
+                ['incident_id', true],
+            ],
+            $this->arguments(
+                new ExplainIncidentPrompt()
+            )
+        );
+        $this->assertSame(
+            [
+                ['trace_id', true],
+            ],
+            $this->arguments(
+                new ExplainTracePrompt()
+            )
+        );
     }
 
     public function testErrorsPromptNamesTheTools(): void
     {
-        $text = new InvestigateErrorsPrompt()->text(['service' => 'pms', 'period' => 'last 3 hours']);
+        $text = new InvestigateErrorsPrompt()->text(['service' => 'orders', 'period' => 'last 3 hours']);
 
-        $this->assertStringContainsString('"pms"', $text);
-        $this->assertStringContainsString('last 3 hours', $text);
+        $this->assertStringContainsString(
+            '"orders"',
+            $text
+        );
+        $this->assertStringContainsString(
+            'last 3 hours',
+            $text
+        );
 
-        foreach (['get_services', 'aggregate_traces', 'get_incidents', 'compare_trace_groups', 'search_traces', 'get_trace_tree'] as $tool) {
-            $this->assertStringContainsString($tool, $text);
+        $toolNames = [
+            'get_services',
+            'aggregate_traces',
+            'get_incidents',
+            'compare_trace_groups',
+            'search_traces',
+            'get_trace_tree',
+        ];
+
+        foreach ($toolNames as $tool) {
+            $this->assertStringContainsString(
+                $tool,
+                $text
+            );
         }
     }
 
     public function testLatencyPromptWithType(): void
     {
-        $text = new InvestigateLatencyPrompt()->text(['service' => 'pms', 'period' => 'today', 'type' => 'request']);
+        $text = new InvestigateLatencyPrompt()->text(['service' => 'orders', 'period' => 'today', 'type' => 'request']);
 
-        $this->assertStringContainsString('of type "request"', $text);
-        $this->assertStringContainsString('types ["request"]', $text);
-        $this->assertStringContainsString('aggregate_traces', $text);
-        $this->assertStringContainsString('search_trace_tree', $text);
+        $this->assertStringContainsString(
+            'of type "request"',
+            $text
+        );
+        $this->assertStringContainsString(
+            'types ["request"]',
+            $text
+        );
+        $this->assertStringContainsString(
+            'aggregate_traces',
+            $text
+        );
+        $this->assertStringContainsString(
+            'search_trace_tree',
+            $text
+        );
     }
 
     public function testLatencyPromptWithoutTypeDoesNotMentionIt(): void
     {
-        $text = new InvestigateLatencyPrompt()->text(['service' => 'pms', 'period' => 'today']);
+        $text = new InvestigateLatencyPrompt()->text(['service' => 'orders', 'period' => 'today']);
 
-        $this->assertStringNotContainsString('of type', $text);
-        $this->assertStringNotContainsString('types [', $text);
+        $this->assertStringNotContainsString(
+            'of type',
+            $text
+        );
+        $this->assertStringNotContainsString(
+            'types [',
+            $text
+        );
     }
 
     public function testIncidentAndTracePrompts(): void
     {
-        $this->assertStringContainsString('"inc-1"', new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1']));
-        $this->assertStringContainsString('get_incident_events', new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1']));
-        $this->assertStringContainsString('"t-1"', new ExplainTracePrompt()->text(['trace_id' => 't-1']));
-        $this->assertStringContainsString('get_trace_data', new ExplainTracePrompt()->text(['trace_id' => 't-1']));
+        $this->assertStringContainsString(
+            '"inc-1"',
+            new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1'])
+        );
+        $this->assertStringContainsString(
+            'get_incident_events',
+            new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1'])
+        );
+        $this->assertStringContainsString(
+            '"t-1"',
+            new ExplainTracePrompt()->text(['trace_id' => 't-1'])
+        );
+        $this->assertStringContainsString(
+            'get_trace_data',
+            new ExplainTracePrompt()->text(['trace_id' => 't-1'])
+        );
     }
 
     /**

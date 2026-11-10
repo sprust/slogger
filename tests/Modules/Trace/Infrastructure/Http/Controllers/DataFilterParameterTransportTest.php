@@ -20,8 +20,14 @@ class DataFilterParameterTransportTest extends TestCase
     {
         $parameters = new DataFilterParameterTransport()->make(['page' => 1]);
 
-        $this->assertSame([], $parameters->filter);
-        $this->assertSame([], $parameters->fields);
+        $this->assertSame(
+            [],
+            $parameters->filter
+        );
+        $this->assertSame(
+            [],
+            $parameters->fields
+        );
     }
 
     /** `data: {}` and no `data` at all mean the same thing and must not diverge. */
@@ -29,24 +35,50 @@ class DataFilterParameterTransportTest extends TestCase
     {
         $parameters = new DataFilterParameterTransport()->make(['data' => []]);
 
-        $this->assertSame([], $parameters->filter);
-        $this->assertSame([], $parameters->fields);
+        $this->assertSame(
+            [],
+            $parameters->filter
+        );
+        $this->assertSame(
+            [],
+            $parameters->fields
+        );
     }
 
     /** Half a section is still a section: fields without filter, and the other way round. */
     public function testEitherHalfOfTheSectionMayBeMissing(): void
     {
-        $fieldsOnly = new DataFilterParameterTransport()->make(['data' => ['fields' => ['a', 'b']]]);
-
-        $this->assertSame([], $fieldsOnly->filter);
-        $this->assertSame(['a', 'b'], $fieldsOnly->fields);
-
-        $filterOnly = new DataFilterParameterTransport()->make([
-            'data' => ['filter' => [['field' => 'x', 'null' => true]]],
+        $fieldsOnly = new DataFilterParameterTransport()->make([
+            'data' => [
+                'fields' => ['a', 'b'],
+            ],
         ]);
 
-        $this->assertCount(1, $filterOnly->filter);
-        $this->assertSame([], $filterOnly->fields);
+        $this->assertSame(
+            [],
+            $fieldsOnly->filter
+        );
+        $this->assertSame(
+            ['a', 'b'],
+            $fieldsOnly->fields
+        );
+
+        $filterOnly = new DataFilterParameterTransport()->make([
+            'data' => [
+                'filter' => [
+                    ['field' => 'x', 'null' => true],
+                ],
+            ],
+        ]);
+
+        $this->assertCount(
+            1,
+            $filterOnly->filter
+        );
+        $this->assertSame(
+            [],
+            $filterOnly->fields
+        );
     }
 
     /**
@@ -59,30 +91,71 @@ class DataFilterParameterTransportTest extends TestCase
             'data' => [
                 'fields' => ['user.id'],
                 'filter' => [
-                    ['field' => 'code', 'numeric' => ['value' => 500, 'comp' => '>=']],
-                    ['field' => 'name', 'string' => ['value' => 'boom', 'comp' => 'contains']],
-                    ['field' => 'ok', 'boolean' => ['value' => true]],
+                    [
+                        'field'   => 'code',
+                        'numeric' => ['value' => 500, 'comp' => '>='],
+                    ],
+                    [
+                        'field'  => 'name',
+                        'string' => ['value' => 'boom', 'comp' => 'contains'],
+                    ],
+                    [
+                        'field'   => 'ok',
+                        'boolean' => ['value' => true],
+                    ],
                     ['field' => 'empty', 'null' => true],
                     ['field' => 'missing', 'exists' => false],
                 ],
             ],
         ]);
 
-        $this->assertSame(['user.id'], $parameters->fields);
-        $this->assertCount(5, $parameters->filter);
+        $this->assertSame(
+            ['user.id'],
+            $parameters->fields
+        );
+        $this->assertCount(
+            5,
+            $parameters->filter
+        );
 
-        $this->assertSame('code', $parameters->filter[0]->field);
-        $this->assertSame(500, $parameters->filter[0]->numeric?->value);
-        $this->assertSame(TraceDataFilterCompNumericTypeEnum::Gte, $parameters->filter[0]->numeric?->comp);
+        self::assertNotNull($parameters->filter[0]->numeric);
+        $this->assertSame(
+            'code',
+            $parameters->filter[0]->field
+        );
+        $this->assertSame(
+            500,
+            $parameters->filter[0]->numeric->value
+        );
+        $this->assertSame(
+            TraceDataFilterCompNumericTypeEnum::Gte,
+            $parameters->filter[0]->numeric->comp
+        );
 
-        $this->assertSame('boom', $parameters->filter[1]->string?->value);
-        $this->assertSame(TraceDataFilterCompStringTypeEnum::Con, $parameters->filter[1]->string?->comp);
+        $this->assertSame(
+            'boom',
+            $parameters->filter[1]->string?->value
+        );
+        $this->assertSame(
+            TraceDataFilterCompStringTypeEnum::Con,
+            $parameters->filter[1]->string->comp
+        );
 
-        $this->assertTrue($parameters->filter[2]->boolean?->value);
-        $this->assertTrue($parameters->filter[3]->null);
-        $this->assertNull($parameters->filter[3]->exists);
+        $this->assertTrue(
+            $parameters->filter[2]->boolean?->value
+        );
+        $this->assertTrue(
+            $parameters->filter[3]->null
+        );
+        $this->assertNull(
+            $parameters->filter[3]->exists
+        );
 
-        $this->assertFalse($parameters->filter[4]->exists);
-        $this->assertNull($parameters->filter[4]->null);
+        $this->assertFalse(
+            $parameters->filter[4]->exists
+        );
+        $this->assertNull(
+            $parameters->filter[4]->null
+        );
     }
 }

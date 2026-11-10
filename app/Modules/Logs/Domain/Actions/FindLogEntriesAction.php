@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Actions;
 
+use App\Modules\Logs\Domain\Exceptions\LogCursorInvalidException;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
 use App\Modules\Logs\Domain\Services\Formats\LogFormatRegistry;
 use App\Modules\Logs\Domain\Services\Formats\LogLevelKeys;
@@ -40,23 +41,32 @@ readonly class FindLogEntriesAction
     ) {
     }
 
+    /**
+     * @throws LogCursorInvalidException
+     */
     public function handle(FindLogEntriesParameters $parameters): LogEntriesPageObject
     {
         $cursor = $parameters->cursor === null
             ? null
-            : $this->logCursorCodec->decode($parameters->cursor, $parameters->fileIds);
+            : $this->logCursorCodec->decode(
+                cursor: $parameters->cursor,
+                allowedFileIds: $parameters->fileIds,
+            );
 
         $direction = $cursor->direction ?? $parameters->direction;
 
         $files          = $this->findFiles($parameters->fileIds);
-        $missingFileIds = $this->findMissingFileIds($parameters->fileIds, $files);
+        $missingFileIds = $this->findMissingFileIds(
+            fileIds: $parameters->fileIds,
+            files: $files,
+        );
 
         $concurrency = max(1, (int) config('module-logs.search.concurrency'));
 
         $batch = $this->logIndexBatchRefresher->refresh(
             files: $files,
             timeBudgetMs: (int) config('module-logs.search.index_budget_ms'),
-            concurrency: $concurrency
+            concurrency: $concurrency,
         );
 
         $missingFileIds = [...$missingFileIds, ...$batch->missingFileIds];
@@ -75,12 +85,15 @@ readonly class FindLogEntriesAction
                 restartedFileIds: [],
                 missingFileIds: $missingFileIds,
                 olderCursor: $parameters->cursor,
-                newerCursor: null
+                newerCursor: null,
             );
         }
 
         $starts = array_map(
-            fn(LogFileIndexObject $fileIndex): LogFileStartObject => $this->makeStart($cursor, $fileIndex),
+            fn(LogFileIndexObject $fileIndex): LogFileStartObject => $this->makeStart(
+                cursor: $cursor,
+                fileIndex: $fileIndex,
+            ),
             $batch->files
         );
 
@@ -96,14 +109,17 @@ readonly class FindLogEntriesAction
                 meta: $start->fileIndex->meta,
                 filter: new LogEntriesFilterParameters(
                     levels: $hasLevelFilter
-                        ? $this->logLevelKeys->parseKeys($parameters->levelKeys ?? [], $file->type)
+                        ? $this->logLevelKeys->parseKeys(
+                            keys: $parameters->levelKeys ?? [],
+                            type: $file->type,
+                        )
                         : null,
                     fromTime: $parameters->fromTime,
                     toTime: $parameters->toTime,
-                    searchQuery: $parameters->searchQuery
+                    searchQuery: $parameters->searchQuery,
                 ),
                 direction: $direction,
-                position: $start->position
+                position: $start->position,
             );
         }
 
@@ -115,23 +131,29 @@ readonly class FindLogEntriesAction
             searchBlockRecords: (int) config('module-logs.search.block_records'),
             timeBudgetMs: (int) config('module-logs.search.time_budget_ms'),
             bytesBudget: (int) config('module-logs.search.bytes_budget'),
-            concurrency: $concurrency
+            concurrency: $concurrency,
         );
 
         $items = [];
 
         foreach ($result->entries as $entry) {
-            $file = $this->findFile($files, $entry->fileId);
+            $file = $this->findFile(
+                files: $files,
+                fileId: $entry->fileId,
+            );
 
             $items[] = new LogEntryViewObject(
                 fileId: $file->id,
                 type: $file->type,
                 entryNo: $entry->entryNo,
                 loggedAt: $entry->loggedAt,
-                levelKey: $this->logLevelKeys->makeKey($file->type, $entry->level),
+                levelKey: $this->logLevelKeys->makeKey(
+                    type: $file->type,
+                    level: $entry->level,
+                ),
                 details: $this->logFormatRegistry->get($file->type)->parseEntry($entry->text),
                 text: $entry->text,
-                truncated: $entry->truncated
+                truncated: $entry->truncated,
             );
         }
 
@@ -147,14 +169,21 @@ readonly class FindLogEntriesAction
             $scanned += $stream->getScannedRecords();
         }
 
-        $continueCursor = $this->makeCursor($batch->files, $direction, $result->positions);
+        $continueCursor = $this->makeCursor(
+            fileIndexes: $batch->files,
+            direction: $direction,
+            positions: $result->positions,
+        );
 
         $backCursor = $this->makeCursor(
             fileIndexes: $batch->files,
             direction: $direction === LogCursorDirectionEnum::Older
                 ? LogCursorDirectionEnum::Newer
                 : LogCursorDirectionEnum::Older,
-            positions: $this->makeBackPositions($starts, $direction)
+            positions: $this->makeBackPositions(
+                starts: $starts,
+                direction: $direction,
+            ),
         );
 
         $restartedFileIds = [];
@@ -175,8 +204,12 @@ readonly class FindLogEntriesAction
             totalBytes: $batch->totalBytes,
             restartedFileIds: $restartedFileIds,
             missingFileIds: $missingFileIds,
-            olderCursor: $direction === LogCursorDirectionEnum::Older ? $continueCursor : $backCursor,
-            newerCursor: $direction === LogCursorDirectionEnum::Newer ? $continueCursor : $backCursor
+            olderCursor: $direction === LogCursorDirectionEnum::Older
+                ? $continueCursor
+                : $backCursor,
+            newerCursor: $direction === LogCursorDirectionEnum::Newer
+                ? $continueCursor
+                : $backCursor,
         );
     }
 
@@ -214,9 +247,7 @@ readonly class FindLogEntriesAction
     {
         $foundIds = array_map(static fn(LogFileObject $file): string => $file->id, $files);
 
-        return array_values(
-            array_diff(array_values(array_unique($fileIds)), $foundIds)
-        );
+        return array_values(array_diff(array_values(array_unique($fileIds)), $foundIds));
     }
 
     /**
@@ -230,7 +261,9 @@ readonly class FindLogEntriesAction
             }
         }
 
-        throw new LogicException(sprintf('File [%s] is not in the scope', $fileId));
+        throw new LogicException(
+            sprintf('File [%s] is not in the scope', $fileId)
+        );
     }
 
     /**
@@ -244,7 +277,10 @@ readonly class FindLogEntriesAction
 
         foreach ($fileIndexes as $fileIndex) {
             foreach ($fileIndex->meta->levelCounts as $levelCount) {
-                $key = $this->logLevelKeys->makeKey($fileIndex->file->type, $levelCount->level);
+                $key = $this->logLevelKeys->makeKey(
+                    type: $fileIndex->file->type,
+                    level: $levelCount->level,
+                );
 
                 $counts[$key] = ($counts[$key] ?? 0) + $levelCount->count;
             }
@@ -255,29 +291,57 @@ readonly class FindLogEntriesAction
         $levelCounts = [];
 
         foreach ($counts as $key => $count) {
-            $levelCounts[] = new LogLevelKeyCountObject(key: (string) $key, count: $count);
+            $levelCounts[] = new LogLevelKeyCountObject(
+                key: (string) $key,
+                count: $count,
+            );
         }
 
         return $levelCounts;
     }
 
-    private function makeStart(?LogCursorObject $cursor, LogFileIndexObject $fileIndex): LogFileStartObject
-    {
-        $position = $this->findCursorPosition($cursor, $fileIndex->file->id);
+    private function makeStart(
+        ?LogCursorObject $cursor,
+        LogFileIndexObject $fileIndex
+    ): LogFileStartObject {
+        $position = $this->findCursorPosition(
+            cursor: $cursor,
+            fileId: $fileIndex->file->id,
+        );
 
         if ($position === null) {
-            return new LogFileStartObject(fileIndex: $fileIndex, position: null, restarted: false);
+            return new LogFileStartObject(
+                fileIndex: $fileIndex,
+                position: null,
+                restarted: false,
+            );
         }
 
-        if ($position->position > $fileIndex->meta->entriesCount || !$this->hasSameHead($fileIndex, $position)) {
-            return new LogFileStartObject(fileIndex: $fileIndex, position: null, restarted: true);
+        if (
+            $position->position > $fileIndex->meta->entriesCount
+            || !$this->hasSameHead(
+                fileIndex: $fileIndex,
+                position: $position,
+            )
+        ) {
+            return new LogFileStartObject(
+                fileIndex: $fileIndex,
+                position: null,
+                restarted: true,
+            );
         }
 
-        return new LogFileStartObject(fileIndex: $fileIndex, position: $position->position, restarted: false);
+        return new LogFileStartObject(
+            fileIndex: $fileIndex,
+            position: $position->position,
+            restarted: false,
+        );
     }
 
-    private function findCursorPosition(?LogCursorObject $cursor, string $fileId): ?LogCursorPositionObject
-    {
+    private function findCursorPosition(
+        ?LogCursorObject $cursor,
+        string $fileId
+    ): ?LogCursorPositionObject {
         foreach ($cursor->positions ?? [] as $position) {
             if ($position->fileId === $fileId) {
                 return $position;
@@ -287,8 +351,10 @@ readonly class FindLogEntriesAction
         return null;
     }
 
-    private function hasSameHead(LogFileIndexObject $fileIndex, LogCursorPositionObject $position): bool
-    {
+    private function hasSameHead(
+        LogFileIndexObject $fileIndex,
+        LogCursorPositionObject $position
+    ): bool {
         $meta = $fileIndex->meta;
 
         if ($meta->headLength === $position->headLength) {
@@ -299,7 +365,11 @@ readonly class FindLogEntriesAction
             return false;
         }
 
-        $head = $this->logFileRepository->read($fileIndex->file->path, 0, $position->headLength);
+        $head = $this->logFileRepository->read(
+            path: $fileIndex->file->path,
+            offset: 0,
+            length: $position->headLength,
+        );
 
         return md5($head) === $position->headHash;
     }
@@ -315,12 +385,17 @@ readonly class FindLogEntriesAction
 
         foreach ($starts as $start) {
             if ($direction === LogCursorDirectionEnum::Older) {
-                $position = $start->position === null ? $start->fileIndex->meta->entriesCount : $start->position + 1;
+                $position = $start->position === null
+                    ? $start->fileIndex->meta->entriesCount
+                    : $start->position + 1;
             } else {
                 $position = $start->position === null ? -1 : $start->position - 1;
             }
 
-            $positions[] = new LogFilePositionObject(fileId: $start->fileIndex->file->id, position: $position);
+            $positions[] = new LogFilePositionObject(
+                fileId: $start->fileIndex->file->id,
+                position: $position,
+            );
         }
 
         return $positions;
@@ -330,8 +405,11 @@ readonly class FindLogEntriesAction
      * @param list<LogFileIndexObject>    $fileIndexes
      * @param list<LogFilePositionObject> $positions
      */
-    private function makeCursor(array $fileIndexes, LogCursorDirectionEnum $direction, array $positions): ?string
-    {
+    private function makeCursor(
+        array $fileIndexes,
+        LogCursorDirectionEnum $direction,
+        array $positions
+    ): ?string {
         $cursorPositions = [];
         $hasMore         = false;
 
@@ -349,7 +427,7 @@ readonly class FindLogEntriesAction
                     fileId: $position->fileId,
                     position: $position->position,
                     headLength: $fileIndex->meta->headLength,
-                    headHash: $fileIndex->meta->headHash
+                    headHash: $fileIndex->meta->headHash,
                 );
             }
         }
@@ -359,7 +437,10 @@ readonly class FindLogEntriesAction
         }
 
         return $this->logCursorCodec->encode(
-            new LogCursorObject(direction: $direction, positions: $cursorPositions)
+            new LogCursorObject(
+                direction: $direction,
+                positions: $cursorPositions,
+            )
         );
     }
 }

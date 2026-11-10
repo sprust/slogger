@@ -1,38 +1,39 @@
 <?php
 
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;
-use Ifksco\OpenApiGenerator\Converters\Request\Rules\OaRuleAsStringConverter;
+use Ifksco\OpenApiGenerator\Sources\Illuminate\Converters\Request\Rules\OaRuleAsStringConverter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\ProhibitedIf;
 use Illuminate\Validation\Rules\RequiredIf;
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractStreamedApiResource;
 
 return [
-    'routes'               => [
-        // name => ['routes-prefix']
-        'admin-api'  => [
-            'admin-api',
-        ],
-        'traces-api' => [
-            'traces-api',
-        ],
-    ],
+    'sources'              => [App\Services\OpenApiGenerator\Sources\Illuminate\AdminApiRoutesParser::class],
     'security_middlewares' => [
         \App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware::class,
     ],
     'disks'                => [
-        'public'  => 'api-json-schemes-public',
-        'private' => 'api-json-schemes',
+        [
+            'alias'     => 'public',
+            'name'      => 'api-json-schemes-public',
+            'is_public' => true,
+        ],
+        [
+            'alias'     => 'private',
+            'name'      => 'api-json-schemes',
+            'is_public' => false,
+        ],
     ],
     'classes'              => [
-        'request_parent_class'   => FormRequest::class,
-        'resources_parent_class' => [
+        'request_parent_class'     => FormRequest::class,
+        'resources_parent_classes' => [
             AbstractApiResource::class,
             AbstractStreamedApiResource::class,
         ],
     ],
     'custom'               => [
-        'responses' => [
+        'path_extensions' => [],
+        'responses'       => [
             // list of custom resources
         ],
         'requests'  => [

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Infrastructure;
 
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Watcher\Infrastructure\Exceptions\WatcherExceptionManager;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Watcher\Domain\Actions\Mutations\CheckWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CloseIncidentAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CreateWatcherAction;
@@ -43,9 +44,14 @@ use App\Modules\Watcher\Repositories\WatcherIncidentEventRepository;
 use App\Modules\Watcher\Repositories\WatcherIncidentRepository;
 use App\Modules\Watcher\Repositories\WatcherRepository;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
+use Illuminate\Console\Scheduling\Schedule;
 
 class WatcherServiceProvider extends BaseServiceProvider
 {
+    public static function setSchedule(Schedule $schedule): void
+    {
+    }
+
     protected function getContracts(): array
     {
         return [
@@ -92,5 +98,25 @@ class WatcherServiceProvider extends BaseServiceProvider
             CloseIncidentAction::class,
             TrimWatcherTimelineAction::class,
         ];
+    }
+
+    protected function getExceptionManagerClass(): ?string
+    {
+        return WatcherExceptionManager::class;
+    }
+
+    protected function getCommands(): array
+    {
+        return [];
+    }
+
+    protected function getJobs(): array
+    {
+        return [];
+    }
+
+    protected function getListeners(): array
+    {
+        return [];
     }
 }

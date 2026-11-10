@@ -27,10 +27,30 @@ trait WatcherTraceFilterTrait
 
         /** @var array<string, mixed> $filter */
         return new WatcherTraceFilterObject(
-            serviceIds: array_values(ArrayValueGetter::arrayIntNull($filter, 'service_ids') ?? []),
-            types: array_values(ArrayValueGetter::arrayStringNull($filter, 'types') ?? []),
-            tags: array_values(ArrayValueGetter::arrayStringNull($filter, 'tags') ?? []),
-            statuses: array_values(ArrayValueGetter::arrayStringNull($filter, 'statuses') ?? [])
+            serviceIds: array_values(
+                ArrayValueGetter::arrayIntNull(
+                    data: $filter,
+                    key: 'service_ids',
+                ) ?? []
+            ),
+            types: array_values(
+                ArrayValueGetter::arrayStringNull(
+                    data: $filter,
+                    key: 'types',
+                ) ?? []
+            ),
+            tags: array_values(
+                ArrayValueGetter::arrayStringNull(
+                    data: $filter,
+                    key: 'tags',
+                ) ?? []
+            ),
+            statuses: array_values(
+                ArrayValueGetter::arrayStringNull(
+                    data: $filter,
+                    key: 'statuses',
+                ) ?? []
+            ),
         );
     }
 }

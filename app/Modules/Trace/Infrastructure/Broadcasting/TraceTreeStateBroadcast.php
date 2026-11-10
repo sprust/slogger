@@ -23,9 +23,8 @@ use Illuminate\Contracts\Broadcasting\ShouldRescue;
  */
 class TraceTreeStateBroadcast implements ShouldBroadcastNow, ShouldRescue
 {
-    public function __construct(
-        private readonly TraceTreeCacheStateObject $state,
-    ) {
+    public function __construct(private readonly TraceTreeCacheStateObject $state)
+    {
     }
 
     /**
@@ -33,9 +32,7 @@ class TraceTreeStateBroadcast implements ShouldBroadcastNow, ShouldRescue
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('sl-trace-tree.' . $this->state->rootTraceId),
-        ];
+        return [new PrivateChannel('sl-trace-tree.' . $this->state->rootTraceId)];
     }
 
     public function broadcastAs(): string

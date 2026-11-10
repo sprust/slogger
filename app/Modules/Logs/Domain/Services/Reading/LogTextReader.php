@@ -16,9 +16,8 @@ readonly class LogTextReader
     private const int MAX_RANGE_BYTES = 8 * 1024 * 1024;
     private const int CONCURRENCY     = 8;
 
-    public function __construct(
-        private LogFileRepository $logFileRepository
-    ) {
+    public function __construct(private LogFileRepository $logFileRepository)
+    {
     }
 
     /**
@@ -32,9 +31,15 @@ readonly class LogTextReader
             return [];
         }
 
-        $ranges = $this->makeRanges($records, $maxEntryBytes);
+        $ranges = $this->makeRanges(
+            records: $records,
+            maxEntryBytes: $maxEntryBytes,
+        );
 
-        $chunks = $this->readRanges($path, $ranges);
+        $chunks = $this->readRanges(
+            path: $path,
+            ranges: $ranges,
+        );
 
         $texts = [];
 
@@ -46,7 +51,7 @@ readonly class LogTextReader
                         $chunks[$index],
                         $record->offset - $range->offset,
                         min($record->length, $maxEntryBytes)
-                    )
+                    ),
                 );
             }
         }
@@ -63,7 +68,11 @@ readonly class LogTextReader
     {
         if (count($ranges) === 1) {
             return [
-                $this->logFileRepository->read($path, $ranges[0]->offset, $ranges[0]->length),
+                $this->logFileRepository->read(
+                    path: $path,
+                    offset: $ranges[0]->offset,
+                    length: $ranges[0]->length,
+                ),
             ];
         }
 
@@ -73,7 +82,11 @@ readonly class LogTextReader
 
         foreach ($ranges as $range) {
             $keys[] = $waitGroup->add(
-                fn(): string => $this->logFileRepository->read($path, $range->offset, $range->length)
+                fn(): string => $this->logFileRepository->read(
+                    path: $path,
+                    offset: $range->offset,
+                    length: $range->length,
+                )
             );
         }
 
@@ -97,7 +110,10 @@ readonly class LogTextReader
     {
         usort(
             $records,
-            static fn(LogIndexRecordObject $left, LogIndexRecordObject $right): int => $left->offset <=> $right->offset
+            static fn(
+                LogIndexRecordObject $left,
+                LogIndexRecordObject $right
+            ): int => $left->offset <=> $right->offset
         );
 
         $ranges = [];
@@ -117,7 +133,7 @@ readonly class LogTextReader
                 $ranges[] = new LogTextRangeObject(
                     offset: $rangeOffset,
                     length: $rangeEnd - $rangeOffset,
-                    records: $rangeRecords
+                    records: $rangeRecords,
                 );
 
                 $rangeOffset  = $record->offset;
@@ -133,7 +149,7 @@ readonly class LogTextReader
         $ranges[] = new LogTextRangeObject(
             offset: $rangeOffset,
             length: $rangeEnd - $rangeOffset,
-            records: $rangeRecords
+            records: $rangeRecords,
         );
 
         return $ranges;

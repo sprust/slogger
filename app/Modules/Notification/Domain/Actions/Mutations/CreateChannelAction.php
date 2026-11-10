@@ -29,16 +29,13 @@ readonly class CreateChannelAction
                 name: $parameters->name,
                 type: $parameters->type->value,
                 enabled: $parameters->enabled,
-                settings: $settings->toArray()
+                settings: $settings->toArray(),
             )
         );
 
         if (is_null($channel)) {
             throw new LogicException(
-                sprintf(
-                    "Notification channel of type [%s] could not be read back",
-                    $parameters->type->value
-                )
+                sprintf("Notification channel of type [%s] could not be read back", $parameters->type->value)
             );
         }
 

@@ -3,7 +3,6 @@
 use Illuminate\Support\Str;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Session Driver
@@ -19,7 +18,6 @@ return [
     */
 
     'driver' => env('SESSION_DRIVER', 'file'),
-
     /*
     |--------------------------------------------------------------------------
     | Session Lifetime
@@ -31,10 +29,8 @@ return [
     |
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
-
+    'lifetime'        => env('SESSION_LIFETIME', 120),
     'expire_on_close' => false,
-
     /*
     |--------------------------------------------------------------------------
     | Session Encryption
@@ -47,7 +43,6 @@ return [
     */
 
     'encrypt' => false,
-
     /*
     |--------------------------------------------------------------------------
     | Session File Location
@@ -60,7 +55,6 @@ return [
     */
 
     'files' => storage_path('framework/sessions'),
-
     /*
     |--------------------------------------------------------------------------
     | Session Database Connection
@@ -73,7 +67,6 @@ return [
     */
 
     'connection' => env('SESSION_CONNECTION'),
-
     /*
     |--------------------------------------------------------------------------
     | Session Database Table
@@ -86,7 +79,6 @@ return [
     */
 
     'table' => 'sessions',
-
     /*
     |--------------------------------------------------------------------------
     | Session Cache Store
@@ -101,7 +93,6 @@ return [
     */
 
     'store' => env('SESSION_STORE'),
-
     /*
     |--------------------------------------------------------------------------
     | Session Sweeping Lottery
@@ -114,7 +105,6 @@ return [
     */
 
     'lottery' => [2, 100],
-
     /*
     |--------------------------------------------------------------------------
     | Session Cookie Name
@@ -128,9 +118,9 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
+        Str::slug(env('APP_NAME', 'laravel'), '_')
+            . '_session'
     ),
-
     /*
     |--------------------------------------------------------------------------
     | Session Cookie Path
@@ -143,7 +133,6 @@ return [
     */
 
     'path' => '/',
-
     /*
     |--------------------------------------------------------------------------
     | Session Cookie Domain
@@ -156,7 +145,6 @@ return [
     */
 
     'domain' => env('SESSION_DOMAIN'),
-
     /*
     |--------------------------------------------------------------------------
     | HTTPS Only Cookies
@@ -169,7 +157,6 @@ return [
     */
 
     'secure' => env('SESSION_SECURE_COOKIE'),
-
     /*
     |--------------------------------------------------------------------------
     | HTTP Access Only
@@ -182,7 +169,6 @@ return [
     */
 
     'http_only' => true,
-
     /*
     |--------------------------------------------------------------------------
     | Same-Site Cookies
@@ -197,7 +183,6 @@ return [
     */
 
     'same_site' => 'lax',
-
     /*
     |--------------------------------------------------------------------------
     | Partitioned Cookies
@@ -210,5 +195,4 @@ return [
     */
 
     'partitioned' => false,
-
 ];

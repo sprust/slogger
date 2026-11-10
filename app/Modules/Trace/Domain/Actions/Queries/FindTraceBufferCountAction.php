@@ -8,9 +8,8 @@ use App\Modules\Trace\Repositories\TraceBufferRepository;
 
 readonly class FindTraceBufferCountAction
 {
-    public function __construct(
-        private TraceBufferRepository $bufferRepository
-    ) {
+    public function __construct(private TraceBufferRepository $bufferRepository)
+    {
     }
 
     public function handle(): int

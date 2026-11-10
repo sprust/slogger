@@ -14,10 +14,19 @@ class TraceTreeRepositoryTest extends TestCase
     {
         // root -> a -> (root, b), b -> a: each trace is met once
         $client = new FakeClickhouseClient([
-            [['tid' => 'a']],
-            [['tid' => 'root'], ['tid' => 'b']],
-            [['tid' => 'a']],
-            [['tid' => 'unexpected']],
+            [
+                ['tid' => 'a'],
+            ],
+            [
+                ['tid' => 'root'],
+                ['tid' => 'b'],
+            ],
+            [
+                ['tid' => 'a'],
+            ],
+            [
+                ['tid' => 'unexpected'],
+            ],
         ]);
 
         $traceIds = [];
@@ -26,15 +35,26 @@ class TraceTreeRepositoryTest extends TestCase
             array_push($traceIds, ...$chunk);
         }
 
-        $this->assertSame(['a', 'b'], $traceIds);
-        $this->assertCount(3, $client->selects);
+        $this->assertSame(
+            ['a', 'b'],
+            $traceIds
+        );
+        $this->assertCount(
+            3,
+            $client->selects
+        );
     }
 
     public function testChildrenAreAskedInBatchesOfParents(): void
     {
         $client = new FakeClickhouseClient([
-            [['tid' => 'c1']],
-            [['tid' => 'c2'], ['tid' => 'c3']],
+            [
+                ['tid' => 'c1'],
+            ],
+            [
+                ['tid' => 'c2'],
+                ['tid' => 'c3'],
+            ],
             [],
         ]);
 
@@ -46,7 +66,19 @@ class TraceTreeRepositoryTest extends TestCase
             $childIds[] = $chunk;
         }
 
-        $this->assertSame([[5000], [5000], [1]], array_map(static fn($select) => [count($select['params']['parents'])], $client->selects));
-        $this->assertSame([['c1', 'c2'], ['c3']], $childIds);
+        $this->assertSame(
+            [[5000], [5000], [1]],
+            array_map(
+                static fn($select) => [count($select['params']['parents'])],
+                $client->selects
+            )
+        );
+        $this->assertSame(
+            [
+                ['c1', 'c2'],
+                ['c3'],
+            ],
+            $childIds
+        );
     }
 }

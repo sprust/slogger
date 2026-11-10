@@ -9,7 +9,7 @@ use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
 use App\Modules\Trace\Domain\Services\TraceTreeCacheBuilderService;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use Throwable;
 
 readonly class BuildTraceTreeCacheAction
@@ -18,16 +18,28 @@ readonly class BuildTraceTreeCacheAction
         private TraceTreeCacheBuilderService $traceTreeCacheBuilderService,
         private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
         private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
-        private Dispatcher $events,
+        private DispatcherInterface $dispatcher
     ) {
     }
 
-    public function handle(string $rootTraceId, string $version, int $depth = 0, ?string $afterId = null): void
-    {
+    public function handle(
+        string $rootTraceId,
+        string $version,
+        int $depth = 0,
+        ?string $afterId = null
+    ): void {
         // Announced outside build(), and outside its catch: markFailed() filters by
         // version alone, so anything thrown while announcing a finished build would be
         // caught there and record that build as failed.
-        $this->announce($rootTraceId, $this->build($rootTraceId, $version, $depth, $afterId));
+        $this->announce(
+            rootTraceId: $rootTraceId,
+            marked: $this->build(
+                rootTraceId: $rootTraceId,
+                version: $version,
+                depth: $depth,
+                afterId: $afterId,
+            ),
+        );
     }
 
     /**
@@ -43,7 +55,7 @@ readonly class BuildTraceTreeCacheAction
             if (
                 !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
                     rootTraceId: $rootTraceId,
-                    version: $version
+                    version: $version,
                 )
             ) {
                 return false;
@@ -61,7 +73,7 @@ readonly class BuildTraceTreeCacheAction
             }
 
             if (!$slice->finished) {
-                $this->events->dispatch(
+                $this->dispatcher->event(
                     new TraceTreeCacheBuildRequestedEvent(
                         rootTraceId: $rootTraceId,
                         version: $version,
@@ -78,7 +90,12 @@ readonly class BuildTraceTreeCacheAction
                 version: $version,
             );
         } catch (Throwable $exception) {
-            if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {
+            if (
+                !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
+                    rootTraceId: $rootTraceId,
+                    version: $version,
+                )
+            ) {
                 return false;
             }
 
@@ -108,6 +125,6 @@ readonly class BuildTraceTreeCacheAction
             return;
         }
 
-        $this->events->dispatch(new TraceTreeCacheStateChangedEvent($state));
+        $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
     }
 }

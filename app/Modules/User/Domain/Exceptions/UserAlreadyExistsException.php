@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Domain\Exceptions;
 
-use Exception;
-
-class UserAlreadyExistsException extends Exception
+class UserAlreadyExistsException extends AbstractUserException
 {
     public function __construct(string $email)
     {

@@ -6,7 +6,7 @@ namespace App\Modules;
 
 use App\Modules\Auth\Infrastructure\AuthServiceProvider;
 use App\Modules\Cleaner\Infrastructure\CleanerServiceProvider;
-use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\Providers\BaseServiceProvider;
 use App\Modules\Common\Infrastructure\CommonServiceProvider;
 use App\Modules\Dashboard\Infrastructure\DashboardProvider;
 use App\Modules\Logs\Infrastructure\LogsServiceProvider;

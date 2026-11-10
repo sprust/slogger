@@ -26,7 +26,10 @@ readonly class TraceMetricReader
             }
 
             /** @var array<string, mixed> $document */
-            $type = ArrayValueGetter::stringNull($document, 'tp');
+            $type = ArrayValueGetter::stringNull(
+                data: $document,
+                key: 'tp',
+            );
             $slot = $document['t'] ?? null;
 
             if (is_null($type) || !$slot instanceof UTCDateTime) {
@@ -36,15 +39,27 @@ readonly class TraceMetricReader
             $metrics[] = new TraceMetricObject(
                 type: $type,
                 timestamp: new Carbon($slot->toDateTime()),
-                logged: ArrayValueGetter::intNull($document, 'lc') ?? 0,
-                buffered: ArrayValueGetter::intNull($document, 'bc') ?? 0,
-                stored: ArrayValueGetter::intNull($document, 'sc') ?? 0
+                logged: ArrayValueGetter::intNull(
+                    data: $document,
+                    key: 'lc',
+                ) ?? 0,
+                buffered: ArrayValueGetter::intNull(
+                    data: $document,
+                    key: 'bc',
+                ) ?? 0,
+                stored: ArrayValueGetter::intNull(
+                    data: $document,
+                    key: 'sc',
+                ) ?? 0,
             );
         }
 
         usort(
             $metrics,
-            static fn(TraceMetricObject $a, TraceMetricObject $b): int => [$a->timestamp->getTimestamp(), $a->type]
+            static fn(
+                TraceMetricObject $a,
+                TraceMetricObject $b
+            ): int => [$a->timestamp->getTimestamp(), $a->type]
                 <=> [$b->timestamp->getTimestamp(), $b->type]
         );
 

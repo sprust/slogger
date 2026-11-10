@@ -13,7 +13,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpIncidentsParameters;
-use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
+use App\Modules\Mcp\Enums\McpIncidentStatusEnum;
 
 readonly class GetIncidentsTool implements McpToolInterface
 {
@@ -37,49 +37,50 @@ readonly class GetIncidentsTool implements McpToolInterface
     {
         return sprintf(
             'Incidents raised by SLogger watchers, open ones first, then newest first, %d per page. '
-            . 'Each incident carries its watcher with the service ids the watcher is limited to '
-            . '(empty means all services): filter by service yourself.',
+                . 'Each incident carries its watcher with the service ids the watcher is limited to '
+                . '(empty means all services): filter by service yourself.',
             FindMcpIncidentsAction::PER_PAGE
         );
     }
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            new McpToolProperty(
-                name: 'status',
-                type: McpToolPropertyTypeEnum::String,
-                description: 'Only incidents in this status.',
-                enum: array_map(
-                    static fn(WatcherIncidentStatusEnum $status) => $status->value,
-                    WatcherIncidentStatusEnum::cases()
-                )
-            ),
-            new McpToolProperty(
-                name: 'watcher_id',
-                type: McpToolPropertyTypeEnum::Integer,
-                description: 'Only incidents of this watcher.',
-                min: 1
-            ),
-            new McpToolProperty(
-                name: 'page',
-                type: McpToolPropertyTypeEnum::Integer,
-                description: 'Page number, starting at 1.',
-                min: 1
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                new McpToolProperty(
+                    name: 'status',
+                    type: McpToolPropertyTypeEnum::String,
+                    description: 'Only incidents in this status.',
+                    enum: array_map(
+                        static fn(McpIncidentStatusEnum $status) => $status->value,
+                        McpIncidentStatusEnum::cases()
+                    ),
+                ),
+                new McpToolProperty(
+                    name: 'watcher_id',
+                    type: McpToolPropertyTypeEnum::Integer,
+                    description: 'Only incidents of this watcher.',
+                    min: 1,
+                ),
+                new McpToolProperty(
+                    name: 'page',
+                    type: McpToolPropertyTypeEnum::Integer,
+                    description: 'Page number, starting at 1.',
+                    min: 1,
+                ),
+            ],
+        );
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
     {
         $status = $arguments->stringNull('status');
         $page   = $arguments->intNull('page') ?? 1;
-
         $result = $this->findMcpIncidentsAction->handle(
             new FindMcpIncidentsParameters(
-                status: is_null($status) ? null : WatcherIncidentStatusEnum::from($status),
+                status: is_null($status) ? null : McpIncidentStatusEnum::from($status),
                 watcherId: $arguments->intNull('watcher_id'),
-                page: $page
+                page: $page,
             )
         );
 
@@ -91,7 +92,7 @@ readonly class GetIncidentsTool implements McpToolInterface
                 ),
                 'page'      => $page,
                 'has_more'  => $result->hasMore,
-            ]
+            ],
         );
     }
 }

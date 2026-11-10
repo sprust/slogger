@@ -9,9 +9,8 @@ readonly class McpToolRegistry
     /**
      * @param McpToolInterface[] $tools
      */
-    public function __construct(
-        private array $tools
-    ) {
+    public function __construct(private array $tools)
+    {
     }
 
     /**

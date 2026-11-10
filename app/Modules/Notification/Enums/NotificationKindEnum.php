@@ -7,6 +7,6 @@ namespace App\Modules\Notification\Enums;
 enum NotificationKindEnum: string
 {
     case Opened = 'opened';
-    case Event = 'event';
+    case Event  = 'event';
     case Closed = 'closed';
 }

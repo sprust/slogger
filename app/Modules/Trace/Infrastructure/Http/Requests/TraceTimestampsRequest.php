@@ -18,24 +18,23 @@ class TraceTimestampsRequest extends FormRequest
             'timestamp_period' => [
                 'required',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceTimestampPeriodEnum $enum) => $enum->value,
-                        TraceTimestampPeriodEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(
+                            fn(TraceTimestampPeriodEnum $enum) => $enum->value,
+                            TraceTimestampPeriodEnum::cases()
+                        )
+                    ),
             ],
             'timestamp_step'   => [
                 'required',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceTimestampEnum $enum) => $enum->value,
-                        TraceTimestampEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(fn(TraceTimestampEnum $enum) => $enum->value, TraceTimestampEnum::cases())
+                    ),
             ],
             'fields'           => [
                 'sometimes',
@@ -44,13 +43,14 @@ class TraceTimestampsRequest extends FormRequest
             'fields.*'         => [
                 'required',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceMetricFieldEnum $enum) => $enum->value,
-                        TraceMetricFieldEnum::cases()
-                    )
-                ),
+                'in:'
+                    . implode(
+                        ',',
+                        array_map(
+                            fn(TraceMetricFieldEnum $enum) => $enum->value,
+                            TraceMetricFieldEnum::cases()
+                        )
+                    ),
             ],
             'data_fields'      => [
                 'sometimes',
