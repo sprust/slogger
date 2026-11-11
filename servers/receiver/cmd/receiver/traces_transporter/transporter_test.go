@@ -2,14 +2,12 @@ package traces_transporter
 
 import (
 	"context"
-	"errors"
-	"io"
 	"slices"
 	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/repositories/buffer_repository"
-	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
-	"slogger_receiver/internal/services/periodic_trace_service"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger_receiver/internal/modules/buffer/entities"
+	bufferErrors "slogger_receiver/internal/modules/buffer/errors"
+	traceEntities "slogger_receiver/internal/modules/trace/entities"
+	traceErrors "slogger_receiver/internal/modules/trace/errors"
 	"sync"
 	"testing"
 	"time"
@@ -59,37 +57,6 @@ func TestSplitIdsSendsTheWholeBatchBackWhenItFailed(t *testing.T) {
 	}
 }
 
-func TestAStoreOutOfReachIsNotTheBatchsFault(t *testing.T) {
-	unavailable := []error{
-		errors.New(`Post "http://clickhouse:8123/?database=slogger": dial tcp 172.18.0.5:8123: connect: connection refused`),
-		&clickhouse_trace_repository.QueryError{Code: 241, Message: "Code: 241. DB::Exception: (total) memory limit exceeded: would use 4.01 GiB"},
-		&clickhouse_trace_repository.QueryError{Code: 252, Message: "Code: 252. DB::Exception: Too many parts (3001) in table"},
-		&clickhouse_trace_repository.QueryError{Code: 60, Message: "Code: 60. DB::Exception: Unknown table expression identifier 'traces' in scope SELECT"},
-		errors.New("server selection error: context deadline exceeded"),
-		io.ErrUnexpectedEOF,
-		context.DeadlineExceeded,
-	}
-
-	for _, err := range unavailable {
-		if !isUnavailable(errs.Err(errs.Err(err))) {
-			t.Fatalf("taken for a fault of the batch: %v", err)
-		}
-	}
-
-	// The answer quotes the rejected data, and the data may say anything.
-	faults := []error{
-		&clickhouse_trace_repository.QueryError{Code: 27, Message: `Code: 27. DB::Exception: Cannot parse input: expected '"' before: 'connection refused, unexpected EOF, Code: 241.'`},
-		&clickhouse_trace_repository.QueryError{Code: 117, Message: `Code: 117. DB::Exception: Cannot parse JSON object here: {"error":"i/o timeout"}`},
-		&clickhouse_trace_repository.QueryError{Code: 53, Message: "Code: 53. DB::Exception: Type mismatch"},
-	}
-
-	for _, err := range faults {
-		if isUnavailable(errs.Err(errs.Err(err))) {
-			t.Fatalf("taken for an outage: %v", err)
-		}
-	}
-}
-
 func TestFailedBatchesWaitLongerEachTime(t *testing.T) {
 	var pause time.Duration
 
@@ -120,7 +87,7 @@ type fakeBuffer struct {
 	marked  map[primitive.ObjectID]int
 }
 
-func (b *fakeBuffer) FindForTransporter(context.Context) (map[int]*dto.ServiceTraces, []buffer_repository.InvalidDoc, error) {
+func (b *fakeBuffer) FindForTransporter(context.Context) (map[int]*dto.ServiceTraces, []entities.InvalidDoc, bufferErrors.BufferError) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -134,13 +101,13 @@ func (b *fakeBuffer) FindForTransporter(context.Context) (map[int]*dto.ServiceTr
 	return batch, nil, nil
 }
 
-func (b *fakeBuffer) MoveToInvalid(context.Context, []buffer_repository.InvalidDoc) error {
+func (b *fakeBuffer) MoveToInvalid(context.Context, []entities.InvalidDoc) bufferErrors.BufferError {
 	return nil
 }
 
-func (b *fakeBuffer) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error) {
+func (b *fakeBuffer) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, bufferErrors.BufferError) {
 	if ctx.Err() != nil {
-		return 0, ctx.Err()
+		return 0, bufferErrors.Internal(ctx.Err())
 	}
 
 	b.mutex.Lock()
@@ -154,7 +121,7 @@ func (b *fakeBuffer) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) 
 	return int64(len(ids)), nil
 }
 
-func (b *fakeBuffer) MarkFailed(_ context.Context, ids []primitive.ObjectID, _ int) error {
+func (b *fakeBuffer) MarkFailed(_ context.Context, ids []primitive.ObjectID, _ int) bufferErrors.BufferError {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -172,11 +139,11 @@ type fakeStore struct {
 	saved  []primitive.ObjectID
 }
 
-func (s *fakeStore) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (periodic_trace_service.Result, error) {
+func (s *fakeStore) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (traceEntities.Result, traceErrors.TraceError) {
 	s.cancel()
 
 	if ctx.Err() != nil {
-		return periodic_trace_service.Result{}, ctx.Err()
+		return traceEntities.Result{}, traceErrors.Internal(ctx.Err())
 	}
 
 	for _, traces := range batch {
@@ -185,11 +152,10 @@ func (s *fakeStore) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) 
 		}
 	}
 
-	return periodic_trace_service.Result{Saved: len(s.saved)}, nil
+	return traceEntities.Result{Saved: len(s.saved)}, nil
 }
 
-// A stop in the middle of a save lets that batch finish and leave the buffer: cut off, its
-// insert could have reached ClickHouse and be saved and counted again after the restart.
+// Shutdown must let the saved batch leave the buffer so a restart does not count it again.
 func TestAStopLetsTheBatchBeingSavedFinish(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -203,7 +169,7 @@ func TestAStopLetsTheBatchBeingSavedFinish(t *testing.T) {
 	store := &fakeStore{cancel: cancel}
 	flushed := false
 
-	transporter := &Transporter{bufferService: buffer, periodicTraceService: store}
+	transporter := &Transporter{buffer: buffer, periodicTrace: store}
 	transporter.flush = func() { flushed = true }
 
 	if err := transporter.Run(ctx); err != nil {
@@ -230,12 +196,12 @@ type hangingStore struct {
 	cancel context.CancelFunc
 }
 
-func (s *hangingStore) Save(ctx context.Context, _ map[int]*dto.ServiceTraces) (periodic_trace_service.Result, error) {
+func (s *hangingStore) Save(ctx context.Context, _ map[int]*dto.ServiceTraces) (traceEntities.Result, traceErrors.TraceError) {
 	s.cancel()
 
 	<-ctx.Done()
 
-	return periodic_trace_service.Result{}, ctx.Err()
+	return traceEntities.Result{}, traceErrors.Internal(ctx.Err())
 }
 
 // A save that does not finish within the stop's deadline is cut off, and its batch stays in
@@ -255,7 +221,7 @@ func TestAStopCutsOffASaveThatHangs(t *testing.T) {
 		buffer.ids = append(buffer.ids, primitive.ObjectID{byte(index + 1)})
 	}
 
-	transporter := &Transporter{bufferService: buffer, periodicTraceService: &hangingStore{cancel: cancel}}
+	transporter := &Transporter{buffer: buffer, periodicTrace: &hangingStore{cancel: cancel}}
 	transporter.flush = func() {}
 
 	started := time.Now()
@@ -271,4 +237,14 @@ func TestAStopCutsOffASaveThatHangs(t *testing.T) {
 	if len(buffer.marked) != 0 || len(buffer.deleted) != 0 || len(buffer.ids) != 5 {
 		t.Fatalf("marked %d, deleted %d, left %d", len(buffer.marked), len(buffer.deleted), len(buffer.ids))
 	}
+}
+
+func (b *fakeBuffer) Save(context.Context, int, *dto.TracesMessage) bufferErrors.BufferError {
+	panic("transporter must not enqueue traces")
+}
+func (s *fakeStore) Insert(context.Context, []traceEntities.Row) traceErrors.TraceError {
+	panic("transporter must merge traces before storing")
+}
+func (s *hangingStore) Insert(context.Context, []traceEntities.Row) traceErrors.TraceError {
+	panic("transporter must merge traces before storing")
 }

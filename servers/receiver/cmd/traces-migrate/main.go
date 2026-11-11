@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -15,7 +14,9 @@ import (
 	"os/signal"
 	"regexp"
 	"slices"
-	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
+	"slogger_receiver/internal/modules/trace"
+	traceEntities "slogger_receiver/internal/modules/trace/entities"
+	"slogger_receiver/internal/platform/mongodb"
 	"strings"
 	"syscall"
 	"time"
@@ -33,7 +34,7 @@ const viewName = "_traceTreesView"
 
 type migrator struct {
 	database *mongo.Database
-	store    *clickhouse_trace_repository.Repository
+	store    trace.Service
 	batch    int
 	progress progress
 }
@@ -58,31 +59,21 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf(
-		"mongodb://%s:%s@%s:%s",
-		os.Getenv("MONGODB_USERNAME"),
-		os.Getenv("MONGODB_PASSWORD"),
-		os.Getenv("MONGODB_HOST"),
-		os.Getenv("MONGODB_PORT"),
-	)))
+	connection := mongodb.NewPeriodic()
+
+	database, err := connection.DB(ctx)
 
 	if err != nil {
 		log.Fatalf("mongo: %v", err)
 	}
 
 	defer func() {
-		_ = client.Disconnect(context.Background())
+		_ = connection.Close(context.Background())
 	}()
 
-	databaseName := os.Getenv("MONGODB_DB_PERIODIC_TRACES")
-
-	if databaseName == "" {
-		databaseName = "tracesPeriodic"
-	}
-
 	m := &migrator{
-		database: client.Database(databaseName),
-		store:    clickhouse_trace_repository.Get(),
+		database: database,
+		store:    trace.Get(),
 		batch:    *batch,
 	}
 
@@ -215,7 +206,7 @@ func (m *migrator) migrateCollection(ctx context.Context, name string) (int, int
 			return moved, skipped, err
 		}
 
-		rows := make([]clickhouse_trace_repository.Row, 0, m.batch)
+		rows := make([]traceEntities.Row, 0, m.batch)
 		ids := make([]interface{}, 0, m.batch)
 		now := time.Now().UTC()
 		read := 0
@@ -329,20 +320,13 @@ func short(count int64) string {
 	}
 }
 
-// insert tries a batch again while ClickHouse is restarting or busy; any other failure stops
-// the run with the batch still in MongoDB.
-func (m *migrator) insert(ctx context.Context, rows []clickhouse_trace_repository.Row) error {
+// insert retries a failed batch up to ten times, keeping it in MongoDB until it is saved.
+func (m *migrator) insert(ctx context.Context, rows []traceEntities.Row) error {
 	var err error
 
 	for attempt := 1; attempt <= 10; attempt++ {
 		if err = m.store.Insert(ctx, rows); err == nil {
 			return nil
-		}
-
-		var queryError *clickhouse_trace_repository.QueryError
-
-		if errors.As(err, &queryError) && !slices.Contains([]int{159, 202, 209, 210, 241, 242, 252}, queryError.Code) {
-			return err
 		}
 
 		log.Printf("insert failed, attempt %d: %v", attempt, err)

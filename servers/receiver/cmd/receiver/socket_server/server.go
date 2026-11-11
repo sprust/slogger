@@ -9,8 +9,8 @@ import (
 	"net"
 	"slogger_receiver/cmd/receiver/socket_server/transport"
 	"slogger_receiver/internal/dto"
+	"slogger_receiver/internal/modules/buffer"
 	"slogger_receiver/internal/modules/service"
-	"slogger_receiver/internal/services/buffer_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync/atomic"
 	"time"
@@ -34,7 +34,7 @@ type Server struct {
 	network                string
 	address                string
 	listener               net.Listener
-	bufferService          *buffer_service.Service
+	bufferService          buffer.Service
 	service                service.Service
 	totalConnectionsCount  atomic.Uint64
 	activeConnectionsCount atomic.Int64
@@ -68,7 +68,7 @@ func New(network string, address string) *Server {
 		servCancel:             cancel,
 		network:                network,
 		address:                address,
-		bufferService:          buffer_service.Get(),
+		bufferService:          buffer.Get(),
 		service:                service.Get(),
 		totalConnectionsCount:  atomic.Uint64{},
 		activeConnectionsCount: atomic.Int64{},

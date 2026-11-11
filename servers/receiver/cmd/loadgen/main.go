@@ -25,8 +25,7 @@ import (
 	"syscall"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"slogger_receiver/internal/platform/mongodb"
 )
 
 type config struct {
@@ -428,17 +427,19 @@ func sendHuge(ctx context.Context, cfg config, stats *counters) {
 }
 
 func watchBuffer(ctx context.Context, cfg config, stats *counters) {
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.mongoUri))
+	connection := mongodb.NewWithURI(cfg.mongoUri, cfg.mongoDatabase)
+
+	database, err := connection.DB(ctx)
 
 	if err != nil {
 		log.Fatalf("mongo: %v", err)
 	}
 
 	defer func() {
-		_ = client.Disconnect(context.Background())
+		_ = connection.Close(context.Background())
 	}()
 
-	collection := client.Database(cfg.mongoDatabase).Collection(cfg.mongoBuffer)
+	collection := database.Collection(cfg.mongoBuffer)
 
 	for ctx.Err() == nil {
 		count, err := collection.EstimatedDocumentCount(ctx)

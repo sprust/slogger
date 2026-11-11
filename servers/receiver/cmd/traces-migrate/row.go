@@ -8,7 +8,7 @@ import (
 	"slogger_receiver/internal/helpers/bson_helper"
 	"slogger_receiver/internal/helpers/datetime_helper"
 	"slogger_receiver/internal/helpers/json_helper"
-	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
+	traceEntities "slogger_receiver/internal/modules/trace/entities"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,17 +19,17 @@ import (
 const unknownTraceType = "__UNKNOWN"
 
 // toRow turns a trace of a tracesPeriodic collection into the row the receiver writes now.
-func toRow(raw bson.Raw, doc bson.M, now time.Time) (clickhouse_trace_repository.Row, error) {
+func toRow(raw bson.Raw, doc bson.M, now time.Time) (traceEntities.Row, error) {
 	serviceId, ok := asInt(doc["sid"])
 
 	if !ok {
-		return clickhouse_trace_repository.Row{}, errors.New("sid is missing or not a whole number")
+		return traceEntities.Row{}, errors.New("sid is missing or not a whole number")
 	}
 
 	traceId, ok := doc["tid"].(string)
 
 	if !ok || traceId == "" {
-		return clickhouse_trace_repository.Row{}, errors.New("tid is missing or empty")
+		return traceEntities.Row{}, errors.New("tid is missing or empty")
 	}
 
 	traceType := asString(doc["tp"])
@@ -41,7 +41,7 @@ func toRow(raw bson.Raw, doc bson.M, now time.Time) (clickhouse_trace_repository
 	data, err := readData(raw, doc)
 
 	if err != nil {
-		return clickhouse_trace_repository.Row{}, fmt.Errorf("dt: %w", err)
+		return traceEntities.Row{}, fmt.Errorf("dt: %w", err)
 	}
 
 	objectData := []byte("{}")
@@ -52,7 +52,7 @@ func toRow(raw bson.Raw, doc bson.M, now time.Time) (clickhouse_trace_repository
 
 	updatedAt := asTime(doc["uat"], now)
 
-	return clickhouse_trace_repository.Row{
+	return traceEntities.Row{
 		ServiceId:     serviceId,
 		TraceId:       traceId,
 		ParentTraceId: asString(doc["ptid"]),
@@ -64,9 +64,9 @@ func toRow(raw bson.Raw, doc bson.M, now time.Time) (clickhouse_trace_repository
 		Duration:      asFloat(doc["dur"]),
 		Memory:        asFloat(doc["mem"]),
 		Cpu:           asFloat(doc["cpu"]),
-		LoggedAt:      loggedAt(doc).Format(clickhouse_trace_repository.TimeLayout),
-		CreatedAt:     asTime(doc["cat"], updatedAt).Format(clickhouse_trace_repository.TimeLayout),
-		UpdatedAt:     updatedAt.Format(clickhouse_trace_repository.TimeLayout),
+		LoggedAt:      loggedAt(doc).Format(traceEntities.TimeLayout),
+		CreatedAt:     asTime(doc["cat"], updatedAt).Format(traceEntities.TimeLayout),
+		UpdatedAt:     updatedAt.Format(traceEntities.TimeLayout),
 	}, nil
 }
 

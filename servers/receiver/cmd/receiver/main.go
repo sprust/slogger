@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"slogger_receiver/cmd/receiver/socket_server"
 	"slogger_receiver/cmd/receiver/traces_transporter"
-	"slogger_receiver/internal/services/trace_metric_service"
-	"slogger_receiver/internal/services/watcher_service"
+	"slogger_receiver/internal/modules/trace_metric"
+	"slogger_receiver/internal/modules/watcher"
 	"slogger_receiver/pkg/foundation/logging"
 	"syscall"
 	"time"
@@ -68,7 +68,7 @@ func main() {
 	// losing the fifteen seconds it was holding. Run returns between flushes, so waiting
 	// for it is enough.
 	go func(ctx context.Context) {
-		watcher_service.Get().Run(ctx)
+		watcher.Get().Run(ctx)
 
 		done <- nil
 	}(ctx)
@@ -76,7 +76,7 @@ func main() {
 	// The dashboard's counts, written out every fifteen seconds. Waited for for the same
 	// reason as the watchers' loop above: its last write may still be in flight.
 	go func(ctx context.Context) {
-		trace_metric_service.Get().Run(ctx)
+		trace_metric.Get().Run(ctx)
 
 		done <- nil
 	}(ctx)

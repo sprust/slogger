@@ -19,22 +19,28 @@ type Connection struct {
 	username string
 	password string
 
-	db    *sqlx.DB
-	mutex sync.Mutex
+	maxOpenConns int
+	db           *sqlx.DB
+	mutex        sync.Mutex
 }
 
 func Get() *Connection {
 	once.Do(func() {
-		instance = &Connection{
-			host:     os.Getenv("MYSQL_HOST"),
-			port:     os.Getenv("MYSQL_PORT"),
-			database: os.Getenv("MYSQL_DATABASE"),
-			username: os.Getenv("MYSQL_USERNAME"),
-			password: os.Getenv("MYSQL_PASSWORD"),
-		}
+		instance = New(0)
 	})
 
 	return instance
+}
+
+func New(maxOpenConns int) *Connection {
+	return &Connection{
+		host:         os.Getenv("MYSQL_HOST"),
+		port:         os.Getenv("MYSQL_PORT"),
+		database:     os.Getenv("MYSQL_DATABASE"),
+		username:     os.Getenv("MYSQL_USERNAME"),
+		password:     os.Getenv("MYSQL_PASSWORD"),
+		maxOpenConns: maxOpenConns,
+	}
 }
 
 func (c *Connection) DB() (*sqlx.DB, error) {
@@ -53,6 +59,8 @@ func (c *Connection) DB() (*sqlx.DB, error) {
 	if err != nil {
 		return nil, errs.Err(err)
 	}
+
+	db.SetMaxOpenConns(c.maxOpenConns)
 
 	c.db = db
 
