@@ -9,8 +9,8 @@ import (
 	"net"
 	"slogger_receiver/cmd/receiver/socket_server/transport"
 	"slogger_receiver/internal/dto"
+	"slogger_receiver/internal/modules/service"
 	"slogger_receiver/internal/services/buffer_service"
-	"slogger_receiver/internal/services/service_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync/atomic"
 	"time"
@@ -35,7 +35,7 @@ type Server struct {
 	address                string
 	listener               net.Listener
 	bufferService          *buffer_service.Service
-	serviceService         *service_service.Service
+	service                service.Service
 	totalConnectionsCount  atomic.Uint64
 	activeConnectionsCount atomic.Int64
 	totalHandlingCount     atomic.Uint64
@@ -69,7 +69,7 @@ func New(network string, address string) *Server {
 		network:                network,
 		address:                address,
 		bufferService:          buffer_service.Get(),
-		serviceService:         service_service.Get(),
+		service:                service.Get(),
 		totalConnectionsCount:  atomic.Uint64{},
 		activeConnectionsCount: atomic.Int64{},
 		totalHandlingCount:     atomic.Uint64{},
@@ -188,7 +188,7 @@ func (s *Server) handleConnection(conn net.Conn) error {
 		return errs.Err(err)
 	}
 
-	serviceId, err := s.serviceService.GetIdByApiToken(s.servContext, authMsg.ApiToken)
+	serviceId, err := s.service.FindIdByToken(s.servContext, authMsg.ApiToken)
 
 	if err != nil {
 		err = tr.Write("error at service searching: " + err.Error())
@@ -326,8 +326,6 @@ func (s *Server) stop() {
 	}
 
 	s.servCancel()
-
-	_ = s.serviceService.Close()
 
 	slog.Warn("Socket server stopped")
 }
