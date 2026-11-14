@@ -5,7 +5,6 @@ import (
 	"slogger_receiver/internal/platform/mongodb"
 	"slogger_receiver/pkg/foundation/errs"
 	"strconv"
-	"sync"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -69,23 +68,21 @@ type document struct {
 	UpdatedAt      time.Time `bson:"uat"`
 }
 
-var instance *Repository
-var once sync.Once
-
-func Get() *Repository {
-	once.Do(func() {
-		instance = &Repository{
-			conn:           mongodb.Get(),
-			collectionName: collection,
-		}
-	})
-
-	return instance
+type Repository interface {
+	FindMany(ctx context.Context, ids []string) (map[string]PendingTrace, error)
+	Apply(ctx context.Context, save []PendingTrace, forget []string, now time.Time) error
 }
 
-type Repository struct {
+type MongoRepository struct {
 	conn           *mongodb.Connection
 	collectionName string
+}
+
+func NewMongoRepository(conn *mongodb.Connection) *MongoRepository {
+	return &MongoRepository{
+		conn:           conn,
+		collectionName: collection,
+	}
 }
 
 // Id is the document id of a trace: one document per service and trace.
@@ -94,7 +91,7 @@ func Id(serviceId int, traceId string) string {
 }
 
 // FindMany reads the pending traces among ids in one query.
-func (r *Repository) FindMany(ctx context.Context, ids []string) (map[string]PendingTrace, error) {
+func (r *MongoRepository) FindMany(ctx context.Context, ids []string) (map[string]PendingTrace, error) {
 	result := make(map[string]PendingTrace)
 
 	if len(ids) == 0 {
@@ -151,7 +148,7 @@ func (r *Repository) FindMany(ctx context.Context, ids []string) (map[string]Pen
 }
 
 // Apply writes what a batch left waiting and forgets what it completed, in one bulk write.
-func (r *Repository) Apply(ctx context.Context, save []PendingTrace, forget []string, now time.Time) error {
+func (r *MongoRepository) Apply(ctx context.Context, save []PendingTrace, forget []string, now time.Time) error {
 	if len(save) == 0 && len(forget) == 0 {
 		return nil
 	}

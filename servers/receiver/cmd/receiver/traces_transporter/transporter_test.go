@@ -7,7 +7,6 @@ import (
 	"slogger_receiver/internal/modules/buffer/entities"
 	bufferErrors "slogger_receiver/internal/modules/buffer/errors"
 	traceEntities "slogger_receiver/internal/modules/trace/entities"
-	traceErrors "slogger_receiver/internal/modules/trace/errors"
 	"sync"
 	"testing"
 	"time"
@@ -139,11 +138,11 @@ type fakeStore struct {
 	saved  []primitive.ObjectID
 }
 
-func (s *fakeStore) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (traceEntities.Result, traceErrors.TraceError) {
+func (s *fakeStore) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (traceEntities.Result, error) {
 	s.cancel()
 
 	if ctx.Err() != nil {
-		return traceEntities.Result{}, traceErrors.Internal(ctx.Err())
+		return traceEntities.Result{}, ctx.Err()
 	}
 
 	for _, traces := range batch {
@@ -169,7 +168,7 @@ func TestAStopLetsTheBatchBeingSavedFinish(t *testing.T) {
 	store := &fakeStore{cancel: cancel}
 	flushed := false
 
-	transporter := &Transporter{buffer: buffer, periodicTrace: store}
+	transporter := &Transporter{buffer: buffer, saveTraces: store.Save}
 	transporter.flush = func() { flushed = true }
 
 	if err := transporter.Run(ctx); err != nil {
@@ -196,12 +195,12 @@ type hangingStore struct {
 	cancel context.CancelFunc
 }
 
-func (s *hangingStore) Save(ctx context.Context, _ map[int]*dto.ServiceTraces) (traceEntities.Result, traceErrors.TraceError) {
+func (s *hangingStore) Save(ctx context.Context, _ map[int]*dto.ServiceTraces) (traceEntities.Result, error) {
 	s.cancel()
 
 	<-ctx.Done()
 
-	return traceEntities.Result{}, traceErrors.Internal(ctx.Err())
+	return traceEntities.Result{}, ctx.Err()
 }
 
 // A save that does not finish within the stop's deadline is cut off, and its batch stays in
@@ -221,7 +220,7 @@ func TestAStopCutsOffASaveThatHangs(t *testing.T) {
 		buffer.ids = append(buffer.ids, primitive.ObjectID{byte(index + 1)})
 	}
 
-	transporter := &Transporter{buffer: buffer, periodicTrace: &hangingStore{cancel: cancel}}
+	transporter := &Transporter{buffer: buffer, saveTraces: (&hangingStore{cancel: cancel}).Save}
 	transporter.flush = func() {}
 
 	started := time.Now()
@@ -242,9 +241,9 @@ func TestAStopCutsOffASaveThatHangs(t *testing.T) {
 func (b *fakeBuffer) Save(context.Context, int, *dto.TracesMessage) bufferErrors.BufferError {
 	panic("transporter must not enqueue traces")
 }
-func (s *fakeStore) Insert(context.Context, []traceEntities.Row) traceErrors.TraceError {
+func (s *fakeStore) Insert(context.Context, []traceEntities.Row) error {
 	panic("transporter must merge traces before storing")
 }
-func (s *hangingStore) Insert(context.Context, []traceEntities.Row) traceErrors.TraceError {
+func (s *hangingStore) Insert(context.Context, []traceEntities.Row) error {
 	panic("transporter must merge traces before storing")
 }

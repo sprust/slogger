@@ -4,33 +4,32 @@ import (
 	"context"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/modules/trace/entities"
-	"slogger_receiver/internal/modules/trace/errors"
-	"slogger_receiver/internal/modules/trace/internal/domain/actions/mutations/insert_action"
-	"slogger_receiver/internal/modules/trace/internal/domain/actions/mutations/save_action"
+	"slogger_receiver/internal/modules/trace/internal/domain/actions/mutations/insertTraceAction"
+	"slogger_receiver/internal/modules/trace/internal/domain/actions/mutations/saveTraceAction"
+	"slogger_receiver/internal/modules/trace/internal/errors"
 	"sync"
 )
 
 var once sync.Once
-var instance Service
-var _ Service = (*serviceImpl)(nil)
+var instance *Trace
 
-type serviceImpl struct {
-	saveAction   *save_action.Action
-	insertAction *insert_action.Action
+type Trace struct {
+	saveAction   *saveTraceAction.Action
+	insertAction *insertTraceAction.Action
 }
 
-func Get() Service {
+func Get() *Trace {
 	once.Do(func() {
-		instance = &serviceImpl{
-			saveAction:   save_action.Get(),
-			insertAction: insert_action.Get(),
+		instance = &Trace{
+			saveAction:   saveTraceAction.Get(),
+			insertAction: insertTraceAction.Get(),
 		}
 	})
 
 	return instance
 }
 
-func (s *serviceImpl) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (entities.Result, errors.TraceError) {
+func (s *Trace) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (entities.Result, errors.Error) {
 	result, err := s.saveAction.Handle(ctx, batch)
 
 	if err != nil {
@@ -40,6 +39,6 @@ func (s *serviceImpl) Save(ctx context.Context, batch map[int]*dto.ServiceTraces
 	return result, nil
 }
 
-func (s *serviceImpl) Insert(ctx context.Context, rows []entities.Row) errors.TraceError {
+func (s *Trace) Insert(ctx context.Context, rows []entities.Row) errors.Error {
 	return s.insertAction.Handle(ctx, rows)
 }

@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
+	"slogger_receiver/internal/config"
 	"strings"
 	"sync"
 	"time"
@@ -19,11 +19,13 @@ var instance *Connection
 
 func Get() *Connection {
 	once.Do(func() {
+		conf := config.Get().Clickhouse()
+
 		instance = New(
-			os.Getenv("CLICKHOUSE_URL"),
-			os.Getenv("CLICKHOUSE_DATABASE"),
-			os.Getenv("CLICKHOUSE_USERNAME"),
-			os.Getenv("CLICKHOUSE_PASSWORD"),
+			conf.Url(),
+			conf.Database(),
+			conf.Username(),
+			conf.Password(),
 		)
 	})
 

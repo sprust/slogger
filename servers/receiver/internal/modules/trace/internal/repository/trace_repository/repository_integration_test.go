@@ -1,13 +1,14 @@
 //go:build integration
 
-package clickhouse_trace_repository
+package trace_repository
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"slogger_receiver/internal/config"
 	"slogger_receiver/internal/modules/trace/entities"
+	"slogger_receiver/internal/platform/clickhouse"
 	"strings"
 	"testing"
 	"time"
@@ -20,13 +21,13 @@ import (
 //
 // It writes under a service id no installation has and deletes its rows afterwards.
 func TestInsertTwiceAndReadTheLatestVersion(t *testing.T) {
-	baseUrl := os.Getenv("CLICKHOUSE_URL")
+	baseUrl := config.Get().Clickhouse().Url()
 
 	if baseUrl == "" {
 		t.Skip("CLICKHOUSE_URL is not set")
 	}
 
-	repository := Get()
+	repository := NewClickhouseRepository(clickhouse.Get())
 
 	ctx := context.Background()
 	serviceId := 4_000_000_000 - int(time.Now().Unix()%1_000_000)

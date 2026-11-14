@@ -1,4 +1,4 @@
-package clickhouse_trace_repository
+package trace_repository
 
 import (
 	"bytes"

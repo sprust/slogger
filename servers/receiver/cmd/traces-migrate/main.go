@@ -34,7 +34,7 @@ const viewName = "_traceTreesView"
 
 type migrator struct {
 	database *mongo.Database
-	store    trace.Service
+	store    *trace.Trace
 	batch    int
 	progress progress
 }

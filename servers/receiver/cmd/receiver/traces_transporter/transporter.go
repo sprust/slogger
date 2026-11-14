@@ -6,6 +6,7 @@ import (
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/modules/buffer"
 	"slogger_receiver/internal/modules/trace"
+	"slogger_receiver/internal/modules/trace/entities"
 	"slogger_receiver/internal/modules/trace_metric"
 	"slogger_receiver/internal/modules/watcher"
 	"slogger_receiver/pkg/foundation/errs"
@@ -37,7 +38,7 @@ type Transporter struct {
 	ctx                     context.Context
 	cancel                  context.CancelFunc
 	buffer                  buffer.Service
-	periodicTrace           trace.Service
+	saveTraces              func(context.Context, map[int]*dto.ServiceTraces) (entities.Result, error)
 	flush                   func()
 	totalHandledBufferCount atomic.Uint64
 	totalDeletedBufferCount atomic.Uint64
@@ -53,10 +54,12 @@ func New() *Transporter {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	transporter := &Transporter{
-		ctx:           ctx,
-		cancel:        cancel,
-		buffer:        buffer.Get(),
-		periodicTrace: trace.Get(),
+		ctx:    ctx,
+		cancel: cancel,
+		buffer: buffer.Get(),
+		saveTraces: func(ctx context.Context, batch map[int]*dto.ServiceTraces) (entities.Result, error) {
+			return trace.Get().Save(ctx, batch)
+		},
 	}
 
 	transporter.flush = transporter.flushCounters
@@ -118,7 +121,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 			continue
 		}
 
-		result, err := s.periodicTrace.Save(batchCtx, serviceTracesMap)
+		result, err := s.saveTraces(batchCtx, serviceTracesMap)
 
 		if err != nil {
 			slog.Error("Failed to save traces: " + err.Error())

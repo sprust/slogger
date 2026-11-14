@@ -1,4 +1,4 @@
-package save_action
+package saveTraceAction
 
 import (
 	"context"
@@ -7,8 +7,9 @@ import (
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/helpers/datetime_helper"
 	"slogger_receiver/internal/modules/trace/entities"
-	"slogger_receiver/internal/modules/trace/internal/repository/clickhouse_trace_repository"
+	"slogger_receiver/internal/modules/trace/internal/deps"
 	"slogger_receiver/internal/modules/trace/internal/repository/pending_trace_repository"
+	"slogger_receiver/internal/modules/trace/internal/repository/trace_repository"
 	"slogger_receiver/internal/modules/trace_metric"
 	"slogger_receiver/internal/modules/watcher"
 	"slogger_receiver/pkg/foundation/errs"
@@ -26,36 +27,32 @@ const unknownTraceType = "__UNKNOWN"
 // does not say so itself with isP.
 const startedStatus = "started"
 
-// traceStore saves merged traces and reads stored traces when nothing is pending.
-type traceStore interface {
-	FindExisting(ctx context.Context, keys []entities.Key) (map[entities.Key]entities.StoredTrace, error)
-	Insert(ctx context.Context, rows []entities.Row) error
-}
-
-// pendingStore holds the traces waiting for their other half.
-type pendingStore interface {
-	FindMany(ctx context.Context, ids []string) (map[string]pending_trace_repository.PendingTrace, error)
-	Apply(ctx context.Context, save []pending_trace_repository.PendingTrace, forget []string, now time.Time) error
-}
-
 var instance *Action
 var once sync.Once
 
 func Get() *Action {
 	once.Do(func() {
-		instance = New(clickhouse_trace_repository.Get(), pending_trace_repository.Get())
+		dependencies := deps.Get()
+
+		instance = New(
+			dependencies.TraceRepository,
+			dependencies.PendingTraceRepository,
+		)
 	})
 
 	return instance
 }
 
-func New(store traceStore, pending pendingStore) *Action {
-	return &Action{store: store, pending: pending}
+func New(store trace_repository.Repository, pending pending_trace_repository.Repository) *Action {
+	return &Action{
+		store:   store,
+		pending: pending,
+	}
 }
 
 type Action struct {
-	store   traceStore
-	pending pendingStore
+	store   trace_repository.Repository
+	pending pending_trace_repository.Repository
 }
 
 type batchTrace struct {

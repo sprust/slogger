@@ -1,4 +1,4 @@
-package clickhouse_trace_repository
+package trace_repository
 
 import (
 	"bufio"
@@ -37,21 +37,18 @@ type storedRow struct {
 	CreatedAt     string   `json:"cat"`
 }
 
-var instance *Repository
-var once sync.Once
-
-func Get() *Repository {
-	once.Do(func() {
-		instance = &Repository{
-			conn: clickhouse.Get(),
-		}
-
-	})
-
-	return instance
+type Repository interface {
+	FindExisting(ctx context.Context, keys []entities.Key) (map[entities.Key]entities.StoredTrace, error)
+	Insert(ctx context.Context, rows []entities.Row) error
 }
 
-type Repository struct {
+func NewClickhouseRepository(conn *clickhouse.Connection) *ClickhouseRepository {
+	return &ClickhouseRepository{
+		conn: conn,
+	}
+}
+
+type ClickhouseRepository struct {
 	conn *clickhouse.Connection
 }
 
@@ -60,7 +57,7 @@ type Repository struct {
 // FINAL, because a trace written twice sits in two parts until they are merged, and the
 // merge is only right on the latest version. The keys name the partition and the sorting
 // key, so the query reads only the granules those traces are in.
-func (r *Repository) FindExisting(ctx context.Context, keys []entities.Key) (map[entities.Key]entities.StoredTrace, error) {
+func (r *ClickhouseRepository) FindExisting(ctx context.Context, keys []entities.Key) (map[entities.Key]entities.StoredTrace, error) {
 	result := make(map[entities.Key]entities.StoredTrace, len(keys))
 
 	// The keys travel in the URL, which ClickHouse caps at 1 MiB.
@@ -73,7 +70,7 @@ func (r *Repository) FindExisting(ctx context.Context, keys []entities.Key) (map
 	return result, nil
 }
 
-func (r *Repository) findExisting(ctx context.Context, keys []entities.Key, result map[entities.Key]entities.StoredTrace) error {
+func (r *ClickhouseRepository) findExisting(ctx context.Context, keys []entities.Key, result map[entities.Key]entities.StoredTrace) error {
 	query := "SELECT sid, tid, lat, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, pid, cat FROM traces FINAL " +
 		"WHERE (sid, lat, tid) IN {keys:Array(Tuple(UInt32, DateTime64(6, 'UTC'), String))} " +
 		"FORMAT JSONEachRow"
@@ -144,7 +141,7 @@ func (r *Repository) findExisting(ctx context.Context, keys []entities.Key, resu
 
 // Insert writes the rows in one INSERT. Synchronous: the next pass of the transporter
 // reads what this one wrote, so the rows have to be there when this returns.
-func (r *Repository) Insert(ctx context.Context, rows []entities.Row) error {
+func (r *ClickhouseRepository) Insert(ctx context.Context, rows []entities.Row) error {
 	if len(rows) == 0 {
 		return nil
 	}
