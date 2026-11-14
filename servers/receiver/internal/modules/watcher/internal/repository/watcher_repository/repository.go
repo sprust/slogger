@@ -4,20 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"os"
+	"slogger_receiver/internal/config"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 
 	"slogger_receiver/internal/platform/mysql"
 )
-
-// defaultTable is used when the environment does not name one, so that an installation
-// that has not updated its .env still collects rather than silently reading nothing.
-const defaultTable = "watchers"
-
-// maxOpenConns bounds this pool deliberately: the whole of its traffic is one query every
-// thirty seconds, and it shares a MySQL server with the service lookups on the hot path.
-const maxOpenConns = 2
 
 // Match is the entire contract between the panel and this service: the filter of one
 // watcher, as the `trace_match` column carries it.
@@ -48,12 +40,9 @@ var once sync.Once
 
 func Get() *Repository {
 	once.Do(func() {
-		instance = &Repository{conn: mysql.New(maxOpenConns)}
-
-		instance.table = os.Getenv("MYSQL_TABLE_WATCHERS")
-
-		if instance.table == "" {
-			instance.table = defaultTable
+		instance = &Repository{
+			conn:  mysql.Get(),
+			table: config.Get().Mysql().TableWatchers(),
 		}
 	})
 

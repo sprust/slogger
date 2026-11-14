@@ -1,8 +1,9 @@
-package find_by_token_action
+package findServiceByTokenAction
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/service/errors"
+	"slogger_receiver/internal/modules/service/internal/deps"
+	"slogger_receiver/internal/modules/service/internal/errors"
 	"slogger_receiver/internal/modules/service/internal/repository"
 	"sync"
 	"time"
@@ -19,7 +20,7 @@ type cacheEntry struct {
 }
 
 type Action struct {
-	repository *repository.MysqlServiceRepository
+	repository repository.ServiceRepository
 
 	cache      map[string]cacheEntry
 	cacheMutex sync.RWMutex
@@ -27,16 +28,22 @@ type Action struct {
 
 func Get() *Action {
 	once.Do(func() {
-		instance = &Action{
-			repository: repository.Get(),
-			cache:      make(map[string]cacheEntry),
-		}
+		instance = New(
+			deps.Get().ServiceRepository,
+		)
 	})
 
 	return instance
 }
 
-func (a *Action) Handle(ctx context.Context, token string) (int, errors.ServiceError) {
+func New(repository repository.ServiceRepository) *Action {
+	return &Action{
+		repository: repository,
+		cache:      make(map[string]cacheEntry),
+	}
+}
+
+func (a *Action) Handle(ctx context.Context, token string) (int, errors.Error) {
 	a.cacheMutex.RLock()
 
 	if entry, exists := a.cache[token]; exists {

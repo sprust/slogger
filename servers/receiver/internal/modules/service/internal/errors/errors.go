@@ -1,6 +1,6 @@
 package errors
 
-type ServiceError interface {
+type Error interface {
 	error
 	GetNotFoundToken() string
 	GetInternalError() error
@@ -11,11 +11,11 @@ type serviceErrorImpl struct {
 	internal        error
 }
 
-func NotFoundByToken(token string) ServiceError {
+func NotFoundByToken(token string) Error {
 	return &serviceErrorImpl{notFoundByToken: token}
 }
 
-func Internal(err error) ServiceError {
+func Internal(err error) Error {
 	return &serviceErrorImpl{internal: err}
 }
 

@@ -2,30 +2,28 @@ package service
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/service/errors"
-	"slogger_receiver/internal/modules/service/internal/domain/actions/queries/find_by_token_action"
+	"slogger_receiver/internal/modules/service/internal/domain/actions/queries/findServiceByTokenAction"
+	"slogger_receiver/internal/modules/service/internal/errors"
 	"sync"
 )
 
 var once sync.Once
-var instance Service
+var instance *Service
 
-var _ Service = (*serviceImpl)(nil)
-
-type serviceImpl struct {
-	findServiceIdByTokenAction *find_by_token_action.Action
+type Service struct {
+	findServiceIdByTokenAction *findServiceByTokenAction.Action
 }
 
-func Get() Service {
+func Get() *Service {
 	once.Do(func() {
-		instance = &serviceImpl{
-			findServiceIdByTokenAction: find_by_token_action.Get(),
+		instance = &Service{
+			findServiceIdByTokenAction: findServiceByTokenAction.Get(),
 		}
 	})
 
 	return instance
 }
 
-func (s *serviceImpl) FindIdByToken(ctx context.Context, token string) (int, errors.ServiceError) {
+func (s *Service) FindIdByToken(ctx context.Context, token string) (int, errors.Error) {
 	return s.findServiceIdByTokenAction.Handle(ctx, token)
 }

@@ -35,7 +35,7 @@ type Server struct {
 	address                string
 	listener               net.Listener
 	bufferService          buffer.Service
-	service                service.Service
+	service                *service.Service
 	totalConnectionsCount  atomic.Uint64
 	activeConnectionsCount atomic.Int64
 	totalHandlingCount     atomic.Uint64

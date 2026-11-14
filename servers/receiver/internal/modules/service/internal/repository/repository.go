@@ -2,28 +2,23 @@ package repository
 
 import (
 	"context"
-	"os"
 	"slogger_receiver/internal/platform/mysql"
-	"sync"
 )
 
-var instance *MysqlServiceRepository
-var once sync.Once
+type ServiceRepository interface {
+	FindIdByToken(ctx context.Context, apiToken string) (int, error)
+}
 
 type MysqlServiceRepository struct {
 	conn  *mysql.Connection
 	table string
 }
 
-func Get() *MysqlServiceRepository {
-	once.Do(func() {
-		instance = &MysqlServiceRepository{
-			conn:  mysql.Get(),
-			table: os.Getenv("MYSQL_TABLE_SERVICES"),
-		}
-	})
-
-	return instance
+func NewMysqlServiceRepository(conn *mysql.Connection, table string) *MysqlServiceRepository {
+	return &MysqlServiceRepository{
+		conn:  conn,
+		table: table,
+	}
 }
 
 func (s *MysqlServiceRepository) FindIdByToken(ctx context.Context, apiToken string) (int, error) {

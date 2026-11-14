@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"os"
+	"slogger_receiver/internal/config"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 
@@ -13,33 +13,49 @@ var instance *Connection
 var once sync.Once
 
 type Connection struct {
-	host     string
-	port     string
-	database string
-	username string
-	password string
+	host           string
+	port           string
+	database       string
+	username       string
+	password       string
+	maxConnections int
 
-	maxOpenConns int
-	db           *sqlx.DB
-	mutex        sync.Mutex
+	db    *sqlx.DB
+	mutex sync.Mutex
 }
 
 func Get() *Connection {
 	once.Do(func() {
-		instance = New(0)
+		conf := config.Get().Mysql()
+
+		instance = New(
+			conf.Host(),
+			conf.Port(),
+			conf.Database(),
+			conf.Username(),
+			conf.Password(),
+			conf.MaxConnections(),
+		)
 	})
 
 	return instance
 }
 
-func New(maxOpenConns int) *Connection {
+func New(
+	host string,
+	port string,
+	database string,
+	username string,
+	password string,
+	maxOpenConns int,
+) *Connection {
 	return &Connection{
-		host:         os.Getenv("MYSQL_HOST"),
-		port:         os.Getenv("MYSQL_PORT"),
-		database:     os.Getenv("MYSQL_DATABASE"),
-		username:     os.Getenv("MYSQL_USERNAME"),
-		password:     os.Getenv("MYSQL_PASSWORD"),
-		maxOpenConns: maxOpenConns,
+		host:           host,
+		port:           port,
+		database:       database,
+		username:       username,
+		password:       password,
+		maxConnections: maxOpenConns,
 	}
 }
 
@@ -60,7 +76,7 @@ func (c *Connection) DB() (*sqlx.DB, error) {
 		return nil, errs.Err(err)
 	}
 
-	db.SetMaxOpenConns(c.maxOpenConns)
+	db.SetMaxOpenConns(c.maxConnections)
 
 	c.db = db
 
