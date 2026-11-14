@@ -5,7 +5,6 @@ import (
 	"slices"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/modules/buffer/entities"
-	bufferErrors "slogger_receiver/internal/modules/buffer/errors"
 	traceEntities "slogger_receiver/internal/modules/trace/entities"
 	"sync"
 	"testing"
@@ -86,7 +85,7 @@ type fakeBuffer struct {
 	marked  map[primitive.ObjectID]int
 }
 
-func (b *fakeBuffer) FindForTransporter(context.Context) (map[int]*dto.ServiceTraces, []entities.InvalidDoc, bufferErrors.BufferError) {
+func (b *fakeBuffer) FindForTransporter(context.Context) (map[int]*dto.ServiceTraces, []entities.InvalidDoc, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -100,13 +99,13 @@ func (b *fakeBuffer) FindForTransporter(context.Context) (map[int]*dto.ServiceTr
 	return batch, nil, nil
 }
 
-func (b *fakeBuffer) MoveToInvalid(context.Context, []entities.InvalidDoc) bufferErrors.BufferError {
+func (b *fakeBuffer) MoveToInvalid(context.Context, []entities.InvalidDoc) error {
 	return nil
 }
 
-func (b *fakeBuffer) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, bufferErrors.BufferError) {
+func (b *fakeBuffer) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error) {
 	if ctx.Err() != nil {
-		return 0, bufferErrors.Internal(ctx.Err())
+		return 0, ctx.Err()
 	}
 
 	b.mutex.Lock()
@@ -120,7 +119,7 @@ func (b *fakeBuffer) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) 
 	return int64(len(ids)), nil
 }
 
-func (b *fakeBuffer) MarkFailed(_ context.Context, ids []primitive.ObjectID, _ int) bufferErrors.BufferError {
+func (b *fakeBuffer) MarkFailed(_ context.Context, ids []primitive.ObjectID, _ int) error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -168,7 +167,10 @@ func TestAStopLetsTheBatchBeingSavedFinish(t *testing.T) {
 	store := &fakeStore{cancel: cancel}
 	flushed := false
 
-	transporter := &Transporter{buffer: buffer, saveTraces: store.Save}
+	transporter := &Transporter{findBuffer: buffer.FindForTransporter,
+		moveBufferToInvalid: buffer.MoveToInvalid,
+		deleteBufferByIds:   buffer.DeleteByIds,
+		markBufferFailed:    buffer.MarkFailed, saveTraces: store.Save}
 	transporter.flush = func() { flushed = true }
 
 	if err := transporter.Run(ctx); err != nil {
@@ -220,7 +222,10 @@ func TestAStopCutsOffASaveThatHangs(t *testing.T) {
 		buffer.ids = append(buffer.ids, primitive.ObjectID{byte(index + 1)})
 	}
 
-	transporter := &Transporter{buffer: buffer, saveTraces: (&hangingStore{cancel: cancel}).Save}
+	transporter := &Transporter{findBuffer: buffer.FindForTransporter,
+		moveBufferToInvalid: buffer.MoveToInvalid,
+		deleteBufferByIds:   buffer.DeleteByIds,
+		markBufferFailed:    buffer.MarkFailed, saveTraces: (&hangingStore{cancel: cancel}).Save}
 	transporter.flush = func() {}
 
 	started := time.Now()
@@ -238,7 +243,7 @@ func TestAStopCutsOffASaveThatHangs(t *testing.T) {
 	}
 }
 
-func (b *fakeBuffer) Save(context.Context, int, *dto.TracesMessage) bufferErrors.BufferError {
+func (b *fakeBuffer) Save(context.Context, int, *dto.TracesMessage) error {
 	panic("transporter must not enqueue traces")
 }
 func (s *fakeStore) Insert(context.Context, []traceEntities.Row) error {

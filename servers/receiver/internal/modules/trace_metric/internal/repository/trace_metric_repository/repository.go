@@ -2,18 +2,14 @@ package trace_metric_repository
 
 import (
 	"context"
-	"os"
 	"slogger_receiver/internal/platform/mongodb"
 	"slogger_receiver/pkg/foundation/errs"
-	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-const defaultCollection = "traceMetrics"
 
 // Key is one document of the collection: a service, a trace type and the start of a
 // fifteen-minute slot, in unix milliseconds so that equal moments are equal keys.
@@ -31,25 +27,18 @@ type Counts struct {
 	Stored   int
 }
 
-var instance *Repository
-var once sync.Once
-
-func Get() *Repository {
-	once.Do(func() {
-		instance = &Repository{
-			conn:           mongodb.Get(),
-			collectionName: os.Getenv("MONGODB_COLL_TRACE_METRICS"),
-		}
-
-		if instance.collectionName == "" {
-			instance.collectionName = defaultCollection
-		}
-	})
-
-	return instance
+type Repository interface {
+	Push(ctx context.Context, counts map[Key]Counts) error
 }
 
-type Repository struct {
+func NewMongoRepository(conn *mongodb.Connection, collectionName string) *MongoRepository {
+	return &MongoRepository{
+		conn:           conn,
+		collectionName: collectionName,
+	}
+}
+
+type MongoRepository struct {
 	conn           *mongodb.Connection
 	collectionName string
 }
@@ -58,7 +47,7 @@ type Repository struct {
 //
 // Additive, and never read first, for the same reason as the watchers' lines: two
 // receivers, or a receiver and its own restart, cannot lose each other's counts.
-func (r *Repository) Push(ctx context.Context, counts map[Key]Counts) error {
+func (r *MongoRepository) Push(ctx context.Context, counts map[Key]Counts) error {
 	if len(counts) == 0 {
 		return nil
 	}

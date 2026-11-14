@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"slogger_receiver/internal/modules/watcher/internal/deps"
 	"slogger_receiver/internal/modules/watcher/internal/repository/watcher_repository"
 	"slogger_receiver/internal/modules/watcher/internal/repository/watcher_timeline_repository"
 	"slogger_receiver/pkg/foundation/errs"
@@ -122,15 +123,24 @@ var once sync.Once
 
 func Get() *Service {
 	once.Do(func() {
-		instance = &Service{
-			watchers:  watcher_repository.Get(),
-			timelines: watcher_timeline_repository.Get(),
-			buckets:   make(map[bucketKey]*bucketState),
-			skipped:   make(map[int]int),
-		}
+		dependencies := deps.Get()
+
+		instance = New(
+			dependencies.WatcherRepository,
+			dependencies.WatcherTimelineRepository,
+		)
 	})
 
 	return instance
+}
+
+func New(watchers watcher_repository.Repository, timelines watcher_timeline_repository.Repository) *Service {
+	return &Service{
+		watchers:  watchers,
+		timelines: timelines,
+		buckets:   make(map[bucketKey]*bucketState),
+		skipped:   make(map[int]int),
+	}
 }
 
 // Service counts traces into the lines of the watchers they belong to.
@@ -139,8 +149,8 @@ func Get() *Service {
 // windows. It reads one column, filters on four dimensions, and adds numbers. Everything
 // that turns those numbers into "something is wrong" lives in the panel.
 type Service struct {
-	watchers  *watcher_repository.Repository
-	timelines *watcher_timeline_repository.Repository
+	watchers  watcher_repository.Repository
+	timelines watcher_timeline_repository.Repository
 
 	// Read on the hot path before anything else, so an installation with no watchers pays
 	// one atomic load per trace and nothing more.

@@ -2,45 +2,44 @@ package trace_metric
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/trace_metric/errors"
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/add_trace_action"
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/flush_action"
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/run_action"
+	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/addTraceAction"
+	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/flushTraceMetricAction"
+	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/runTraceMetricAction"
+	"slogger_receiver/internal/modules/trace_metric/internal/errors"
 	"sync"
 	"time"
 )
 
 var once sync.Once
-var instance Service
-var _ Service = (*serviceImpl)(nil)
+var instance *TraceMetric
 
-type serviceImpl struct {
-	runAction      *run_action.Action
-	flushAction    *flush_action.Action
-	addTraceAction *add_trace_action.Action
+type TraceMetric struct {
+	runAction      *runTraceMetricAction.Action
+	flushAction    *flushTraceMetricAction.Action
+	addTraceAction *addTraceAction.Action
 }
 
-func Get() Service {
+func Get() *TraceMetric {
 	once.Do(func() {
-		instance = &serviceImpl{
-			runAction:      run_action.Get(),
-			flushAction:    flush_action.Get(),
-			addTraceAction: add_trace_action.Get(),
+		instance = &TraceMetric{
+			runAction:      runTraceMetricAction.Get(),
+			flushAction:    flushTraceMetricAction.Get(),
+			addTraceAction: addTraceAction.Get(),
 		}
 	})
 
 	return instance
 }
 
-func (s *serviceImpl) Run(ctx context.Context) {
+func (s *TraceMetric) Run(ctx context.Context) {
 	s.runAction.Handle(ctx)
 }
 
-func (s *serviceImpl) Flush(ctx context.Context) errors.TraceMetricError {
+func (s *TraceMetric) Flush(ctx context.Context) errors.Error {
 	return s.flushAction.Handle(ctx)
 }
 
-func (s *serviceImpl) AddTrace(
+func (s *TraceMetric) AddTrace(
 	serviceId int,
 	traceType string,
 	loggedAt time.Time,

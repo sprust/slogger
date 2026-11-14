@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
-	"os"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/helpers/bson_helper"
 	"slogger_receiver/internal/helpers/datetime_helper"
@@ -15,7 +14,6 @@ import (
 	"slogger_receiver/internal/modules/buffer/entities"
 	"slogger_receiver/internal/platform/mongodb"
 	"slogger_receiver/pkg/foundation/errs"
-	"sync"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -43,19 +41,21 @@ type bufferDoc struct {
 	traceId   string
 }
 
-var instance *MongoBufferRepository
-var once sync.Once
+type BufferRepository interface {
+	InsertCreatingTraces(ctx context.Context, serviceId int, traces []dto.TraceCreating) error
+	InsertUpdatingTraces(ctx context.Context, serviceId int, traces []dto.TraceUpdating) error
+	FindMany(ctx context.Context, limit int) (map[int]*dto.ServiceTraces, []entities.InvalidDoc, error)
+	DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error)
+	MarkFailed(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) error
+	MoveToInvalid(ctx context.Context, docs []entities.InvalidDoc) error
+}
 
-func Get() *MongoBufferRepository {
-	once.Do(func() {
-		instance = &MongoBufferRepository{
-			conn:                  mongodb.Get(),
-			collectionName:        os.Getenv("MONGODB_COLL_BUFFER"),
-			invalidCollectionName: os.Getenv("MONGODB_COLL_INVALID_BUFFER"),
-		}
-	})
-
-	return instance
+func NewMongoBufferRepository(conn *mongodb.Connection, collectionName string, invalidCollectionName string) *MongoBufferRepository {
+	return &MongoBufferRepository{
+		conn:                  conn,
+		collectionName:        collectionName,
+		invalidCollectionName: invalidCollectionName,
+	}
 }
 
 type MongoBufferRepository struct {

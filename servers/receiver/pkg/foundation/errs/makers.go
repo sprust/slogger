@@ -29,21 +29,16 @@ func Err(err error) error {
 		msg = cleanMsg + traceText + getCaller() + traceSuffix
 	}
 
-	return &tracedError{message: msg, cause: err}
+	return &tracedError{message: msg}
 }
 
-// tracedError carries the stack trace in its text and keeps the error it wraps for errors.As.
+// tracedError carries the error message and stack trace.
 type tracedError struct {
 	message string
-	cause   error
 }
 
 func (e *tracedError) Error() string {
 	return e.message
-}
-
-func (e *tracedError) Unwrap() error {
-	return e.cause
 }
 
 func getCaller() string {

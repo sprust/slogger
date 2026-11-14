@@ -6,9 +6,9 @@ import (
 )
 
 var once sync.Once
-var instance Mysql
+var instance Config
 
-type Mysql interface {
+type Config interface {
 	Host() string
 	Port() string
 	Database() string
@@ -30,7 +30,7 @@ type mysql struct {
 	tableWatchers  string
 }
 
-func Get() Mysql {
+func Get() Config {
 	once.Do(func() {
 		instance = &mysql{
 			host:           os.Getenv("MYSQL_HOST"),

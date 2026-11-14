@@ -230,8 +230,8 @@ func TestABufferDocKeepsTheDataAsItArrived(t *testing.T) {
 	data := dto.Data{Raw: json.RawMessage(`{"sql":"select 1","connection":"mysql","id":9007199254740993,"amount":500.0}`)}
 
 	docs := map[string]bson.M{
-		"creating": Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", Data: data}),
-		"updating": Get().makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1", Data: data}),
+		"creating": NewMongoBufferRepository(nil, "buffer", "invalidBuffer").makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", Data: data}),
+		"updating": NewMongoBufferRepository(nil, "buffer", "invalidBuffer").makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1", Data: data}),
 	}
 
 	for name, doc := range docs {
@@ -270,7 +270,7 @@ func TestADocOfTheEarlierFormatReadsAsTheSameJson(t *testing.T) {
 
 func TestNoDataReadsAsNull(t *testing.T) {
 	docs := map[string]bson.M{
-		"new format, not sent":     Get().makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1"}),
+		"new format, not sent":     NewMongoBufferRepository(nil, "buffer", "invalidBuffer").makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1"}),
 		"earlier format, null":     {"op": "u", "dt": nil},
 		"earlier format, not sent": {"op": "u"},
 	}
@@ -315,13 +315,13 @@ func TestACreateKeepsIsPAndPidThroughTheBuffer(t *testing.T) {
 	isParent := false
 	pid := uint32(4194304)
 
-	read := creatingFromStored(t, Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", IsParent: &isParent, Pid: &pid}))
+	read := creatingFromStored(t, NewMongoBufferRepository(nil, "buffer", "invalidBuffer").makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", IsParent: &isParent, Pid: &pid}))
 
 	if read.IsParent == nil || *read.IsParent || read.Pid == nil || *read.Pid != pid {
 		t.Fatalf("isP and pid did not come back: %v, %v", read.IsParent, read.Pid)
 	}
 
-	read = creatingFromStored(t, Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1"}))
+	read = creatingFromStored(t, NewMongoBufferRepository(nil, "buffer", "invalidBuffer").makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1"}))
 
 	if read.IsParent != nil || read.Pid != nil {
 		t.Fatalf("a create without isP and pid came back with them: %v, %v", read.IsParent, read.Pid)

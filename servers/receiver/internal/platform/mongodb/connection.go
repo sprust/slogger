@@ -3,7 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
-	"os"
+	"slogger_receiver/internal/config"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 
@@ -24,32 +24,48 @@ type Connection struct {
 
 func Get() *Connection {
 	once.Do(func() {
-		instance = New(os.Getenv("MONGODB_DB_TRACES"))
+		conf := config.Get().Mongodb()
+
+		instance = New(
+			conf.Host(),
+			conf.Port(),
+			conf.DatabaseTraces(),
+			conf.Username(),
+			conf.Password(),
+		)
 	})
 
 	return instance
 }
 
-func New(databaseName string) *Connection {
+func New(
+	host string,
+	port string,
+	databaseName string,
+	username string,
+	password string,
+) *Connection {
 	uri := fmt.Sprintf(
 		"mongodb://%s:%s@%s:%s",
-		os.Getenv("MONGODB_USERNAME"),
-		os.Getenv("MONGODB_PASSWORD"),
-		os.Getenv("MONGODB_HOST"),
-		os.Getenv("MONGODB_PORT"),
+		username,
+		password,
+		host,
+		port,
 	)
 
 	return NewWithURI(uri, databaseName)
 }
 
 func NewPeriodic() *Connection {
-	databaseName := os.Getenv("MONGODB_DB_PERIODIC_TRACES")
+	conf := config.Get().Mongodb()
 
-	if databaseName == "" {
-		databaseName = "tracesPeriodic"
-	}
-
-	return New(databaseName)
+	return New(
+		conf.Host(),
+		conf.Port(),
+		conf.DatabasePeriodicTraces(),
+		conf.Username(),
+		conf.Password(),
+	)
 }
 
 func NewWithURI(uri string, databaseName string) *Connection {

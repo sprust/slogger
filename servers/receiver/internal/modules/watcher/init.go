@@ -2,52 +2,51 @@ package watcher
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/watcher/errors"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/add_trace_action"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/flush_action"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/reload_action"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/run_action"
+	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/addTraceAction"
+	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/flushWatcherAction"
+	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/reloadWatcherAction"
+	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/runWatcherAction"
+	"slogger_receiver/internal/modules/watcher/internal/errors"
 	"sync"
 	"time"
 )
 
 var once sync.Once
-var instance Service
-var _ Service = (*serviceImpl)(nil)
+var instance *Watcher
 
-type serviceImpl struct {
-	runAction      *run_action.Action
-	reloadAction   *reload_action.Action
-	flushAction    *flush_action.Action
-	addTraceAction *add_trace_action.Action
+type Watcher struct {
+	runAction      *runWatcherAction.Action
+	reloadAction   *reloadWatcherAction.Action
+	flushAction    *flushWatcherAction.Action
+	addTraceAction *addTraceAction.Action
 }
 
-func Get() Service {
+func Get() *Watcher {
 	once.Do(func() {
-		instance = &serviceImpl{
-			runAction:      run_action.Get(),
-			reloadAction:   reload_action.Get(),
-			flushAction:    flush_action.Get(),
-			addTraceAction: add_trace_action.Get(),
+		instance = &Watcher{
+			runAction:      runWatcherAction.Get(),
+			reloadAction:   reloadWatcherAction.Get(),
+			flushAction:    flushWatcherAction.Get(),
+			addTraceAction: addTraceAction.Get(),
 		}
 	})
 
 	return instance
 }
 
-func (s *serviceImpl) Run(ctx context.Context) {
+func (s *Watcher) Run(ctx context.Context) {
 	s.runAction.Handle(ctx)
 }
 
-func (s *serviceImpl) Reload(ctx context.Context) errors.WatcherError {
+func (s *Watcher) Reload(ctx context.Context) errors.Error {
 	return s.reloadAction.Handle(ctx)
 }
 
-func (s *serviceImpl) Flush(ctx context.Context, all bool) errors.WatcherError {
+func (s *Watcher) Flush(ctx context.Context, all bool) errors.Error {
 	return s.flushAction.Handle(ctx, all)
 }
 
-func (s *serviceImpl) AddTrace(
+func (s *Watcher) AddTrace(
 	serviceId int,
 	traceId string,
 	traceType string,

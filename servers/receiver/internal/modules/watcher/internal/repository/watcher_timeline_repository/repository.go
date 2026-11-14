@@ -2,10 +2,8 @@ package watcher_timeline_repository
 
 import (
 	"context"
-	"os"
 	"slogger_receiver/internal/platform/mongodb"
 	"slogger_receiver/pkg/foundation/errs"
-	"sync"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,8 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-const defaultCollection = "watcherTimelines"
 
 // MaxBuckets caps the line on this side, independently of the panel's trimming.
 //
@@ -58,25 +54,18 @@ type Bucket struct {
 	Groups   []Group            `bson:"g"`
 }
 
-var instance *Repository
-var once sync.Once
-
-func Get() *Repository {
-	once.Do(func() {
-		instance = &Repository{
-			conn:           mongodb.Get(),
-			collectionName: os.Getenv("MONGODB_COLL_WATCHER_TIMELINES"),
-		}
-
-		if instance.collectionName == "" {
-			instance.collectionName = defaultCollection
-		}
-	})
-
-	return instance
+type Repository interface {
+	Push(ctx context.Context, buckets map[int][]Bucket) error
 }
 
-type Repository struct {
+func NewMongoRepository(conn *mongodb.Connection, collectionName string) *MongoRepository {
+	return &MongoRepository{
+		conn:           conn,
+		collectionName: collectionName,
+	}
+}
+
+type MongoRepository struct {
 	conn           *mongodb.Connection
 	collectionName string
 }
@@ -88,7 +77,7 @@ type Repository struct {
 // second element with the same `t`, and the panel sums those on read. Nothing here reads
 // the document first, so two receivers — or a receiver and its own restart — cannot lose
 // each other's counts.
-func (r *Repository) Push(ctx context.Context, buckets map[int][]Bucket) error {
+func (r *MongoRepository) Push(ctx context.Context, buckets map[int][]Bucket) error {
 	if len(buckets) == 0 {
 		return nil
 	}

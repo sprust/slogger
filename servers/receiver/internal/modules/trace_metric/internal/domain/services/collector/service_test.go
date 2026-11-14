@@ -35,7 +35,7 @@ func key(serviceId int, traceType string, slotStart string) trace_metric_reposit
 
 // Three clocks in one slot are one document with three counters, not three documents.
 func TestClocksInTheSameSlotShareOneKey(t *testing.T) {
-	service := newService(&recordingPusher{})
+	service := New(&recordingPusher{})
 
 	service.AddTrace(1, "http", at("2026-09-11 12:01:10"), at("2026-09-11 12:01:11"), at("2026-09-11 12:01:12"))
 
@@ -54,7 +54,7 @@ func TestClocksInTheSameSlotShareOneKey(t *testing.T) {
 
 // A buffer that backed up spreads a trace over slots: each clock counts where it fell.
 func TestClocksInDifferentSlotsCountWhereTheyFell(t *testing.T) {
-	service := newService(&recordingPusher{})
+	service := New(&recordingPusher{})
 
 	service.AddTrace(1, "http", at("2026-09-11 12:03:00"), at("2026-09-11 12:14:59"), at("2026-09-11 12:21:00"))
 
@@ -77,7 +77,7 @@ func TestClocksInDifferentSlotsCountWhereTheyFell(t *testing.T) {
 }
 
 func TestTracesOfOneKeyAddUp(t *testing.T) {
-	service := newService(&recordingPusher{})
+	service := New(&recordingPusher{})
 
 	for i := 0; i < 3; i++ {
 		service.AddTrace(1, "http", at("2026-09-11 12:01:00"), at("2026-09-11 12:01:00"), at("2026-09-11 12:01:00"))
@@ -99,7 +99,7 @@ func TestTracesOfOneKeyAddUp(t *testing.T) {
 
 // A client clock running fast is counted as the moment the trace was written.
 func TestALoggingTimeFromTheFutureIsCountedAsNow(t *testing.T) {
-	service := newService(&recordingPusher{})
+	service := New(&recordingPusher{})
 
 	service.AddTrace(1, "http", at("2026-09-11 13:30:00"), at("2026-09-11 12:01:00"), at("2026-09-11 12:01:00"))
 
@@ -112,7 +112,7 @@ func TestALoggingTimeFromTheFutureIsCountedAsNow(t *testing.T) {
 
 // Logged longer ago than the panel keeps anything: its slot would be retired on arrival.
 func TestALoggingTimeOlderThanTheRetentionIsNotCounted(t *testing.T) {
-	service := newService(&recordingPusher{})
+	service := New(&recordingPusher{})
 
 	service.AddTrace(1, "http", at("2026-09-10 10:00:00"), at("2026-09-11 12:01:00"), at("2026-09-11 12:01:00"))
 
@@ -129,7 +129,7 @@ func TestALoggingTimeOlderThanTheRetentionIsNotCounted(t *testing.T) {
 
 // A buffer document from before the receiving time was read carries none.
 func TestAMissingReceivingTimeFallsBackToTheStoringTime(t *testing.T) {
-	service := newService(&recordingPusher{})
+	service := New(&recordingPusher{})
 
 	service.AddTrace(1, "http", at("2026-09-11 12:01:00"), time.Time{}, at("2026-09-11 12:16:00"))
 
@@ -142,7 +142,7 @@ func TestAMissingReceivingTimeFallsBackToTheStoringTime(t *testing.T) {
 
 func TestAFlushHandsEverythingOverAndStartsAgain(t *testing.T) {
 	pusher := &recordingPusher{}
-	service := newService(pusher)
+	service := New(pusher)
 
 	service.AddTrace(1, "http", at("2026-09-11 12:01:00"), at("2026-09-11 12:01:00"), at("2026-09-11 12:01:00"))
 

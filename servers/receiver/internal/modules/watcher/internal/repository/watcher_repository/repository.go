@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"slogger_receiver/internal/config"
 	"slogger_receiver/pkg/foundation/errs"
-	"sync"
 
 	"slogger_receiver/internal/platform/mysql"
 )
@@ -35,21 +33,19 @@ type row struct {
 	TraceMatch []byte `db:"trace_match"`
 }
 
-var instance *Repository
-var once sync.Once
-
-func Get() *Repository {
-	once.Do(func() {
-		instance = &Repository{
-			conn:  mysql.Get(),
-			table: config.Get().Mysql().TableWatchers(),
-		}
-	})
-
-	return instance
+type Repository interface {
+	FindEnabled(ctx context.Context) ([]Watcher, int, error)
+	Close() error
 }
 
-type Repository struct {
+func NewMysqlRepository(conn *mysql.Connection, table string) *MysqlRepository {
+	return &MysqlRepository{
+		conn:  conn,
+		table: table,
+	}
+}
+
+type MysqlRepository struct {
 	conn  *mysql.Connection
 	table string
 }
@@ -64,7 +60,7 @@ type Repository struct {
 //
 // A row whose json will not parse is skipped and logged rather than failing the whole
 // read: one broken watcher must not stop the others from being collected for.
-func (r *Repository) FindEnabled(ctx context.Context) ([]Watcher, int, error) {
+func (r *MysqlRepository) FindEnabled(ctx context.Context) ([]Watcher, int, error) {
 	db, err := r.conn.DB()
 
 	if err != nil {
@@ -100,6 +96,6 @@ func (r *Repository) FindEnabled(ctx context.Context) ([]Watcher, int, error) {
 	return watchers, len(rows), nil
 }
 
-func (r *Repository) Close() error {
+func (r *MysqlRepository) Close() error {
 	return r.conn.Close()
 }

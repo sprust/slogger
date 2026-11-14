@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slogger_receiver/internal/modules/trace_metric/internal/deps"
 	"slogger_receiver/internal/modules/trace_metric/internal/repository/trace_metric_repository"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
@@ -25,22 +26,18 @@ const (
 	pushTimeout = 5 * time.Second
 )
 
-type pusher interface {
-	Push(ctx context.Context, counts map[trace_metric_repository.Key]trace_metric_repository.Counts) error
-}
-
 var instance *Service
 var once sync.Once
 
 func Get() *Service {
 	once.Do(func() {
-		instance = newService(trace_metric_repository.Get())
+		instance = New(deps.Get().TraceMetricRepository)
 	})
 
 	return instance
 }
 
-func newService(repository pusher) *Service {
+func New(repository trace_metric_repository.Repository) *Service {
 	return &Service{
 		repository: repository,
 		counts:     make(map[trace_metric_repository.Key]trace_metric_repository.Counts),
@@ -51,7 +48,7 @@ func newService(repository pusher) *Service {
 // trace carries: when the source logged it, when the buffer took it in, and when it was
 // saved in storage.
 type Service struct {
-	repository pusher
+	repository trace_metric_repository.Repository
 
 	countsMu sync.Mutex
 	counts   map[trace_metric_repository.Key]trace_metric_repository.Counts

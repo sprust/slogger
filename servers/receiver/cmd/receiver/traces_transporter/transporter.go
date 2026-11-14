@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/modules/buffer"
+	bufferEntities "slogger_receiver/internal/modules/buffer/entities"
 	"slogger_receiver/internal/modules/trace"
 	"slogger_receiver/internal/modules/trace/entities"
 	"slogger_receiver/internal/modules/trace_metric"
@@ -37,7 +38,10 @@ func nextPause(previous time.Duration, lower time.Duration, upper time.Duration)
 type Transporter struct {
 	ctx                     context.Context
 	cancel                  context.CancelFunc
-	buffer                  buffer.Service
+	findBuffer              func(context.Context) (map[int]*dto.ServiceTraces, []bufferEntities.InvalidDoc, error)
+	moveBufferToInvalid     func(context.Context, []bufferEntities.InvalidDoc) error
+	deleteBufferByIds       func(context.Context, []primitive.ObjectID) (int64, error)
+	markBufferFailed        func(context.Context, []primitive.ObjectID, int) error
 	saveTraces              func(context.Context, map[int]*dto.ServiceTraces) (entities.Result, error)
 	flush                   func()
 	totalHandledBufferCount atomic.Uint64
@@ -56,7 +60,18 @@ func New() *Transporter {
 	transporter := &Transporter{
 		ctx:    ctx,
 		cancel: cancel,
-		buffer: buffer.Get(),
+		findBuffer: func(ctx context.Context) (map[int]*dto.ServiceTraces, []bufferEntities.InvalidDoc, error) {
+			return buffer.Get().FindForTransporter(ctx)
+		},
+		moveBufferToInvalid: func(ctx context.Context, docs []bufferEntities.InvalidDoc) error {
+			return buffer.Get().MoveToInvalid(ctx, docs)
+		},
+		deleteBufferByIds: func(ctx context.Context, ids []primitive.ObjectID) (int64, error) {
+			return buffer.Get().DeleteByIds(ctx, ids)
+		},
+		markBufferFailed: func(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) error {
+			return buffer.Get().MarkFailed(ctx, ids, maxAttempts)
+		},
 		saveTraces: func(ctx context.Context, batch map[int]*dto.ServiceTraces) (entities.Result, error) {
 			return trace.Get().Save(ctx, batch)
 		},
@@ -96,7 +111,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 	// The context as well as the flag: a shutdown cancels it first, and the flush below
 	// is the point of getting out of here at all.
 	for !s.closing.Load() && ctx.Err() == nil {
-		serviceTracesMap, invalidDocs, bufferErr := s.buffer.FindForTransporter(ctx)
+		serviceTracesMap, invalidDocs, bufferErr := s.findBuffer(ctx)
 
 		if bufferErr != nil {
 			slog.Error("Failed to find traces for transporter: " + bufferErr.Error())
@@ -110,7 +125,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 		// document readable, and until it is gone it is among the oldest in the buffer and
 		// takes a place in every batch this reads.
 		if len(invalidDocs) > 0 {
-			if err := s.buffer.MoveToInvalid(ctx, invalidDocs); err != nil {
+			if err := s.moveBufferToInvalid(ctx, invalidDocs); err != nil {
 				slog.Error(errs.Err(err).Error())
 			}
 		}
@@ -139,7 +154,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 		savedIds, failedIds := splitIds(serviceTracesMap, result.Failed, err != nil)
 
 		if len(savedIds) > 0 {
-			deletedCount, err := s.buffer.DeleteByIds(batchCtx, savedIds)
+			deletedCount, err := s.deleteBufferByIds(batchCtx, savedIds)
 
 			if err != nil {
 				slog.Error(errs.Err(err).Error())
@@ -149,7 +164,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 		}
 
 		if len(failedIds) > 0 {
-			if err := s.buffer.MarkFailed(batchCtx, failedIds, maxSaveAttempts); err != nil {
+			if err := s.markBufferFailed(batchCtx, failedIds, maxSaveAttempts); err != nil {
 				slog.Error(errs.Err(err).Error())
 			}
 		}

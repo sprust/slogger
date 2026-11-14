@@ -4,59 +4,58 @@ import (
 	"context"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/modules/buffer/entities"
-	"slogger_receiver/internal/modules/buffer/errors"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/delete_by_ids_action"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/mark_failed_action"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/move_to_invalid_action"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/save_action"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/queries/find_for_transporter_action"
+	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/deleteBufferByIdsAction"
+	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/markBufferFailedAction"
+	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/moveBufferToInvalidAction"
+	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/saveBufferAction"
+	"slogger_receiver/internal/modules/buffer/internal/domain/actions/queries/findBufferForTransporterAction"
+	"slogger_receiver/internal/modules/buffer/internal/errors"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var once sync.Once
-var instance Service
-var _ Service = (*serviceImpl)(nil)
+var instance *Buffer
 
-type serviceImpl struct {
-	saveAction               *save_action.Action
-	findForTransporterAction *find_for_transporter_action.Action
-	moveToInvalidAction      *move_to_invalid_action.Action
-	deleteByIdsAction        *delete_by_ids_action.Action
-	markFailedAction         *mark_failed_action.Action
+type Buffer struct {
+	saveAction               *saveBufferAction.Action
+	findForTransporterAction *findBufferForTransporterAction.Action
+	moveToInvalidAction      *moveBufferToInvalidAction.Action
+	deleteByIdsAction        *deleteBufferByIdsAction.Action
+	markFailedAction         *markBufferFailedAction.Action
 }
 
-func Get() Service {
+func Get() *Buffer {
 	once.Do(func() {
-		instance = &serviceImpl{
-			saveAction:               save_action.Get(),
-			findForTransporterAction: find_for_transporter_action.Get(),
-			moveToInvalidAction:      move_to_invalid_action.Get(),
-			deleteByIdsAction:        delete_by_ids_action.Get(),
-			markFailedAction:         mark_failed_action.Get(),
+		instance = &Buffer{
+			saveAction:               saveBufferAction.Get(),
+			findForTransporterAction: findBufferForTransporterAction.Get(),
+			moveToInvalidAction:      moveBufferToInvalidAction.Get(),
+			deleteByIdsAction:        deleteBufferByIdsAction.Get(),
+			markFailedAction:         markBufferFailedAction.Get(),
 		}
 	})
 
 	return instance
 }
 
-func (b *serviceImpl) Save(ctx context.Context, serviceId int, traces *dto.TracesMessage) errors.BufferError {
+func (b *Buffer) Save(ctx context.Context, serviceId int, traces *dto.TracesMessage) errors.Error {
 	return b.saveAction.Handle(ctx, serviceId, traces)
 }
 
-func (b *serviceImpl) FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, []entities.InvalidDoc, errors.BufferError) {
+func (b *Buffer) FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, []entities.InvalidDoc, errors.Error) {
 	return b.findForTransporterAction.Handle(ctx)
 }
 
-func (b *serviceImpl) MoveToInvalid(ctx context.Context, docs []entities.InvalidDoc) errors.BufferError {
+func (b *Buffer) MoveToInvalid(ctx context.Context, docs []entities.InvalidDoc) errors.Error {
 	return b.moveToInvalidAction.Handle(ctx, docs)
 }
 
-func (b *serviceImpl) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, errors.BufferError) {
+func (b *Buffer) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, errors.Error) {
 	return b.deleteByIdsAction.Handle(ctx, ids)
 }
 
-func (b *serviceImpl) MarkFailed(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) errors.BufferError {
+func (b *Buffer) MarkFailed(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) errors.Error {
 	return b.markFailedAction.Handle(ctx, ids, maxAttempts)
 }
