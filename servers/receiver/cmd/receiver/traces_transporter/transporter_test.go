@@ -246,9 +246,3 @@ func TestAStopCutsOffASaveThatHangs(t *testing.T) {
 func (b *fakeBuffer) Save(context.Context, int, *dto.TracesMessage) error {
 	panic("transporter must not enqueue traces")
 }
-func (s *fakeStore) Insert(context.Context, []traceEntities.Row) error {
-	panic("transporter must merge traces before storing")
-}
-func (s *hangingStore) Insert(context.Context, []traceEntities.Row) error {
-	panic("transporter must merge traces before storing")
-}

@@ -14,7 +14,6 @@ type Config interface {
 	Username() string
 	Password() string
 	DatabaseTraces() string
-	DatabasePeriodicTraces() string
 	CollectionBuffer() string
 	CollectionInvalidBuffer() string
 	CollectionTraceMetrics() string
@@ -27,7 +26,6 @@ type mongodb struct {
 	username                   string
 	password                   string
 	databaseTraces             string
-	databasePeriodicTraces     string
 	collectionBuffer           string
 	collectionInvalidBuffer    string
 	collectionTraceMetrics     string
@@ -36,12 +34,6 @@ type mongodb struct {
 
 func Get() Config {
 	once.Do(func() {
-		databasePeriodicTraces := os.Getenv("MONGODB_DB_PERIODIC_TRACES")
-
-		if databasePeriodicTraces == "" {
-			databasePeriodicTraces = "tracesPeriodic"
-		}
-
 		collectionTraceMetrics := os.Getenv("MONGODB_COLL_TRACE_METRICS")
 
 		if collectionTraceMetrics == "" {
@@ -60,7 +52,6 @@ func Get() Config {
 			username:                   os.Getenv("MONGODB_USERNAME"),
 			password:                   os.Getenv("MONGODB_PASSWORD"),
 			databaseTraces:             os.Getenv("MONGODB_DB_TRACES"),
-			databasePeriodicTraces:     databasePeriodicTraces,
 			collectionBuffer:           os.Getenv("MONGODB_COLL_BUFFER"),
 			collectionInvalidBuffer:    os.Getenv("MONGODB_COLL_INVALID_BUFFER"),
 			collectionTraceMetrics:     collectionTraceMetrics,
@@ -89,10 +80,6 @@ func (c *mongodb) Password() string {
 
 func (c *mongodb) DatabaseTraces() string {
 	return c.databaseTraces
-}
-
-func (c *mongodb) DatabasePeriodicTraces() string {
-	return c.databasePeriodicTraces
 }
 
 func (c *mongodb) CollectionBuffer() string {

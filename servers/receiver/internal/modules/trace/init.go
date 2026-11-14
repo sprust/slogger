@@ -4,7 +4,6 @@ import (
 	"context"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/modules/trace/entities"
-	"slogger_receiver/internal/modules/trace/internal/domain/actions/mutations/insertTraceAction"
 	"slogger_receiver/internal/modules/trace/internal/domain/actions/mutations/saveTraceAction"
 	"slogger_receiver/internal/modules/trace/internal/errors"
 	"sync"
@@ -14,15 +13,13 @@ var once sync.Once
 var instance *Trace
 
 type Trace struct {
-	saveAction   *saveTraceAction.Action
-	insertAction *insertTraceAction.Action
+	saveAction *saveTraceAction.Action
 }
 
 func Get() *Trace {
 	once.Do(func() {
 		instance = &Trace{
-			saveAction:   saveTraceAction.Get(),
-			insertAction: insertTraceAction.Get(),
+			saveAction: saveTraceAction.Get(),
 		}
 	})
 
@@ -37,8 +34,4 @@ func (s *Trace) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (ent
 	}
 
 	return result, nil
-}
-
-func (s *Trace) Insert(ctx context.Context, rows []entities.Row) errors.Error {
-	return s.insertAction.Handle(ctx, rows)
 }

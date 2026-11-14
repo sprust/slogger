@@ -53,22 +53,6 @@ func New(
 		port,
 	)
 
-	return NewWithURI(uri, databaseName)
-}
-
-func NewPeriodic() *Connection {
-	conf := config.Get().Mongodb()
-
-	return New(
-		conf.Host(),
-		conf.Port(),
-		conf.DatabasePeriodicTraces(),
-		conf.Username(),
-		conf.Password(),
-	)
-}
-
-func NewWithURI(uri string, databaseName string) *Connection {
 	return &Connection{
 		uri:          uri,
 		databaseName: databaseName,
@@ -92,23 +76,4 @@ func (c *Connection) DB(ctx context.Context) (*mongo.Database, error) {
 	c.database = client.Database(c.databaseName)
 
 	return c.database, nil
-}
-
-func (c *Connection) Close(ctx context.Context) error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	if c.database == nil {
-		return nil
-	}
-
-	err := c.database.Client().Disconnect(ctx)
-
-	c.database = nil
-
-	if err != nil {
-		return errs.Err(err)
-	}
-
-	return nil
 }

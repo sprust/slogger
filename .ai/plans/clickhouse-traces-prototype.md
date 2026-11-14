@@ -478,7 +478,7 @@ MongoDB — перезапуск контейнера. Сброс кэша ОС 
 
 ### Стресс-тест 2026-09-29
 
-Нагрузка — `servers/receiver/cmd/loadgen`: генератор шлёт трейсы через сокет receiver тем же
+Нагрузка создавалась экспериментальным генератором (впоследствии удалён): он слал трейсы через сокет receiver тем же
 протоколом, что `SocketClient` из `slogger/laravel`. Деревья повторяют то, что собирают
 вотчеры: request, job, command и task в корне, под ними database, cache, event, model, gate,
 log, http-client, mail, notification, dump, schedule. Около 2% деревьев приходят неудобно:

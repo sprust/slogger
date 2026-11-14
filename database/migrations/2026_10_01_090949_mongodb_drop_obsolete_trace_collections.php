@@ -5,8 +5,7 @@ use SConcur\Features\Mongodb\Connection\Client;
 use SConcur\Features\Mongodb\Connection\Database;
 
 /**
- * Drops the collections nothing reads since the traces moved to ClickHouse. `tracesPeriodic`
- * is left to bin/traces-migrate, which moves it to ClickHouse and drops it as it goes.
+ * Drops the collections nothing reads since the traces moved to ClickHouse.
  */
 return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.

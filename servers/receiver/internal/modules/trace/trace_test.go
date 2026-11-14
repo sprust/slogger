@@ -15,8 +15,4 @@ func TestEmptyBatchReturnsNilThroughErrorInterface(t *testing.T) {
 		t.Fatalf("empty batch returned %+v, %v", result, err)
 	}
 
-	err = service.Insert(context.Background(), nil)
-	if err != nil {
-		t.Fatalf("empty insert returned a non-nil error: %v", err)
-	}
 }
