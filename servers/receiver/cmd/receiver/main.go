@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"slogger/cmd/receiver/socket_server"
 	"slogger/cmd/receiver/traces_transporter"
+	"slogger/internal/config"
 	"slogger/internal/modules/trace_metric"
 	"slogger/internal/modules/watcher"
 	"slogger/pkg/foundation/logging"
@@ -44,7 +45,7 @@ func main() {
 
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 
-	socketPort := os.Getenv("SOCKET_PORT")
+	socketPort := config.Get().Receiver().SocketPort()
 
 	socketServer := socket_server.New("tcp", ":"+socketPort)
 	transporterServer := traces_transporter.New()
