@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/pkg/foundation/errs"
 	"time"
 )
 

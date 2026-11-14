@@ -2,10 +2,10 @@ package trace
 
 import (
 	"context"
-	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/modules/trace/entities"
-	"slogger_receiver/internal/modules/trace/internal/domain/actions/mutations/saveTraceAction"
-	"slogger_receiver/internal/modules/trace/internal/errors"
+	"slogger/internal/dto"
+	"slogger/internal/modules/trace/entities"
+	"slogger/internal/modules/trace/internal/domain/actions/mutations/saveTraceAction"
+	"slogger/internal/modules/trace/internal/errors"
 	"sync"
 )
 

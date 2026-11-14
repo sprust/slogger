@@ -2,7 +2,7 @@ package collector
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/trace_metric/internal/repository/trace_metric_repository"
+	"slogger/internal/modules/trace_metric/internal/repository/trace_metric_repository"
 	"testing"
 	"time"
 )

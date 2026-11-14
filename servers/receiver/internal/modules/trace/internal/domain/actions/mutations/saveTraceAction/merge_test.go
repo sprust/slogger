@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
-	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/modules/trace/entities"
-	"slogger_receiver/internal/modules/trace/internal/repository/pending_trace_repository"
+	"slogger/internal/dto"
+	"slogger/internal/modules/trace/entities"
+	"slogger/internal/modules/trace/internal/repository/pending_trace_repository"
 	"testing"
 	"time"
 )

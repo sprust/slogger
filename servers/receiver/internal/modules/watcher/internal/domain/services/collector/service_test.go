@@ -1,8 +1,8 @@
 package collector
 
 import (
-	"slogger_receiver/internal/modules/watcher/internal/repository/watcher_repository"
-	"slogger_receiver/internal/modules/watcher/internal/repository/watcher_timeline_repository"
+	"slogger/internal/modules/watcher/internal/repository/watcher_repository"
+	"slogger/internal/modules/watcher/internal/repository/watcher_timeline_repository"
 	"strconv"
 	"testing"
 	"time"

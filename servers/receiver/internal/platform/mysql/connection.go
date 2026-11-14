@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	"slogger_receiver/internal/config"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/internal/config"
+	"slogger/pkg/foundation/errs"
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"

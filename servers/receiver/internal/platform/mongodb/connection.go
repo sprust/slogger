@@ -3,8 +3,8 @@ package mongodb
 import (
 	"context"
 	"fmt"
-	"slogger_receiver/internal/config"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/internal/config"
+	"slogger/pkg/foundation/errs"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/mongo"

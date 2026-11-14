@@ -1,9 +1,9 @@
 package config
 
 import (
-	"slogger_receiver/internal/config/internal/clickhouseConfig"
-	"slogger_receiver/internal/config/internal/mongodbConfig"
-	"slogger_receiver/internal/config/internal/mysqlConfig"
+	"slogger/internal/config/internal/clickhouseConfig"
+	"slogger/internal/config/internal/mongodbConfig"
+	"slogger/internal/config/internal/mysqlConfig"
 	"sync"
 )
 

@@ -1,9 +1,9 @@
 package deps
 
 import (
-	"slogger_receiver/internal/config"
-	"slogger_receiver/internal/modules/service/internal/repository"
-	"slogger_receiver/internal/platform/mysql"
+	"slogger/internal/config"
+	"slogger/internal/modules/service/internal/repository"
+	"slogger/internal/platform/mysql"
 	"sync"
 )
 

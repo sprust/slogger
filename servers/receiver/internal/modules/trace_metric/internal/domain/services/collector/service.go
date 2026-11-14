@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"slogger_receiver/internal/modules/trace_metric/internal/deps"
-	"slogger_receiver/internal/modules/trace_metric/internal/repository/trace_metric_repository"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/internal/modules/trace_metric/internal/deps"
+	"slogger/internal/modules/trace_metric/internal/repository/trace_metric_repository"
+	"slogger/pkg/foundation/errs"
 	"sync"
 	"time"
 )

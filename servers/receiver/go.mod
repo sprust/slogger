@@ -1,4 +1,4 @@
-module slogger_receiver
+module slogger
 
 go 1.26.0
 

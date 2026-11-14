@@ -1,7 +1,7 @@
 package addTraceAction
 
 import (
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/services/collector"
+	"slogger/internal/modules/trace_metric/internal/domain/services/collector"
 	"sync"
 	"time"
 )

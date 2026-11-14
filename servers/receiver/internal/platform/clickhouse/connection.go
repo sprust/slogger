@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"slogger_receiver/internal/config"
+	"slogger/internal/config"
 	"strings"
 	"sync"
 	"time"

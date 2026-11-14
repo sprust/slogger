@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"slogger_receiver/internal/platform/mysql"
+	"slogger/internal/platform/mysql"
 )
 
 type ServiceRepository interface {

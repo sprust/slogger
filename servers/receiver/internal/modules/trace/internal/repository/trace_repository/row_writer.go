@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
-	"slogger_receiver/internal/modules/trace/entities"
+	"slogger/internal/modules/trace/entities"
 	"strconv"
 	"unicode/utf8"
 )

@@ -2,8 +2,8 @@ package flushTraceMetricAction
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/services/collector"
-	"slogger_receiver/internal/modules/trace_metric/internal/errors"
+	"slogger/internal/modules/trace_metric/internal/domain/services/collector"
+	"slogger/internal/modules/trace_metric/internal/errors"
 	"sync"
 )
 

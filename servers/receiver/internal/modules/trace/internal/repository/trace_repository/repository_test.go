@@ -1,7 +1,7 @@
 package trace_repository
 
 import (
-	"slogger_receiver/internal/modules/trace/entities"
+	"slogger/internal/modules/trace/entities"
 	"testing"
 	"time"
 )

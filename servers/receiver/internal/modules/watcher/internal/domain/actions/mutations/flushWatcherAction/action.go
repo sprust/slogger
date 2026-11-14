@@ -2,8 +2,8 @@ package flushWatcherAction
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/watcher/internal/domain/services/collector"
-	"slogger_receiver/internal/modules/watcher/internal/errors"
+	"slogger/internal/modules/watcher/internal/domain/services/collector"
+	"slogger/internal/modules/watcher/internal/errors"
 	"sync"
 )
 

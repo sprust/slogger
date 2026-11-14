@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/pkg/foundation/errs"
 )
 
 const (

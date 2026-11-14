@@ -1,9 +1,9 @@
 package deps
 
 import (
-	"slogger_receiver/internal/config"
-	"slogger_receiver/internal/modules/trace_metric/internal/repository/trace_metric_repository"
-	"slogger_receiver/internal/platform/mongodb"
+	"slogger/internal/config"
+	"slogger/internal/modules/trace_metric/internal/repository/trace_metric_repository"
+	"slogger/internal/platform/mongodb"
 	"sync"
 )
 

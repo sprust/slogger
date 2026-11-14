@@ -3,9 +3,9 @@ package traces_transporter
 import (
 	"context"
 	"slices"
-	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/modules/buffer/entities"
-	traceEntities "slogger_receiver/internal/modules/trace/entities"
+	"slogger/internal/dto"
+	"slogger/internal/modules/buffer/entities"
+	traceEntities "slogger/internal/modules/trace/entities"
 	"sync"
 	"testing"
 	"time"

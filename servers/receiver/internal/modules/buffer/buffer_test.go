@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/modules/buffer"
-	bufferErrors "slogger_receiver/internal/modules/buffer/internal/errors"
+	"slogger/internal/dto"
+	"slogger/internal/modules/buffer"
+	bufferErrors "slogger/internal/modules/buffer/internal/errors"
 )
 
 func TestEmptyOperationsReturnNilThroughErrorInterface(t *testing.T) {

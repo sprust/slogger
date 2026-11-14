@@ -2,7 +2,7 @@ package runWatcherAction
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/watcher/internal/domain/services/collector"
+	"slogger/internal/modules/watcher/internal/domain/services/collector"
 	"sync"
 )
 

@@ -2,10 +2,10 @@ package trace_metric
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/addTraceAction"
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/flushTraceMetricAction"
-	"slogger_receiver/internal/modules/trace_metric/internal/domain/actions/mutations/runTraceMetricAction"
-	"slogger_receiver/internal/modules/trace_metric/internal/errors"
+	"slogger/internal/modules/trace_metric/internal/domain/actions/mutations/addTraceAction"
+	"slogger/internal/modules/trace_metric/internal/domain/actions/mutations/flushTraceMetricAction"
+	"slogger/internal/modules/trace_metric/internal/domain/actions/mutations/runTraceMetricAction"
+	"slogger/internal/modules/trace_metric/internal/errors"
 	"sync"
 	"time"
 )

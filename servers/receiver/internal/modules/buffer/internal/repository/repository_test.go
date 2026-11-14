@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"slogger_receiver/internal/dto"
+	"slogger/internal/dto"
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"

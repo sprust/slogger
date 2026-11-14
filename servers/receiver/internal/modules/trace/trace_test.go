@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"slogger_receiver/internal/modules/trace"
+	"slogger/internal/modules/trace"
 )
 
 func TestEmptyBatchReturnsNilThroughErrorInterface(t *testing.T) {

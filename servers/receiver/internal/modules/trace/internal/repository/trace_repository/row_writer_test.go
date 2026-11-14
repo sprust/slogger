@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"math"
 	"math/rand/v2"
-	"slogger_receiver/internal/modules/trace/entities"
+	"slogger/internal/modules/trace/entities"
 	"testing"
 )
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/pkg/foundation/errs"
 
-	"slogger_receiver/internal/platform/mysql"
+	"slogger/internal/platform/mysql"
 )
 
 // Match is the entire contract between the panel and this service: the filter of one

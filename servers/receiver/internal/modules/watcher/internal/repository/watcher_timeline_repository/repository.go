@@ -2,8 +2,8 @@ package watcher_timeline_repository
 
 import (
 	"context"
-	"slogger_receiver/internal/platform/mongodb"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/internal/platform/mongodb"
+	"slogger/pkg/foundation/errs"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"

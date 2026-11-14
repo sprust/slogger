@@ -2,11 +2,11 @@ package watcher
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/addTraceAction"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/flushWatcherAction"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/reloadWatcherAction"
-	"slogger_receiver/internal/modules/watcher/internal/domain/actions/mutations/runWatcherAction"
-	"slogger_receiver/internal/modules/watcher/internal/errors"
+	"slogger/internal/modules/watcher/internal/domain/actions/mutations/addTraceAction"
+	"slogger/internal/modules/watcher/internal/domain/actions/mutations/flushWatcherAction"
+	"slogger/internal/modules/watcher/internal/domain/actions/mutations/reloadWatcherAction"
+	"slogger/internal/modules/watcher/internal/domain/actions/mutations/runWatcherAction"
+	"slogger/internal/modules/watcher/internal/errors"
 	"sync"
 	"time"
 )

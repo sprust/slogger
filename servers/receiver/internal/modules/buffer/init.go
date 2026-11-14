@@ -2,14 +2,14 @@ package buffer
 
 import (
 	"context"
-	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/modules/buffer/entities"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/deleteBufferByIdsAction"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/markBufferFailedAction"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/moveBufferToInvalidAction"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/mutations/saveBufferAction"
-	"slogger_receiver/internal/modules/buffer/internal/domain/actions/queries/findBufferForTransporterAction"
-	"slogger_receiver/internal/modules/buffer/internal/errors"
+	"slogger/internal/dto"
+	"slogger/internal/modules/buffer/entities"
+	"slogger/internal/modules/buffer/internal/domain/actions/mutations/deleteBufferByIdsAction"
+	"slogger/internal/modules/buffer/internal/domain/actions/mutations/markBufferFailedAction"
+	"slogger/internal/modules/buffer/internal/domain/actions/mutations/moveBufferToInvalidAction"
+	"slogger/internal/modules/buffer/internal/domain/actions/mutations/saveBufferAction"
+	"slogger/internal/modules/buffer/internal/domain/actions/queries/findBufferForTransporterAction"
+	"slogger/internal/modules/buffer/internal/errors"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"

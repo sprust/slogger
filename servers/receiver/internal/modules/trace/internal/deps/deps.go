@@ -1,10 +1,10 @@
 package deps
 
 import (
-	"slogger_receiver/internal/modules/trace/internal/repository/pending_trace_repository"
-	"slogger_receiver/internal/modules/trace/internal/repository/trace_repository"
-	"slogger_receiver/internal/platform/clickhouse"
-	"slogger_receiver/internal/platform/mongodb"
+	"slogger/internal/modules/trace/internal/repository/pending_trace_repository"
+	"slogger/internal/modules/trace/internal/repository/trace_repository"
+	"slogger/internal/platform/clickhouse"
+	"slogger/internal/platform/mongodb"
 	"sync"
 )
 

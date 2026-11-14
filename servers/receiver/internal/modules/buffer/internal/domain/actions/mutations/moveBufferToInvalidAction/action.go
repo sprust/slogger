@@ -2,10 +2,10 @@ package moveBufferToInvalidAction
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/buffer/entities"
-	"slogger_receiver/internal/modules/buffer/internal/deps"
-	"slogger_receiver/internal/modules/buffer/internal/errors"
-	"slogger_receiver/internal/modules/buffer/internal/repository"
+	"slogger/internal/modules/buffer/entities"
+	"slogger/internal/modules/buffer/internal/deps"
+	"slogger/internal/modules/buffer/internal/errors"
+	"slogger/internal/modules/buffer/internal/repository"
 	"sync"
 )
 

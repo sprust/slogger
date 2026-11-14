@@ -2,9 +2,9 @@ package findServiceByTokenAction
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/service/internal/deps"
-	"slogger_receiver/internal/modules/service/internal/errors"
-	"slogger_receiver/internal/modules/service/internal/repository"
+	"slogger/internal/modules/service/internal/deps"
+	"slogger/internal/modules/service/internal/errors"
+	"slogger/internal/modules/service/internal/repository"
 	"sync"
 	"time"
 )

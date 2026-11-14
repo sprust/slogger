@@ -1,11 +1,11 @@
 package deps
 
 import (
-	"slogger_receiver/internal/config"
-	"slogger_receiver/internal/modules/watcher/internal/repository/watcher_repository"
-	"slogger_receiver/internal/modules/watcher/internal/repository/watcher_timeline_repository"
-	"slogger_receiver/internal/platform/mongodb"
-	"slogger_receiver/internal/platform/mysql"
+	"slogger/internal/config"
+	"slogger/internal/modules/watcher/internal/repository/watcher_repository"
+	"slogger/internal/modules/watcher/internal/repository/watcher_timeline_repository"
+	"slogger/internal/platform/mongodb"
+	"slogger/internal/platform/mysql"
 	"sync"
 )
 

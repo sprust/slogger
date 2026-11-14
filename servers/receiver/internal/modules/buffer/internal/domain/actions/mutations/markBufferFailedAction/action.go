@@ -2,9 +2,9 @@ package markBufferFailedAction
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/buffer/internal/deps"
-	"slogger_receiver/internal/modules/buffer/internal/errors"
-	"slogger_receiver/internal/modules/buffer/internal/repository"
+	"slogger/internal/modules/buffer/internal/deps"
+	"slogger/internal/modules/buffer/internal/errors"
+	"slogger/internal/modules/buffer/internal/repository"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"

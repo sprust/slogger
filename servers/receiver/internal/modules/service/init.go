@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"slogger_receiver/internal/modules/service/internal/domain/actions/queries/findServiceByTokenAction"
-	"slogger_receiver/internal/modules/service/internal/errors"
+	"slogger/internal/modules/service/internal/domain/actions/queries/findServiceByTokenAction"
+	"slogger/internal/modules/service/internal/errors"
 	"sync"
 )
 

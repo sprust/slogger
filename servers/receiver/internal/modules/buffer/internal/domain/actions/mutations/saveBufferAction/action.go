@@ -3,11 +3,11 @@ package saveBufferAction
 import (
 	"context"
 	"encoding/json"
-	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/modules/buffer/internal/deps"
-	"slogger_receiver/internal/modules/buffer/internal/errors"
-	"slogger_receiver/internal/modules/buffer/internal/repository"
-	"slogger_receiver/pkg/foundation/errs"
+	"slogger/internal/dto"
+	"slogger/internal/modules/buffer/internal/deps"
+	"slogger/internal/modules/buffer/internal/errors"
+	"slogger/internal/modules/buffer/internal/repository"
+	"slogger/pkg/foundation/errs"
 	"sync"
 )
 
